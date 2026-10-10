@@ -1,5 +1,10 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
+import { 
+  getFirestore, 
+  initializeFirestore, 
+  persistentLocalCache, 
+  persistentMultipleTabManager 
+} from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
@@ -11,9 +16,21 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:123:web:abc"
 };
 
-if (!import.meta.env.VITE_FIREBASE_API_KEY) {
-  console.log("Firebase env missing - running in offline mode");
-}
+const initFirestoreDb = (targetApp) => {
+  try {
+    return initializeFirestore(targetApp, {
+      localCache: persistentLocalCache({
+        tabManager: persistentMultipleTabManager()
+      })
+    });
+  } catch (e) {
+    try {
+      return getFirestore(targetApp);
+    } catch (err) {
+      return null;
+    }
+  }
+};
 
 let app = null;
 let db = null;
@@ -25,7 +42,7 @@ let isFirebaseConfigured = Boolean(
 
 try {
   app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-  db = getFirestore(app);
+  db = initFirestoreDb(app);
   storage = getStorage(app);
 } catch (err) {
   console.warn("Firebase initialization notice:", err);
@@ -44,11 +61,12 @@ export const initFirebase = (customConfig = null) => {
   if (config && config.apiKey && config.apiKey !== "dummy") {
     try {
       app = getApps().length === 0 ? initializeApp(config) : getApp();
-      db = getFirestore(app);
+      db = initFirestoreDb(app);
       storage = getStorage(app);
       isFirebaseConfigured = true;
       return { app, db, storage, isConfigured: true };
     } catch (e) {
+      console.warn("initFirebase error:", e);
       isFirebaseConfigured = false;
     }
   }

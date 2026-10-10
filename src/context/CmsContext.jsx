@@ -8,7 +8,7 @@ import {
 } from '../services/cmsService';
 import { executeAutoPublish } from '../services/autoPublisher';
 import { db, isFirebaseConfigured, initFirebase, getStoredFirebaseConfig } from '../services/firebase';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 
 const CmsContext = createContext();
 
@@ -17,33 +17,46 @@ export const CmsProvider = ({ children }) => {
   const [firebaseStatus, setFirebaseStatus] = useState(isFirebaseConfigured);
   const [loading, setLoading] = useState(false);
 
-  // Sync with Firestore on mount if configured
+  // Real-time synchronization with Firestore (Online & Offline cache)
   useEffect(() => {
-    const syncFromFirestore = async () => {
-      if (!db) return;
-      try {
-        setLoading(true);
-        // Load collections from Firestore doc
-        const configDoc = await getDoc(doc(db, "settings", "cmsConfig"));
-        if (configDoc.exists()) {
-          const remoteData = configDoc.data();
+    if (!db || !firebaseStatus) return;
+
+    setLoading(true);
+    const unsubscribe = onSnapshot(
+      doc(db, "settings", "cmsConfig"),
+      (snapshot) => {
+        if (snapshot.exists()) {
+          const remoteData = snapshot.data();
           setCmsData(prev => {
             const merged = { ...prev, ...remoteData };
             saveLocalCmsData(merged);
             return merged;
           });
         }
-      } catch (err) {
-        console.warn('Firestore sync failed, continuing with local store:', err);
-      } finally {
+        setLoading(false);
+      },
+      (err) => {
+        console.warn('Firestore real-time sync notice:', err);
         setLoading(false);
       }
-    };
+    );
 
-    if (isFirebaseConfigured) {
-      syncFromFirestore();
-    }
+    return () => unsubscribe();
   }, [firebaseStatus]);
+
+  // Synchronize across open windows / tabs on the same device
+  useEffect(() => {
+    const handleStorage = (e) => {
+      if (e.key === 'amsed_cms_database_v3' && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue);
+          setCmsData(parsed);
+        } catch (err) {}
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
 
   // Helper to persist updates to both state, local storage, and Firestore
   const persistUpdate = async (key, value) => {
