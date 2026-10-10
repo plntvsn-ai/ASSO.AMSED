@@ -1,18 +1,18 @@
 @import "tailwindcss";
 
-.logo-transparent, header img, nav img {
-  background: transparent !important;
-  box-shadow: none !important;
-}
-
-.logo-transparent, header img, nav img, .header-logo img {
+.logo-transparent, header img, nav img, .header-logo img, footer img {
   background: transparent !important;
   background-color: transparent !important;
   box-shadow: none !important;
   border: none !important;
+  border-radius: 9999px !important;
+  clip-path: circle(50%) !important;
+  object-fit: contain !important;
 }
-header, nav, .logo-wrapper {
+
+.logo-wrapper {
   background: transparent !important;
+  border-radius: 9999px !important;
 }
 
 

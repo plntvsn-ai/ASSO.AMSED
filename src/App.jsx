@@ -84,6 +84,31 @@ export default function App() {
                 <Route path="firebase" element={<FirebaseSettingsAdmin />} />
               </Route>
 
+              {/* Secret Obfuscated Admin Portal Route for Native Desktop/Mobile App */}
+              <Route path="/portal-amsed-secure-x98k21/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
+                <Route index element={<Dashboard />} />
+                <Route path="settings/advanced" element={<AdvancedSettings />} />
+                <Route path="auto" element={<AutoPublisher />} />
+                <Route path="articles" element={<ArticlesAdmin />} />
+                <Route path="videos" element={<VideosAdmin />} />
+                <Route path="topics" element={<TopicsAdmin />} />
+                <Route path="researchers" element={<ResearchersAdmin />} />
+                <Route path="review" element={<ReviewAdmin />} />
+                <Route path="messages" element={<MessagesAdmin />} />
+                
+                <Route path="menus" element={<MenusAdmin />} />
+                <Route path="buttons" element={<ButtonsAdmin />} />
+                <Route path="pages" element={<PagesAdmin />} />
+                <Route path="pages/:pageKey" element={<PagesAdmin />} />
+                <Route path="hero" element={<HeroAdmin />} />
+                <Route path="stats" element={<StatsAdmin />} />
+                <Route path="gallery" element={<GalleryAdmin />} />
+                <Route path="archives" element={<ArchivesAdmin />} />
+                <Route path="contact" element={<ContactAdmin />} />
+                <Route path="logo" element={<LogoAdmin />} />
+                <Route path="firebase" element={<FirebaseSettingsAdmin />} />
+              </Route>
+
               {/* Catch-all Redirect */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

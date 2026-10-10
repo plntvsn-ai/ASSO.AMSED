@@ -10,7 +10,6 @@ import { VideosSection } from '../components/VideosSection';
 import { DonationSection } from '../components/DonationSection';
 import { ContactSection } from '../components/ContactSection';
 import { Footer } from '../components/Footer';
-import { AdminModal } from '../components/AdminModal';
 import { useCms } from '../context/CmsContext';
 import { autoGenerateAndPublish } from '../services/autoPublisher';
 import { doc, getDoc } from 'firebase/firestore';
@@ -19,7 +18,6 @@ import { Phone, MessageCircle } from 'lucide-react';
 
 export default function Home() {
   const { cmsData, triggerAutoPublish } = useCms();
-  const [adminOpen, setAdminOpen] = useState(false);
 
   useEffect(()=>{
     const run=async()=>{
@@ -95,7 +93,7 @@ export default function Home() {
       <ContactSection />
 
       {/* 11. Footer */}
-      <Footer onOpenAdmin={() => setAdminOpen(true)} />
+      <Footer />
 
       {/* Floating Action Buttons */}
       <aside aria-label="أزرار التواصل السريع" className="fixed bottom-6 left-6 z-30 flex flex-col gap-3">
@@ -122,12 +120,6 @@ export default function Home() {
           <Phone className="w-6 h-6 text-emerald-400" />
         </a>
       </aside>
-
-      {/* Admin Quick Modal */}
-      <AdminModal
-        isOpen={adminOpen}
-        onClose={() => setAdminOpen(false)}
-      />
     </div>
   );
 }

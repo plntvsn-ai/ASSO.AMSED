@@ -29,18 +29,18 @@ export const Navbar = ({ onOpenAdmin }) => {
   }, []);
 
   const cmsHeaderMenus = cmsData?.menus?.headerMenus;
-  const navLinks = (cmsHeaderMenus && cmsHeaderMenus.length > 0)
+  const rawNavLinks = (cmsHeaderMenus && cmsHeaderMenus.length > 0)
     ? cmsHeaderMenus.map(m => ({ href: m.link, label: m.label }))
     : [
         { href: '/', label: t('nav', 'home') },
-        { href: '/articles', label: 'المقالات والأخبار' },
-        { href: '/#services', label: t('nav', 'services') },
-        { href: '/#gallery', label: t('nav', 'gallery') },
-        { href: '/#videos', label: t('nav', 'videos') },
         { href: '/about', label: 'من نحن' },
-        { href: '/#donate', label: t('nav', 'donate') },
+        { href: '/#services', label: t('nav', 'services') },
+        { href: '/articles', label: 'المقالات والأخبار' },
+        { href: '/#videos', label: t('nav', 'videos') },
+        { href: '/#gallery', label: t('nav', 'gallery') },
         { href: '/#contact', label: t('nav', 'contact') },
       ];
+  const navLinks = rawNavLinks.filter(l => !l.href?.includes('donate') && !l.label?.includes('تبرع'));
 
   const languages = [
     { code: 'ar', label: 'العربية', flag: '🇲🇦' },
@@ -120,16 +120,6 @@ export const Navbar = ({ onOpenAdmin }) => {
                 </a>
               )}
             </div>
-
-            {/* Admin Quick Login Icon */}
-            <Link
-              to="/admin"
-              className="inline-flex items-center gap-1 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white px-2.5 py-1 rounded-lg text-xs border border-slate-700 transition"
-              title="لوحة تحكم CMS (/admin)"
-            >
-              <Lock className="w-3 h-3 text-amber-400" />
-              <span className="hidden sm:inline">لوحة التحكم (/admin)</span>
-            </Link>
           </div>
         </div>
       </div>
@@ -215,15 +205,6 @@ export const Navbar = ({ onOpenAdmin }) => {
                 </div>
               )}
             </div>
-
-            {/* Donate CTA button */}
-            <a
-              href="#donate"
-              className="inline-flex items-center gap-1.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs px-4 py-2 rounded-lg shadow-sm hover:shadow transition transform hover:-translate-y-0.5"
-            >
-              <Heart className="w-3.5 h-3.5 fill-white" />
-              <span>{t('nav', 'donate')}</span>
-            </a>
           </div>
 
           {/* Mobile Menu Button */}
@@ -282,27 +263,6 @@ export const Navbar = ({ onOpenAdmin }) => {
                   {link.label}
                 </a>
               ))}
-            </div>
-
-            {/* Mobile Action Buttons */}
-            <div className="pt-2 flex flex-col gap-2">
-              <a
-                href={cmsData?.buttons?.navDonate_link || "#donate"}
-                onClick={() => setMobileMenuOpen(false)}
-                className="w-full text-center flex items-center justify-center gap-2 bg-emerald-700 text-white py-2.5 rounded-lg font-bold text-sm shadow"
-              >
-                <Heart className="w-4 h-4 fill-white" />
-                {cmsData?.buttons?.navDonate_text || t('nav', 'donate')}
-              </a>
-
-              <Link
-                to="/admin"
-                onClick={() => setMobileMenuOpen(false)}
-                className="w-full flex items-center justify-center gap-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded-xl text-xs font-bold border border-slate-200"
-              >
-                <Lock className="w-3.5 h-3.5 text-amber-600" />
-                <span>لوحة التحكم (/admin)</span>
-              </Link>
             </div>
           </div>
         )}

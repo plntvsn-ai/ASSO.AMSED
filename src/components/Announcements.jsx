@@ -165,10 +165,10 @@ export const Announcements = () => {
 
                       {item.category === 'urgent' && (
                         <a
-                          href="#donate"
-                          className="text-xs bg-red-600 hover:bg-red-700 text-white font-bold px-2.5 py-1 rounded-md shadow-sm transition"
+                          href="#contact"
+                          className="text-xs bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-2.5 py-1 rounded-md shadow-sm transition"
                         >
-                          {t('hero', 'donateNow')}
+                          تواصل للمساعدة
                         </a>
                       )}
                     </div>
