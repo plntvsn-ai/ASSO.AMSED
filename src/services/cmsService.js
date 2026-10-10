@@ -1,0 +1,443 @@
+import { db, storage, isFirebaseConfigured } from './firebase';
+import { 
+  collection, doc, getDocs, getDoc, setDoc, addDoc, updateDoc, deleteDoc, query, orderBy 
+} from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { initialData } from '../data/initialData';
+
+const LOCAL_STORAGE_KEY = 'amsed_cms_database_v3';
+
+// Default CMS Data Structure
+export const defaultCmsData = {
+  // 1. Articles
+  articles: [
+    {
+      id: "art-1",
+      title: "انطلاق التسجيل في قسم التعليم الأولي المكيف وبرامج الإدماج المدرسي للموسم الجديد",
+      content: "تعلن جمعية المبادرة المغربية للتكافل والتعاون لرعاية الأطفال في وضعية صعبة بالقنيطرة عن فتح باب التسجيل والاستفادة من خدمات قسم التعليم الأولي المكيف، والمواكبة عبر المشاريع التربوية الفردية (PPI)، مع توفير وتأطير مرافقي الحياة المدرسية (AVS) للأطفال المدمجين في المدارس العادية.",
+      image: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=1000&q=80",
+      category: "التعليم والإدماج",
+      author: "إدارة الجمعية",
+      createdAt: "2026-10-10",
+      published: true
+    },
+    {
+      id: "art-2",
+      title: "افتتاح الورشات المهنية التطبيقية (حلويات، خياطة، ورسم) للأطفال فوق 12 سنة",
+      content: "في إطار بناء الاستقلالية والتمكين المهني، دشن مركز الجمعية بالساكنية بالقنيطرة سلسلة الورشات الحرفية المجهزة لليافعين فوق 12 سنة وتشمل: ورشة صنع الحلويات والمخبوزات، ورشة الخياطة والفصالة، وورشات الفنون التشكيلية.",
+      image: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=1000&q=80",
+      category: "التأهيل المهني",
+      author: "اللجنة التربوية",
+      createdAt: "2026-10-04",
+      published: true
+    },
+    {
+      id: "art-3",
+      title: "خرجة استكشافية وترفيهية لأطفال الجمعية في الطبيعة لتعزيز الاندماج الاجتماعي",
+      content: "نظمت الجمعية رحلة ترفيهية وتربوية استمتع خلالها المستفيدون بأنشطة حركية وألعاب جماعية في الهواء الطلق، عززت روح الفريق وروح التضامن والبهجة في نفوس الأطفال.",
+      image: "https://images.unsplash.com/photo-1472162072942-cd5147eb3902?auto=format&fit=crop&w=1000&q=80",
+      category: "أنشطة وترفيه",
+      author: "فريق التنشيط",
+      createdAt: "2026-09-27",
+      published: true
+    }
+  ],
+
+  // 2. Menus
+  menus: {
+    headerMenus: [
+      { id: "m-1", label: "الرئيسية", link: "/", order: 1 },
+      { id: "m-2", label: "المقالات والأخبار", link: "/articles", order: 2 },
+      { id: "m-3", label: "خدماتنا", link: "/#services", order: 3 },
+      { id: "m-4", label: "معرض الصور", link: "/#gallery", order: 4 },
+      { id: "m-5", label: "فيديوهات الميدان", link: "/#videos", order: 5 },
+      { id: "m-6", label: "من نحن", link: "/about", order: 6 },
+      { id: "m-7", label: "اتصل بنا", link: "/#contact", order: 7 }
+    ],
+    footerMenus: [
+      { id: "fm-1", label: "الرئيسية", link: "/", order: 1 },
+      { id: "fm-2", label: "أحدث المقالات", link: "/articles", order: 2 },
+      { id: "fm-3", label: "برامج الكفالة", link: "/#donate", order: 3 },
+      { id: "fm-4", label: "من نحن والأهداف", link: "/about", order: 4 },
+      { id: "fm-5", label: "الموقع على الخريطة", link: "https://maps.app.goo.gl/dB123S6xmCadzDMC6", order: 5 }
+    ]
+  },
+
+  // 3. Buttons (every button in the website is customizable)
+  buttons: {
+    heroBtn1_text: "ساهم معنا وتبرع",
+    heroBtn1_link: "/#donate",
+    heroBtn1_color: "emerald", // emerald, amber, blue, rose, slate
+    heroBtn2_text: "استكشف خدماتنا",
+    heroBtn2_link: "/#services",
+    heroBtn2_color: "slate",
+    navDonate_text: "تبرع الآن",
+    navDonate_link: "/#donate",
+    navDonate_color: "emerald",
+    serviceInquire_text: "طلب تسجيل أو استفسار",
+    serviceInquire_link: "/#contact",
+    serviceInquire_color: "emerald",
+    whatsappBtn_text: "تواصل عبر واتساب فوراً",
+    whatsappBtn_link: "https://wa.me/212663780107",
+    whatsappBtn_color: "emerald",
+    mapBtn_text: "فتح موقعنا في Google Maps",
+    mapBtn_link: "https://maps.app.goo.gl/dB123S6xmCadzDMC6",
+    mapBtn_color: "amber"
+  },
+
+  // 4. Pages Sections
+  pages: {
+    home: {
+      sections: [
+        {
+          id: "sec-about-snippet",
+          title: "من نحن ورسالتنا النبيلة",
+          text: "جمعية المبادرة المغربية للتكافل والتعاون لرعاية الأطفال في وضعية صعبة (القنيطرة) هي إطار مدني رائد يعمل بروح المسؤولية الوطنية على احتضان ورعاية وتأهيل الأطفال في وضعية هشاشة، وتوفير التعليم المكيف، وورشات المهارات الحياتية، والمواكبة الاجتماعية والنفسية.",
+          image: "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=800&q=80",
+          buttonText: "اقرأ المزيد عنا",
+          buttonLink: "/about",
+          visible: true
+        },
+        {
+          id: "sec-ppi-banner",
+          title: "مبدأنا الأساسي: كل طفل عندو برنامج فردي خاص بيه (PPI)",
+          text: "نؤمن بأن كل طفل حالة فريدة تستحق الاهتمام؛ لذلك يوضع لكل مستفيد مشروع بيداغوجي فردي يتلاءم مع قدراته واحتياجاته النمائية تحت إشراف فريق متخصص.",
+          image: "",
+          buttonText: "تعرف على برامجنا",
+          buttonLink: "/#services",
+          visible: true
+        }
+      ]
+    },
+    about: {
+      title: "من نحن - جمعية المبادرة المغربية للتكافل والتعاون",
+      subtitle: "تاريخ من العطاء والتضامن الميداني لرعاية الطفولة في وضعية صعبة",
+      sections: [
+        {
+          id: "about-sec-vision",
+          title: "رؤيتنا ورسالتنا الإنسانية",
+          text: "نسعى إلى بناء مجتمع يتمتع فيه كل طفل بحقه في الكرامة، التعليم المكيف، الرعاية الصحية، والاستقلالية الذاتية، تحت الرعاية السامية لقيم التضامن الوطني.",
+          image: "https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=800&q=80",
+          buttonText: "خدماتنا الميدانية",
+          buttonLink: "/#services",
+          visible: true
+        },
+        {
+          id: "about-sec-avs",
+          title: "ريادة في الإدماج المدرسي ومرافقة AVS",
+          text: "تعتبر جمعيتنا من المؤسسات الرائدة في تيسير ولوج الأطفال للمدارس العادية من خلال توفير وتأطير مساعدي الحياة المدرسية (AVS) ومواكبة الأسر لتجاوز كافة الصعوبات.",
+          image: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=800&q=80",
+          buttonText: "اتصل بإدارة الجمعية",
+          buttonLink: "/#contact",
+          visible: true
+        }
+      ]
+    }
+  },
+
+  // 5. Hero Config (as requested: VIDEO_ID الحالي CSwDq9szfj0)
+  hero: {
+    videoId: "CSwDq9szfj0",
+    title: "جمعية المبادرة المغربية للتكافل والتعاون",
+    subtitle: "لرعاية الأطفال في وضعية صعبة بالقنيطرة",
+    description: "نعمل بروح التضامن الوطني على توفير التعليم الأولي المكيف، ورشات المهارات الحياتية، التأهيل المهني، والإدماج المدرسي بمرافقة AVS.",
+    button1Text: "ساهم معنا وتبرع",
+    button1Link: "/#donate",
+    button2Text: "استكشف خدماتنا",
+    button2Link: "/#services",
+    overlayOpacity: 0.65,
+    showVideoBackground: true
+  },
+
+  // 6. Stats Config
+  stats: {
+    s1_val: "+650",
+    s1_label: "طفل مستفيد سنوياً",
+    s1_icon: "Smile",
+    s2_val: "+45",
+    s2_label: "مستفيد في ورشات المهارات المهنية",
+    s2_icon: "Sparkles",
+    s3_val: "+80",
+    s3_label: "طفل مدمج بالمدارس مع مرافقة AVS",
+    s3_icon: "GraduationCap",
+    s4_val: "+85",
+    s4_label: "متطوع ومتطوعة وأطر تربوية",
+    s4_icon: "Users"
+  },
+
+  // 7. Videos Collection (Channel: UCBPlqmKVq9KvzXMEmp5dDPQ)
+  videos: [
+    {
+      id: "yt-CSwDq9szfj0",
+      youtubeId: "CSwDq9szfj0",
+      title: "جمعية المبادرة المغربية للتكافل والتعاون لرعاية الأطفال في وضعية صعبة",
+      desc: "الفيديو التعريفي الرسمي: أنشطة، برامج التعليم المكيف، والتأهيل المهني لأطفال الجمعية بالقنيطرة.",
+      publishedDate: "2026-09-15",
+      isDailyFeatured: true,
+      views: "50+"
+    },
+    {
+      id: "yt-1LD18Si_cMA",
+      youtubeId: "1LD18Si_cMA",
+      title: "الحلقة07 مستويات الدعم",
+      desc: "سلسلة التوحد - الحلقة السابعة: التعرف على مختلف مستويات الدعم والمواكبة الفردية لطفل التوحد.",
+      publishedDate: "2026-09-20",
+      isDailyFeatured: false,
+      views: "10+"
+    },
+    {
+      id: "yt-MrGwiabWbXk",
+      youtubeId: "MrGwiabWbXk",
+      title: "الحلقة06 الأنواع النادرة",
+      desc: "سلسلة التوحد - الحلقة السادسة: تسليط الضوء على الأنواع النادرة وطرق التدخل المبكر.",
+      publishedDate: "2026-09-20",
+      isDailyFeatured: false,
+      views: "12+"
+    },
+    {
+      id: "yt-k_UcFCFTD6g",
+      youtubeId: "k_UcFCFTD6g",
+      title: "الحلقة05 التوحد غير النمطي",
+      desc: "سلسلة التوحد - الحلقة الخامسة: فهم التوحد غير النمطي والخصائص السلوكية المصاحبة له.",
+      publishedDate: "2026-09-20",
+      isDailyFeatured: false,
+      views: "9+"
+    },
+    {
+      id: "yt-BRqcX95FrIc",
+      youtubeId: "BRqcX95FrIc",
+      title: "الحلقة04 متلازمة أسبرجر",
+      desc: "سلسلة التوحد - الحلقة الرابعة: متلازمة أسبرجر، المميزات المعرفية وطرق تنمية المهارات الاجتماعية.",
+      publishedDate: "2026-09-20",
+      isDailyFeatured: false,
+      views: "32+"
+    },
+    {
+      id: "yt-KX7O6au_vac",
+      youtubeId: "KX7O6au_vac",
+      title: "الحلقة03 التوحد الكلاسيكي",
+      desc: "سلسلة التوحد - الحلقة الثالثة: التوحد الكلاسيكي وسبل تيسير التواصل اللغوي والجسدي.",
+      publishedDate: "2026-09-20",
+      isDailyFeatured: false,
+      views: "57+"
+    },
+    {
+      id: "yt-ZBrEN8Ks2nw",
+      youtubeId: "ZBrEN8Ks2nw",
+      title: "الحلقة02 أنواع التوحد",
+      desc: "سلسلة التوحد - الحلقة الثانية: استعراض شامل لمختلف طيف التوحد والفروق الفردية بين الأطفال.",
+      publishedDate: "2026-09-20",
+      isDailyFeatured: false,
+      views: "14+"
+    },
+    {
+      id: "yt-gYssnHgr5Wg",
+      youtubeId: "gYssnHgr5Wg",
+      title: "الحلقة01 تعريف التوحد",
+      desc: "سلسلة التوحد - الحلقة الأولى: المدخل العام لتعريف اضطراب طيف التوحد والمفاهيم الأساسية للأسر.",
+      publishedDate: "2026-09-20",
+      isDailyFeatured: false,
+      views: "8+"
+    }
+  ],
+
+  // 8. Gallery
+  gallery: [
+    {
+      id: "gal-1",
+      image: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=900&q=80",
+      title: "ورشة صناعة الحلويات التطبيقية لليافعين فوق 12 سنة",
+      category: "activities"
+    },
+    {
+      id: "gal-2",
+      image: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=900&q=80",
+      title: "قسم التعليم الأولي المكيف وتطوير المهارات المعرفية",
+      category: "education"
+    },
+    {
+      id: "gal-3",
+      image: "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?auto=format&fit=crop&w=900&q=80",
+      title: "ورشات المهارات الحياتية والاستقلالية الذاتية للطفل",
+      category: "activities"
+    },
+    {
+      id: "gal-4",
+      image: "https://images.unsplash.com/photo-1472162072942-cd5147eb3902?auto=format&fit=crop&w=900&q=80",
+      title: "خرجة ترفيهية واستكشافية لأطفال الجمعية في الهواء الطلق",
+      category: "activities"
+    },
+    {
+      id: "gal-5",
+      image: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=900&q=80",
+      title: "ورشة الخياطة والفنون التشكيلية للأطفال فوق 12 سنة",
+      category: "activities"
+    },
+    {
+      id: "gal-6",
+      image: "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&w=900&q=80",
+      title: "حفل تكريم الأطفال المتفوقين في برامج الإدماج المدرسي",
+      category: "education"
+    }
+  ],
+
+  // 9. Archives (PDFs & Documents)
+  archives: [
+    {
+      id: "arch-1",
+      title: "القانون الأساسي لجمعية المبادرة المغربية للتكافل والتعاون",
+      fileName: "Statuts_Association_AMSED.pdf",
+      fileUrl: "#",
+      fileType: "PDF",
+      date: "2026-01-15",
+      size: "1.4 MB"
+    },
+    {
+      id: "arch-2",
+      title: "التقرير الأدبي والمالي السنوي لأنشطة الجمعية",
+      fileName: "Rapport_Moral_Financier_AMSED.pdf",
+      fileUrl: "#",
+      fileType: "PDF",
+      date: "2026-06-30",
+      size: "2.8 MB"
+    },
+    {
+      id: "arch-3",
+      title: "دليل أولياء الأمور: المهارات الحياتية والاستقلالية في البيت",
+      fileName: "Guide_Parents_Autonomie_Enfant.pdf",
+      fileUrl: "#",
+      fileType: "PDF",
+      date: "2026-09-01",
+      size: "3.1 MB"
+    }
+  ],
+
+  // 10. Contact Info
+  contact: {
+    phone1: "0663780107",
+    phone2: "0654240523",
+    email: "asso.amsed@gmail.com",
+    facebookUrl: "https://facebook.com/amsed.maroc",
+    youtubeUrl: "https://youtube.com/@association-amesd",
+    youtubeChannelId: "UCBPlqmKVq9KvzXMEmp5dDPQ",
+    youtubeHandle: "@association-amesd",
+    address: "تجزئة الحزام، رقم د 25، الساكنية، القنيطرة 14000، المملكة المغربية",
+    mapUrl: "https://maps.app.goo.gl/dB123S6xmCadzDMC6",
+    bankName: "التجاري وفا بنك (Attijariwafa Bank)",
+    accountHolder: "جمعية المبادرة المغربية للتكافل والتعاون",
+    rib: "007 780 0001234567890123 45",
+    swift: "BCMAMAMC"
+  },
+
+  // 11. Logo
+  logo: {
+    url: "/logo.jpg",
+    officialUrl: "/logo-official.jpg",
+    name: "جمعية المبادرة المغربية للتكافل والتعاون",
+    motto: "الله • الوطن • الملك"
+  },
+
+  // 12. Autonomous Publisher System (نظام النشر الأوتوماتيكي)
+  autoTopics: [
+    { id: "top-1", title: "صحة الطفل في المناطق الهشة وأهمية القوافل الطبية المتخصصة", category: "قوافل ومبادرات", used: false },
+    { id: "top-2", title: "أهمية التلقيح والمتابعة الصحية الدورية لنمو الأطفال السليم", category: "صحة الطفل", used: false },
+    { id: "top-3", title: "كيف نساعد طفلاً في وضعية صعبة على استعادة ثقته وابتسامته", category: "التعليم والإدماج", used: false },
+    { id: "top-4", title: "التكافل الاجتماعي ورعاية الأيتام والضعفاء: قيم وطنية وإنسانية راسخة", category: "التكافل والتضامن", used: false },
+    { id: "top-5", title: "القوافل الطبية المتنقلة ودورها في تعزيز العدالة الصحية الميدانية", category: "قوافل ومبادرات", used: false },
+    { id: "top-6", title: "قسم التعليم الأولي المكيف: خطوة تأسيسية نحو الاندماج المدرسي الناجح", category: "التعليم والإدماج", used: false },
+    { id: "top-7", title: "ورشات المهارات الحياتية: تعليم الطفل الاستقلالية في الأكل واللباس والنظافة", category: "التأهيل المهني", used: false },
+    { id: "top-8", title: "التأهيل الحرفي لليافعين فوق 12 سنة: ورشات الحلويات والخياطة كمدخل للكرامة", category: "التأهيل المهني", used: false },
+    { id: "top-9", title: "دور مرافق الحياة المدرسية (AVS) في تسهيل إدماج الأطفال في المدارس العادية", category: "التعليم والإدماج", used: false },
+    { id: "top-10", title: "محاربة الأمية والهدر المدرسي للأطفال الذين تجاوزوا سن التمدرس القانوني", category: "التعليم والإدماج", used: false },
+    { id: "top-11", title: "المشروع البيداغوجي الفردي (PPI): لماذا يحتاج كل طفل إلى برنامج خاص به؟", category: "التعليم والإدماج", used: false },
+    { id: "top-12", title: "الخرجات الترفيهية والأنشطة في الهواء الطلق: أثر الفرح في علاج الصدمات النفسية", category: "أنشطة وترفيه", used: false },
+    { id: "top-13", title: "التربية الإيجابية ودعم أسر الأطفال في وضعية صعبة لتجاوز التحديات اليومية", category: "دعم الأسرة", used: false },
+    { id: "top-14", title: "التغذية المتوازنة وأثرها المباشر على التركيز والاستيعاب الدراسي للأطفال", category: "صحة الطفل", used: false },
+    { id: "top-15", title: "الفن التشكيلي والرسم كأداة علاجية للتعبير النفسي وتنمية إبداع الطفل", category: "أنشطة وترفيه", used: false },
+    { id: "top-16", title: "المسؤولية الاجتماعية للمقاولات والمحسنين في رعاية الطفولة بمدينة القنيطرة", category: "التكافل والتضامن", used: false },
+    { id: "top-17", title: "حماية الطفولة من الإهمال: أبعاد قانونية وإنسانية لحفظ الكرامة", category: "حماية الطفل", used: false },
+    { id: "top-18", title: "الرياضة والأنشطة الحركية في بناء التوازن النفسي والجسدي للأطفال", category: "أنشطة وترفيه", used: false },
+    { id: "top-19", title: "أهمية الكشف المبكر عن صعوبات التعلم والاضطرابات النمائية لدى الأطفال", category: "التعليم والإدماج", used: false },
+    { id: "top-20", title: "تطوع الشباب في العمل الجمعوي: غرس قيم التضامن وخدمة الوطن", category: "التكافل والتضامن", used: false }
+  ],
+  autoSettings: {
+    enabled: true,
+    publishTime: "08:00",
+    frequency: "daily",
+    language: "ar",
+    autoPublish: true,
+    lastRun: null,
+    nextRun: null,
+    lastPublishedTitle: null
+  }
+};
+
+// Helper to extract YouTube ID from any format
+export const extractYouTubeId = (url) => {
+  if (!url) return '';
+  url = url.trim();
+  // If it's already an 11-char ID
+  if (/^[a-zA-Z0-9_-]{11}$/.test(url)) return url;
+
+  // Short links: https://youtu.be/CSwDq9szfj0
+  const shortMatch = url.match(/youtu\.be\/([a-zA-Z0-9_-]{11})/);
+  if (shortMatch) return shortMatch[1];
+
+  // Standard links: https://www.youtube.com/watch?v=CSwDq9szfj0
+  const longMatch = url.match(/[?&]v=([a-zA-Z0-9_-]{11})/);
+  if (longMatch) return longMatch[1];
+
+  // Embed links: https://www.youtube.com/embed/CSwDq9szfj0
+  const embedMatch = url.match(/embed\/([a-zA-Z0-9_-]{11})/);
+  if (embedMatch) return embedMatch[1];
+
+  return url;
+};
+
+// Helper to fetch YouTube metadata from noembed (no API key needed!)
+export const fetchYouTubeInfo = async (youtubeUrl) => {
+  try {
+    const id = extractYouTubeId(youtubeUrl);
+    const standardUrl = `https://www.youtube.com/watch?v=${id}`;
+    const res = await fetch(`https://noembed.com/embed?url=${encodeURIComponent(standardUrl)}`);
+    if (res.ok) {
+      const data = await res.json();
+      return {
+        id,
+        title: data.title || '',
+        author_name: data.author_name || '',
+        thumbnail_url: `https://img.youtube.com/vi/${id}/hqdefault.jpg`,
+      };
+    }
+  } catch (err) {
+    console.warn('Failed to fetch from noembed:', err);
+  }
+  const id = extractYouTubeId(youtubeUrl);
+  return {
+    id,
+    title: '',
+    thumbnail_url: `https://img.youtube.com/vi/${id}/hqdefault.jpg`
+  };
+};
+
+// Local storage storage loader/saver
+export const loadLocalCmsData = () => {
+  try {
+    const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      return { ...defaultCmsData, ...parsed };
+    }
+  } catch (e) {
+    console.error('Error loading local CMS data', e);
+  }
+  return { ...defaultCmsData };
+};
+
+export const saveLocalCmsData = (newData) => {
+  try {
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newData));
+  } catch (e) {
+    console.error('Error saving local CMS data', e);
+  }
+};

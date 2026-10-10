@@ -1,0 +1,381 @@
+import React, { useState } from 'react';
+import { useCms } from '../../context/CmsContext';
+import { RichTextEditor } from '../components/RichTextEditor';
+import { ImageUploader } from '../components/ImageUploader';
+import { 
+  Plus, Edit, Trash2, Eye, EyeOff, Search, 
+  Calendar, User, Tag, Check, X, FileText 
+} from 'lucide-react';
+
+export const ArticlesAdmin = () => {
+  const { cmsData, addArticle, updateArticle, deleteArticle, toggleArticlePublish } = useCms();
+  const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingArticle, setEditingArticle] = useState(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 200);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const [form, setForm] = useState({
+    title: '',
+    content: '',
+    image: '',
+    category: 'أخبار الجمعية',
+    author: 'إدارة الجمعية',
+    createdAt: new Date().toISOString().split('T')[0],
+    published: true
+  });
+
+  const articles = cmsData.articles || [];
+
+  const filteredArticles = articles.filter(art => {
+    const titleStr = String(art.title || '');
+    const contentStr = String(art.content || '');
+    const matchesSearch = titleStr.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          contentStr.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = categoryFilter === 'all' || art.category === categoryFilter;
+    return matchesSearch && matchesCategory;
+  });
+
+  const categories = ["الكل", "أخبار الجمعية", "التعليم والإدماج", "التأهيل المهني", "أنشطة وترفيه", "قوافل ومبادرات"];
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[350px] p-8 text-center" dir="rtl">
+        <div className="w-8 h-8 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mb-3"></div>
+        <p className="text-sm font-bold text-slate-700">جاري تحميل المقالات...</p>
+      </div>
+    );
+  }
+
+  const openAddModal = () => {
+    setForm({
+      title: '',
+      content: '',
+      image: '',
+      category: 'أخبار الجمعية',
+      author: 'إدارة الجمعية',
+      createdAt: new Date().toISOString().split('T')[0],
+      published: true
+    });
+    setIsModalOpen(true);
+  };
+
+  const openEditModal = (article) => {
+    setEditingArticle(article);
+    setForm({
+      title: article.title || '',
+      content: article.content || '',
+      image: article.image || '',
+      category: article.category || 'أخبار الجمعية',
+      author: article.author || 'إدارة الجمعية',
+      createdAt: article.createdAt || new Date().toISOString().split('T')[0],
+      published: article.published !== undefined ? article.published : true
+    });
+    setIsModalOpen(true);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!form.title || !form.content) {
+      alert("يرجى ملء العنوان ومحتوى المقال");
+      return;
+    }
+
+    if (editingArticle) {
+      updateArticle(editingArticle.id, form);
+    } else {
+      addArticle(form);
+    }
+    setIsModalOpen(false);
+  };
+
+  if (loading) {
+    return <div style={{ padding: 40, textAlign: "center" }} className="text-slate-600 font-bold">جاري التحميل...</div>;
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Top Banner & Action */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2">
+            <FileText className="w-6 h-6 text-emerald-700" />
+            <span>نظام المقالات والأخبار الكامل (/admin/articles)</span>
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
+            إضافة وتعديل وحذف المقالات مع محرر نصوص غني وربط مع قاعدة بيانات Firestore
+          </p>
+        </div>
+
+        <button
+          onClick={openAddModal}
+          className="inline-flex items-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-5 py-3 rounded-2xl shadow-md transition transform hover:-translate-y-0.5 shrink-0"
+        >
+          <Plus className="w-5 h-5" />
+          <span>إضافة مقال جديد</span>
+        </button>
+      </div>
+
+      {/* Filters and Search */}
+      <div className="bg-white p-4 rounded-2xl border border-slate-200 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-2 flex-1 min-w-[240px]">
+          <Search className="w-4 h-4 text-slate-400" />
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="بحث في المقالات..."
+            className="w-full text-xs sm:text-sm bg-transparent border-0 focus:ring-0 focus:outline-none"
+          />
+        </div>
+
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+          {categories.map(cat => (
+            <button
+              key={cat}
+              onClick={() => setCategoryFilter(cat === "الكل" ? "all" : cat)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition whitespace-nowrap ${
+                (categoryFilter === 'all' && cat === "الكل") || categoryFilter === cat
+                  ? 'bg-slate-900 text-white shadow'
+                  : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Articles Table */}
+      <div className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full text-start text-xs sm:text-sm text-slate-700">
+            <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-bold uppercase text-[11px]">
+              <tr>
+                <th className="py-4 px-6 text-start">المقال</th>
+                <th className="py-4 px-4 text-start">التصنيف</th>
+                <th className="py-4 px-4 text-start">الكاتب</th>
+                <th className="py-4 px-4 text-start">التاريخ</th>
+                <th className="py-4 px-4 text-center">الحالة</th>
+                <th className="py-4 px-6 text-end">الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {filteredArticles.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="py-12 text-center text-slate-400">
+                    لا توجد مقالات مطابقة للبحث
+                  </td>
+                </tr>
+              ) : (
+                filteredArticles.map(art => (
+                  <tr key={art.id} className="hover:bg-slate-50/80 transition">
+                    <td className="py-4 px-6">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={art.image || "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=150&q=80"}
+                          alt=""
+                          className="w-12 h-12 rounded-xl object-cover border border-slate-200 shrink-0"
+                        />
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-bold text-slate-900 line-clamp-1 text-sm">{art.title}</h4>
+                            {art.autoGenerated && (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[10px] font-extrabold bg-amber-100 text-amber-900 border border-amber-300 shrink-0 shadow-sm" title="مقال تم توليده ونشره أوتوماتيكياً بواسطة ويكيبيديا وقالب AMSED">
+                                ⚡ أوتوماتيكي
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-[11px] text-slate-400 font-mono">ID: {art.id}</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-4 px-4">
+                      <span className="inline-block px-2.5 py-1 rounded-md text-[11px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                        {art.category}
+                      </span>
+                    </td>
+                    <td className="py-4 px-4 text-slate-600 font-medium">
+                      {art.author}
+                    </td>
+                    <td className="py-4 px-4 text-slate-500 font-mono text-xs">
+                      {art.createdAt}
+                    </td>
+                    <td className="py-4 px-4 text-center">
+                      <button
+                        onClick={() => toggleArticlePublish(art.id)}
+                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold transition ${
+                          art.published 
+                            ? 'bg-emerald-100 text-emerald-800 hover:bg-emerald-200' 
+                            : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
+                        }`}
+                        title={art.published ? "منشور - اضغط للإخفاء" : "مسودة - اضغط للنشر"}
+                      >
+                        {art.published ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
+                        <span>{art.published ? 'منشور' : 'مخفي'}</span>
+                      </button>
+                    </td>
+                    <td className="py-4 px-6 text-end">
+                      <div className="inline-flex items-center gap-1.5">
+                        <button
+                          onClick={() => openEditModal(art)}
+                          className="p-2 text-slate-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-xl transition"
+                          title="تعديل المقال"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (window.confirm(`هل أنت متأكد من حذف مقال "${art.title}"؟`)) {
+                              deleteArticle(art.id);
+                            }
+                          }}
+                          className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-xl transition"
+                          title="حذف"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Add / Edit Modal Form */}
+      {isModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/80 backdrop-blur-md animate-fadeIn">
+          <div className="bg-white rounded-3xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden">
+            
+            {/* Modal Header */}
+            <div className="bg-slate-900 text-white px-6 py-4 flex items-center justify-between shrink-0">
+              <h3 className="text-base sm:text-lg font-bold flex items-center gap-2">
+                <FileText className="w-5 h-5 text-emerald-400" />
+                <span>{editingArticle ? 'تعديل المقال' : 'إضافة مقال جديد'}</span>
+              </h3>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="p-1.5 text-slate-400 hover:text-white rounded-lg transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Modal Form Body */}
+            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-6">
+              
+              <div>
+                <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                  عنوان المقال *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={form.title}
+                  onChange={(e) => setForm({ ...form, title: e.target.value })}
+                  placeholder="أدخل عنواناً جذاباً ومعبراً..."
+                  className="w-full px-4 py-3 rounded-xl border border-slate-300 text-sm font-bold focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-800 mb-1.5">التصنيف</label>
+                  <select
+                    value={form.category}
+                    onChange={(e) => setForm({ ...form, category: e.target.value })}
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm bg-white focus:ring-2 focus:ring-emerald-500"
+                  >
+                    <option value="أخبار الجمعية">أخبار الجمعية</option>
+                    <option value="التعليم والإدماج">التعليم والإدماج</option>
+                    <option value="التأهيل المهني">التأهيل المهني</option>
+                    <option value="أنشطة وترفيه">أنشطة وترفيه</option>
+                    <option value="قوافل ومبادرات">قوافل ومبادرات</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-800 mb-1.5">اسم الكاتب / الجهة</label>
+                  <input
+                    type="text"
+                    value={form.author}
+                    onChange={(e) => setForm({ ...form, author: e.target.value })}
+                    placeholder="إدارة الجمعية"
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-slate-800 mb-1.5">تاريخ النشر</label>
+                  <input
+                    type="date"
+                    value={form.createdAt}
+                    onChange={(e) => setForm({ ...form, createdAt: e.target.value })}
+                    className="w-full px-3 py-2.5 rounded-xl border border-slate-300 text-sm"
+                  />
+                </div>
+              </div>
+
+              {/* Main Image Uploader */}
+              <ImageUploader
+                label="الصورة الرئيسية للمقال"
+                value={form.image}
+                onChange={(img) => setForm({ ...form, image: img })}
+              />
+
+              {/* Rich Text Editor */}
+              <div>
+                <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                  محتوى المقال (Rich Text Editor) *
+                </label>
+                <RichTextEditor
+                  value={form.content}
+                  onChange={(val) => setForm({ ...form, content: val })}
+                  placeholder="اكتب نص المقال بالتفصيل، يمكنك استخدام التنسيقات والعناوين والقوائم..."
+                />
+              </div>
+
+              {/* Published Toggle */}
+              <div className="flex items-center gap-3 pt-2">
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={form.published}
+                    onChange={(e) => setForm({ ...form, published: e.target.checked })}
+                    className="w-4 h-4 text-emerald-600 rounded"
+                  />
+                  <span className="text-xs font-bold text-slate-800">نشر المقال فوراً على الموقع العام</span>
+                </label>
+              </div>
+
+              {/* Form Buttons */}
+              <div className="pt-4 border-t border-slate-200 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="px-5 py-2.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 rounded-xl text-xs font-bold bg-emerald-700 hover:bg-emerald-800 text-white shadow-md transition"
+                >
+                  {editingArticle ? 'حفظ التعديلات' : 'نشر المقال في Firestore'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};

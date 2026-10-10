@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+.logo-transparent, header img, nav img {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.logo-transparent, header img, nav img, .header-logo img {
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+header, nav, .logo-wrapper {
+  background: transparent !important;
+}
+
+
+@layer base {
+  :root {
+    --primary-color: #0d7249;
+    --primary-hover: #0a5a3a;
+    --accent-gold: #c29b38;
+    --moroccan-red: #9e1a24;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    overflow-x: hidden;
+  }
+
+  html[dir="rtl"] body {
+    font-family: 'Cairo', system-ui, -apple-system, sans-serif;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #94a3b8;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* Glassmorphism helpers */
+.glass-nav {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.gold-gradient {
+  background: linear-gradient(135deg, #d4af37 0%, #aa7c11 100%);
+}
+
+.moroccan-pattern {
+  background-color: #095938;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+/* Mandatory transparent logo styling */
+.logo-transparent, .header-logo img, nav img, footer img {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+}

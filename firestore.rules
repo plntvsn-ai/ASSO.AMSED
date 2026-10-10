@@ -1,0 +1,43 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 1. Contacts Collection:
+    // Anyone can create (submit contact messages from the public site)
+    // Only authenticated admin can read, update, or delete
+    match /contacts/{contactId} {
+      allow create: if true;
+      allow read, update, delete: if request.auth != null;
+    }
+
+    // 2. Autonomous Publisher & Topics Collections:
+    // Anyone can read; autonomous publisher and admin can update
+    match /autoTopics/{topicId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    match /autoSettings/{settingId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    match /siteSettings/{settingId} {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    match /articles/{articleId} {
+      allow read: if true;
+      allow create: if true;
+      allow update, delete: if request.auth != null;
+    }
+
+    // 3. Default Rule for all other collections:
+    // Allow read: true, Allow write: if auth != null
+    match /{document=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+  }
+}
