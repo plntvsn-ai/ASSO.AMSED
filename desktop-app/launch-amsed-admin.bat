@@ -6,8 +6,8 @@ echo ===================================================
 echo.
 echo Launching standalone admin desktop application...
 
-:: You can change this URL to your deployed Vercel domain anytime
-set "ADMIN_URL=http://localhost:5173/portal-amsed-secure-x98k21/admin?key=amsed_vault_secure_987654"
+:: Default to live Vercel deployed URL
+set "ADMIN_URL=https://asso-amsed.vercel.app/portal-amsed-secure-x98k21/admin?key=amsed_vault_secure_987654"
 
 :: Check if deployed domain is provided as first argument
 if not "%~1"=="" set "ADMIN_URL=%~1/portal-amsed-secure-x98k21/admin?key=amsed_vault_secure_987654"
