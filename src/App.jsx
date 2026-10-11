@@ -40,6 +40,7 @@ import { ArchivesAdmin } from './admin/pages/ArchivesAdmin';
 import { ContactAdmin } from './admin/pages/ContactAdmin';
 import { LogoAdmin } from './admin/pages/LogoAdmin';
 import { FirebaseSettingsAdmin } from './admin/pages/FirebaseSettingsAdmin';
+import { ServicesAdmin } from './admin/pages/ServicesAdmin';
 
 export default function App() {
   return (
@@ -71,6 +72,7 @@ export default function App() {
                 <Route path="messages" element={<MessagesAdmin />} />
                 
                 {/* Additional CMS customizers */}
+                <Route path="services" element={<ServicesAdmin />} />
                 <Route path="menus" element={<MenusAdmin />} />
                 <Route path="buttons" element={<ButtonsAdmin />} />
                 <Route path="pages" element={<PagesAdmin />} />
@@ -96,6 +98,7 @@ export default function App() {
                 <Route path="review" element={<ReviewAdmin />} />
                 <Route path="messages" element={<MessagesAdmin />} />
                 
+                <Route path="services" element={<ServicesAdmin />} />
                 <Route path="menus" element={<MenusAdmin />} />
                 <Route path="buttons" element={<ButtonsAdmin />} />
                 <Route path="pages" element={<PagesAdmin />} />

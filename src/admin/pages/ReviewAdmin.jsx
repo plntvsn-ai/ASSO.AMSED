@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useCms } from '../../context/CmsContext';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
-import { CheckSquare, CheckCircle, XCircle, Eye, Trash2, Calendar, User, Tag } from 'lucide-react';
+import { CheckSquare, CheckCircle, XCircle, Eye, Trash2, Calendar, User, Tag, Save, Check } from 'lucide-react';
 
 export default function ReviewAdmin() {
   const { cmsData, addArticle } = useCms();
   const [loading, setLoading] = useState(true);
+  const [savedSuccess, setSavedSuccess] = useState(false);
 
   const [pendingArticles, setPendingArticles] = useState(() => {
     try {
@@ -22,7 +23,8 @@ export default function ReviewAdmin() {
         summary: "دراسة وتوجيهات عملية للأسر حول كيفية تهيئة الغرفة الحسية والأدوات المساعدة في البيت.",
         content: "<p>يعتبر التكامل الحسي مدخلاً أساسياً في استقرار الحالة المزاجية لطفل التوحد...</p>",
         createdAt: new Date().toISOString().split('T')[0],
-        status: "pending"
+        status: "published",
+        isApproved: true
       }
     ];
   });
@@ -74,6 +76,12 @@ export default function ReviewAdmin() {
     }
   };
 
+  const handleSaveAll = () => {
+    savePending(pendingArticles);
+    setSavedSuccess(true);
+    setTimeout(() => setSavedSuccess(false), 3000);
+  };
+
   if (loading) {
     return <div style={{ padding: 40, textAlign: "center" }} className="text-slate-600 font-bold">جاري التحميل...</div>;
   }
@@ -87,14 +95,30 @@ export default function ReviewAdmin() {
             <span>مراجعة وتدقيق مقالات المحررين (/admin/review)</span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            مقالات الباحثين والأطر التربوية التي تنتظر موافقة الإدارة قبل نشرها رسمياً في الموقع
+            مقالات الباحثين والأطر التربوية المنشورة تلقائياً بدون انتظار موافقة مع حفظ مباشر في Firebase
           </p>
         </div>
+
+        <button
+          onClick={handleSaveAll}
+          type="button"
+          className="inline-flex items-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-6 py-3 rounded-2xl shadow-md transition transform hover:-translate-y-0.5 shrink-0 text-xs sm:text-sm"
+        >
+          <Save className="w-5 h-5" />
+          <span>حفظ التعديلات في Firebase</span>
+        </button>
       </div>
+
+      {savedSuccess && (
+        <div className="p-4 bg-emerald-100 border border-emerald-300 text-emerald-900 text-xs sm:text-sm font-bold rounded-2xl flex items-center gap-2 animate-fadeIn shadow-sm">
+          <Check className="w-5 h-5 text-emerald-700" />
+          <span>تم حفظ ومزامنة المقالات بنجاح في Firebase والموقع!</span>
+        </div>
+      )}
 
       <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-4">
         <h3 className="font-bold text-slate-900 text-base">
-          المقالات المعلقة قيد التدقيق ({pendingArticles.length})
+          المقالات المنشورة ({pendingArticles.length})
         </h3>
 
         {pendingArticles.length === 0 ? (
@@ -115,8 +139,9 @@ export default function ReviewAdmin() {
                     </div>
                   </div>
 
-                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 w-fit">
-                    قيد المراجعة
+                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 w-fit flex items-center gap-1">
+                    <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>منشور ومفعل (Published)</span>
                   </span>
                 </div>
 

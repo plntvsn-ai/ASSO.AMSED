@@ -4,7 +4,7 @@ import { RichTextEditor } from '../components/RichTextEditor';
 import { ImageUploader } from '../components/ImageUploader';
 import { 
   Plus, Edit, Trash2, Eye, EyeOff, Search, 
-  Calendar, User, Tag, Check, X, FileText 
+  Calendar, User, Tag, Check, X, FileText, Save 
 } from 'lucide-react';
 
 export const ArticlesAdmin = () => {
@@ -14,6 +14,7 @@ export const ArticlesAdmin = () => {
   const [editingArticle, setEditingArticle] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
+  const [savedMessage, setSavedMessage] = useState('');
 
   React.useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 200);
@@ -27,7 +28,9 @@ export const ArticlesAdmin = () => {
     category: 'أخبار الجمعية',
     author: 'إدارة الجمعية',
     createdAt: new Date().toISOString().split('T')[0],
-    published: true
+    published: true,
+    status: 'published',
+    isApproved: true
   });
 
   const articles = cmsData.articles || [];
@@ -87,11 +90,22 @@ export const ArticlesAdmin = () => {
     }
 
     if (editingArticle) {
-      updateArticle(editingArticle.id, form);
+      updateArticle(editingArticle.id, { ...form, status: 'published', isApproved: true });
     } else {
-      addArticle(form);
+      addArticle({ ...form, status: 'published', isApproved: true });
     }
     setIsModalOpen(false);
+    setSavedMessage("تم حفظ وتحديث المقال في Firebase والموقع بنجاح!");
+    setTimeout(() => setSavedMessage(''), 4000);
+  };
+
+  const handleSaveAll = () => {
+    // Persist all current articles to Firestore
+    if (articles && articles.length > 0) {
+      updateArticle(articles[0].id, {}); // triggers persistUpdate
+      setSavedMessage("تم حفظ ومزامنة كافة المقالات في Firebase والموقع بنجاح!");
+      setTimeout(() => setSavedMessage(''), 4000);
+    }
   };
 
   if (loading) {
@@ -108,18 +122,36 @@ export const ArticlesAdmin = () => {
             <span>نظام المقالات والأخبار الكامل (/admin/articles)</span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            إضافة وتعديل وحذف المقالات مع محرر نصوص غني وربط مع قاعدة بيانات Firestore
+            إضافة وتعديل وحذف المقالات المنشورة أوتوماتيكياً مع حفظ ومزامنة مباشرة في Firestore
           </p>
         </div>
 
-        <button
-          onClick={openAddModal}
-          className="inline-flex items-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-5 py-3 rounded-2xl shadow-md transition transform hover:-translate-y-0.5 shrink-0"
-        >
-          <Plus className="w-5 h-5" />
-          <span>إضافة مقال جديد</span>
-        </button>
+        <div className="flex items-center gap-3 flex-wrap">
+          <button
+            onClick={handleSaveAll}
+            type="button"
+            className="inline-flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white font-bold px-5 py-3 rounded-2xl shadow-md transition transform hover:-translate-y-0.5 shrink-0 text-xs sm:text-sm"
+          >
+            <Save className="w-5 h-5 text-emerald-400" />
+            <span>حفظ ومزامنة المقالات في Firebase</span>
+          </button>
+
+          <button
+            onClick={openAddModal}
+            className="inline-flex items-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-5 py-3 rounded-2xl shadow-md transition transform hover:-translate-y-0.5 shrink-0 text-xs sm:text-sm"
+          >
+            <Plus className="w-5 h-5" />
+            <span>إضافة مقال جديد</span>
+          </button>
+        </div>
       </div>
+
+      {savedMessage && (
+        <div className="p-4 bg-emerald-100 border border-emerald-300 text-emerald-950 text-xs sm:text-sm font-bold rounded-2xl flex items-center gap-2 animate-fadeIn shadow-sm">
+          <Check className="w-5 h-5 text-emerald-700 shrink-0" />
+          <span>{savedMessage}</span>
+        </div>
+      )}
 
       {/* Filters and Search */}
       <div className="bg-white p-4 rounded-2xl border border-slate-200 flex flex-wrap items-center justify-between gap-3">

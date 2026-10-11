@@ -9,6 +9,7 @@ export default function TopicsAdmin() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [bulkText, setBulkText] = useState('');
+  const [savedSuccess, setSavedSuccess] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -28,6 +29,12 @@ export default function TopicsAdmin() {
   const filteredTopics = topics.filter(t => 
     (t.title || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleSave = () => {
+    updateAutoTopics(topics);
+    setSavedSuccess(true);
+    setTimeout(() => setSavedSuccess(false), 3000);
+  };
 
   const handleBulkAdd = (e) => {
     e.preventDefault();
@@ -53,7 +60,22 @@ export default function TopicsAdmin() {
             إدارة كافة مواضيع المقالات المبرمجة ({topics.length} موضوع) مع إمكانية إضافة وحذف وتبديل حالة النشر
           </p>
         </div>
+
+        <button
+          onClick={handleSave}
+          className="inline-flex items-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-6 py-3 rounded-2xl shadow-md transition transform hover:-translate-y-0.5 shrink-0"
+        >
+          <Sparkles className="w-5 h-5" />
+          <span>حفظ التعديلات في Firebase</span>
+        </button>
       </div>
+
+      {savedSuccess && (
+        <div className="p-4 bg-emerald-100 border border-emerald-300 text-emerald-900 text-xs sm:text-sm font-bold rounded-2xl flex items-center gap-2 animate-fadeIn">
+          <CheckCircle2 className="w-5 h-5 text-emerald-700" />
+          <span>تم حفظ كافة المواضيع والمزامنة مع Firebase بنجاح!</span>
+        </div>
+      )}
 
       {/* Bulk Add */}
       <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">

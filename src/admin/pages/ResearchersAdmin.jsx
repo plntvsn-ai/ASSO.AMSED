@@ -83,15 +83,27 @@ export default function ResearchersAdmin() {
             <span>إدارة المحررين والباحثين التربويين (/admin/researchers)</span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            إضافة أطر وباحثين لكتابة مقالات تخصصية تخضع لمراجعة إدارة الجمعية قبل النشر
+            إضافة أطر وباحثين ومتابعة صلاحياتهم مع حفظ فوري ومباشر في Firebase
           </p>
         </div>
+
+        <button
+          onClick={() => {
+            saveList(researchers);
+            setSavedNotice(true);
+            setTimeout(() => setSavedNotice(false), 3000);
+          }}
+          className="inline-flex items-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-6 py-3 rounded-2xl shadow-md transition transform hover:-translate-y-0.5 shrink-0"
+        >
+          <Award className="w-5 h-5" />
+          <span>حفظ التعديلات في Firebase</span>
+        </button>
       </div>
 
       {savedNotice && (
         <div className="p-4 bg-emerald-100 border border-emerald-300 text-emerald-900 text-xs sm:text-sm font-bold rounded-2xl flex items-center gap-2">
           <CheckCircle2 className="w-5 h-5 text-emerald-700" />
-          <span>تمت إضافة المحرر بنجاح!</span>
+          <span>تم حفظ قائمة الباحثين والمحررين في Firebase بنجاح!</span>
         </div>
       )}
 

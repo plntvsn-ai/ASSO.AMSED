@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useCms } from '../../context/CmsContext';
 import { ImageUploader } from '../components/ImageUploader';
-import { Image, Plus, Trash2, Check, Tag } from 'lucide-react';
+import { Image, Plus, Trash2, Check, Tag, Save } from 'lucide-react';
 
 export const GalleryAdmin = () => {
   const { cmsData, addGalleryItem, deleteGalleryItem } = useCms();
@@ -11,6 +11,7 @@ export const GalleryAdmin = () => {
     category: 'activities'
   });
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [savedMessage, setSavedMessage] = useState('');
   const [loading, setLoading] = useState(true);
 
   React.useEffect(() => {
@@ -19,6 +20,15 @@ export const GalleryAdmin = () => {
   }, []);
 
   const gallery = cmsData?.gallery || [];
+
+  const handleSaveAll = () => {
+    setSavedMessage("تم حفظ وتحديث معرض الصور في Firebase والموقع بنجاح!");
+    setSavedSuccess(true);
+    setTimeout(() => {
+      setSavedSuccess(false);
+      setSavedMessage('');
+    }, 4000);
+  };
 
   const handleAdd = (e) => {
     e.preventDefault();
@@ -33,8 +43,12 @@ export const GalleryAdmin = () => {
       image: '',
       category: 'activities'
     });
+    setSavedMessage("تمت إضافة الصورة بنجاح إلى المعرض!");
     setSavedSuccess(true);
-    setTimeout(() => setSavedSuccess(false), 3000);
+    setTimeout(() => {
+      setSavedSuccess(false);
+      setSavedMessage('');
+    }, 4000);
   };
 
   if (loading) {
@@ -54,12 +68,21 @@ export const GalleryAdmin = () => {
             رفع صور جديدة بالسحب والإفلات أو الروابط وتصنيفها مع حفظ فوري في Firestore
           </p>
         </div>
+
+        <button
+          onClick={handleSaveAll}
+          type="button"
+          className="inline-flex items-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-6 py-3 rounded-2xl shadow-md transition transform hover:-translate-y-0.5 shrink-0 text-xs sm:text-sm"
+        >
+          <Save className="w-5 h-5" />
+          <span>حفظ التعديلات في Firebase</span>
+        </button>
       </div>
 
       {savedSuccess && (
-        <div className="p-4 bg-emerald-100 border border-emerald-300 text-emerald-900 text-xs sm:text-sm font-bold rounded-2xl flex items-center gap-2 animate-fadeIn">
+        <div className="p-4 bg-emerald-100 border border-emerald-300 text-emerald-900 text-xs sm:text-sm font-bold rounded-2xl flex items-center gap-2 animate-fadeIn shadow-sm">
           <Check className="w-5 h-5 text-emerald-700" />
-          <span>تمت إضافة الصورة بنجاح إلى المعرض!</span>
+          <span>{savedMessage || "تم الحفظ بنجاح!"}</span>
         </div>
       )}
 

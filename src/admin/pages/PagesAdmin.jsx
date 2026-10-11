@@ -73,13 +73,29 @@ export const PagesAdmin = ({ initialPage = 'home' }) => {
           </p>
         </div>
 
-        <button
-          onClick={() => setNewSectionModal(true)}
-          className="inline-flex items-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-5 py-3 rounded-2xl shadow-md transition transform hover:-translate-y-0.5 shrink-0"
-        >
-          <Plus className="w-5 h-5" />
-          <span>إضافة قسم جديد للصفحة</span>
-        </button>
+        <div className="flex flex-wrap gap-2 shrink-0">
+          <button
+            onClick={() => {
+              if (currentPageData) {
+                updatePageSections(activePage, currentPageData.sections || []);
+                setSavedSuccess(true);
+                setTimeout(() => setSavedSuccess(false), 3000);
+              }
+            }}
+            className="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-bold px-5 py-3 rounded-2xl shadow-md transition transform hover:-translate-y-0.5"
+          >
+            <Check className="w-5 h-5 text-emerald-400" />
+            <span>حفظ الصفحات في Firebase</span>
+          </button>
+
+          <button
+            onClick={() => setNewSectionModal(true)}
+            className="inline-flex items-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-5 py-3 rounded-2xl shadow-md transition transform hover:-translate-y-0.5"
+          >
+            <Plus className="w-5 h-5" />
+            <span>إضافة قسم جديد للصفحة</span>
+          </button>
+        </div>
       </div>
 
       {savedSuccess && (

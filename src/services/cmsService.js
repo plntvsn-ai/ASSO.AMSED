@@ -331,11 +331,23 @@ export const defaultCmsData = {
 
   // 11. Logo
   logo: {
-    url: "/logo.jpg",
+    url: "/logo.png",
     officialUrl: "/logo-official.jpg",
     name: "جمعية المبادرة المغربية للتكافل والتعاون",
     motto: "الله • الوطن • الملك"
   },
+
+  // 11.5 Services & Products (8 خدمات أساسية)
+  services: [
+    { id: "1", name: "مركز أطفال التوحد - TSA & ABA", category: "التوحد", image: "/products/01_TSA_ABA.jpg", price: "تواصل معنا", status: "published", isApproved: true, description: "تشخيص وتأهيل أطفال التوحد ببرامج ABA المعتمدة" },
+    { id: "2", name: "مركز التخاطب - Orthophonie", category: "التخاطب", image: "/products/02_Orthophonie.jpg", price: "تواصل معنا", status: "published", isApproved: true, description: "علاج تأخر النطق واضطرابات اللغة" },
+    { id: "3", name: "المهارات الحركية - Psychomotricité", category: "حركية", image: "/products/03_Psychomotricite.jpg", price: "تواصل معنا", status: "published", isApproved: true, description: "تنمية المهارات الحركية الدقيقة والكبرى" },
+    { id: "4", name: "الإرشاد النفسي - Soutien", category: "نفسي", image: "/products/04_Soutien.jpg", price: "تواصل معنا", status: "published", isApproved: true, description: "دعم نفسي للطفل والأسرة" },
+    { id: "5", name: "المهارات الاجتماعية - Habiletés Sociales", category: "اجتماعية", image: "/products/05_Habiletes.jpg", price: "تواصل معنا", status: "published", isApproved: true, description: "تنمية التواصل والذكاء العاطفي" },
+    { id: "6", name: "التأهيل للدمج - Intégration Scolaire", category: "الدمج", image: "/products/06_Integration.jpg", price: "تواصل معنا", status: "published", isApproved: true, description: "تأهيل الطفل للاندماج المدرسي" },
+    { id: "7", name: "روض الأطفال - Crèche", category: "روض", image: "/products/07_Creche.jpg", price: "تواصل معنا", status: "published", isApproved: true, description: "روض متخصص مع عناية خاصة" },
+    { id: "8", name: "دروس الدعم - Soutien Scolaire", category: "دعم", image: "/products/08_Soutien_Scolaire.jpg", price: "تواصل معنا", status: "published", isApproved: true, description: "دعم دراسي فردي وجماعي" }
+  ],
 
   // 12. Autonomous Publisher System (نظام النشر الأوتوماتيكي)
   autoTopics: [
@@ -426,7 +438,11 @@ export const loadLocalCmsData = () => {
     const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (stored) {
       const parsed = JSON.parse(stored);
-      return { ...defaultCmsData, ...parsed };
+      return { 
+        ...defaultCmsData, 
+        ...parsed,
+        services: (parsed.services && parsed.services.length > 0) ? parsed.services : defaultCmsData.services
+      };
     }
   } catch (e) {
     console.error('Error loading local CMS data', e);

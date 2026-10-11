@@ -73,6 +73,8 @@ export const CmsProvider = ({ children }) => {
         // Also save specific subcollections if needed
         if (key === 'articles') {
           await setDoc(doc(db, "content", "articles"), { list: value }, { merge: true });
+        } else if (key === 'services') {
+          await setDoc(doc(db, "content", "services"), { list: value }, { merge: true });
         } else if (key === 'menus') {
           await setDoc(doc(db, "content", "menus"), value, { merge: true });
         } else if (key === 'buttons') {
@@ -90,7 +92,9 @@ export const CmsProvider = ({ children }) => {
       ...newArticle,
       id: 'art-' + Date.now(),
       createdAt: newArticle.createdAt || new Date().toISOString().split('T')[0],
-      published: newArticle.published !== undefined ? newArticle.published : true
+      published: true,
+      status: 'published',
+      isApproved: true
     };
     const updated = [article, ...cmsData.articles];
     persistUpdate('articles', updated);
@@ -277,6 +281,32 @@ export const CmsProvider = ({ children }) => {
     persistUpdate('logo', updated);
   };
 
+  // --- 11.5 Services Operations ---
+  const updateService = (id, updatedFields) => {
+    const currentServices = cmsData.services || defaultCmsData.services;
+    const updated = currentServices.map(s => 
+      String(s.id) === String(id) 
+        ? { ...s, ...updatedFields, status: 'published', isApproved: true } 
+        : s
+    );
+    persistUpdate('services', updated);
+    if (db) {
+      setDoc(doc(db, "content", "services"), { list: updated }, { merge: true }).catch(() => {});
+      setDoc(doc(db, "settings", "cmsConfig"), { services: updated }, { merge: true }).catch(() => {});
+    }
+    return updated;
+  };
+
+  const updateAllServices = (newServices) => {
+    const published = newServices.map(s => ({ ...s, status: 'published', isApproved: true }));
+    persistUpdate('services', published);
+    if (db) {
+      setDoc(doc(db, "content", "services"), { list: published }, { merge: true }).catch(() => {});
+      setDoc(doc(db, "settings", "cmsConfig"), { services: published }, { merge: true }).catch(() => {});
+    }
+    return published;
+  };
+
   // --- 12. Firebase Settings ---
   const saveFirebaseConfig = (config) => {
     try {
@@ -458,6 +488,9 @@ export const CmsProvider = ({ children }) => {
       updateContact,
       // Logo
       updateLogo,
+      // Services
+      updateService,
+      updateAllServices,
       // Firebase
       saveFirebaseConfig,
       resetCmsDefaults

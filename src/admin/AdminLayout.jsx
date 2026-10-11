@@ -6,7 +6,7 @@ import {
   Film, BarChart3, Video, Image, FolderArchive, 
   Phone, Award, Database, Home, ExternalLink, 
   LogOut, Shield, ChevronLeft, ChevronRight, Sparkles, Bot, 
-  BookOpen, Users, CheckSquare, Settings 
+  BookOpen, Users, CheckSquare, Settings, HandHeart 
 } from 'lucide-react';
 import Logo from '../components/Logo';
 
@@ -16,9 +16,13 @@ export const AdminLayout = () => {
   const { cmsData, firebaseStatus } = useCms();
   const [collapsed, setCollapsed] = useState(false);
 
+  const isSecretPortal = location.pathname.startsWith('/portal-amsed-secure-x98k21/admin');
+  const currentSearch = location.search;
+
   const menuItems = [
     { path: '/admin', label: 'نظرة عامة (Overview)', icon: Home, exact: true },
     { path: '/admin/articles', label: 'المقالات والأخبار', icon: FileText, count: cmsData.articles?.length },
+    { path: '/admin/services', label: 'إعدادات الخدمات', icon: HandHeart, count: 8 },
     { path: '/admin/auto', label: 'النشر الأوتوماتيكي ⚡', icon: Bot, count: cmsData.autoTopics?.filter(t => !t.used)?.length },
     { path: '/admin/topics', label: 'خزان المواضيع', icon: BookOpen },
     { path: '/admin/review', label: 'مراجعة المقالات', icon: CheckSquare },
@@ -72,14 +76,19 @@ export const AdminLayout = () => {
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
           {menuItems.map((item) => {
             const Icon = item.icon;
+            const currentSubPath = item.path.replace(/^\/admin/, '');
+            const targetPath = isSecretPortal 
+              ? `/portal-amsed-secure-x98k21/admin${currentSubPath}${currentSearch}` 
+              : item.path;
+
             const isActive = item.exact 
-              ? location.pathname === item.path 
-              : location.pathname.startsWith(item.path);
+              ? (location.pathname === item.path || location.pathname === `/portal-amsed-secure-x98k21/admin`)
+              : (location.pathname === item.path || location.pathname.startsWith(`/portal-amsed-secure-x98k21/admin${currentSubPath}`));
 
             return (
               <Link
                 key={item.path}
-                to={item.path}
+                to={targetPath}
                 className={`flex items-center gap-3 px-3.5 py-3 rounded-2xl text-xs sm:text-sm font-bold transition ${
                   isActive
                     ? 'bg-emerald-700 text-white shadow-lg shadow-emerald-950/50'

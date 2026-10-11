@@ -23,23 +23,32 @@ export default function ResearcherDashboard() {
     e.preventDefault();
     if (!title || !content) return;
 
-    const newPending = {
-      id: 'rev-' + Date.now(),
+    const newArticle = {
+      id: 'art-' + Date.now(),
       title,
       category,
       summary,
       content,
       author: session.name || session.email || "باحث معتمد",
       createdAt: new Date().toISOString().split('T')[0],
-      status: "pending"
+      published: true,
+      status: "published",
+      isApproved: true
     };
 
     try {
+      // 1. Add to main live articles database directly (No pending approval required)
+      const cmsLocal = JSON.parse(localStorage.getItem('amsed_cms_database_v3') || '{}');
+      const currentArticles = cmsLocal.articles || [];
+      cmsLocal.articles = [newArticle, ...currentArticles];
+      localStorage.setItem('amsed_cms_database_v3', JSON.stringify(cmsLocal));
+
+      // 2. Also save to reviews list as published
       const saved = JSON.parse(localStorage.getItem('amsed_pending_reviews') || '[]');
-      saved.unshift(newPending);
+      saved.unshift(newArticle);
       localStorage.setItem('amsed_pending_reviews', JSON.stringify(saved));
     } catch {
-      localStorage.setItem('amsed_pending_reviews', JSON.stringify([newPending]));
+      localStorage.setItem('amsed_pending_reviews', JSON.stringify([newArticle]));
     }
 
     setSubmitted(true);

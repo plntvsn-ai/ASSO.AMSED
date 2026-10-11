@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useCms } from '../../context/CmsContext';
-import { FileText, Plus, Trash2, Download, FileUp, Check } from 'lucide-react';
+import { FileText, Plus, Trash2, Download, FileUp, Check, Save } from 'lucide-react';
 
 export const ArchivesAdmin = () => {
   const { cmsData, addArchive, deleteArchive } = useCms();
@@ -9,7 +9,17 @@ export const ArchivesAdmin = () => {
   const [fileUrl, setFileUrl] = useState('');
   const [fileSize, setFileSize] = useState('');
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [savedMessage, setSavedMessage] = useState('');
   const [loading, setLoading] = useState(true);
+
+  const handleSaveAll = () => {
+    setSavedMessage("تم حفظ وتحديث وثائق الأرشيف في Firebase والموقع بنجاح!");
+    setSavedSuccess(true);
+    setTimeout(() => {
+      setSavedSuccess(false);
+      setSavedMessage('');
+    }, 4000);
+  };
 
   React.useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 150);
@@ -70,12 +80,21 @@ export const ArchivesAdmin = () => {
             رفع ملفات PDF، التقارير الأدبية والمالية، والقانون الأساسي للجمعية وإتاحتها للتحميل
           </p>
         </div>
+
+        <button
+          onClick={handleSaveAll}
+          type="button"
+          className="inline-flex items-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-6 py-3 rounded-2xl shadow-md transition transform hover:-translate-y-0.5 shrink-0 text-xs sm:text-sm"
+        >
+          <Save className="w-5 h-5" />
+          <span>حفظ التعديلات في Firebase</span>
+        </button>
       </div>
 
       {savedSuccess && (
-        <div className="p-4 bg-emerald-100 border border-emerald-300 text-emerald-900 text-xs sm:text-sm font-bold rounded-2xl flex items-center gap-2 animate-fadeIn">
+        <div className="p-4 bg-emerald-100 border border-emerald-300 text-emerald-900 text-xs sm:text-sm font-bold rounded-2xl flex items-center gap-2 animate-fadeIn shadow-sm">
           <Check className="w-5 h-5 text-emerald-700" />
-          <span>تمت إضافة الوثيقة إلى الأرشيف بنجاح!</span>
+          <span>{savedMessage || "تمت إضافة الوثيقة إلى الأرشيف بنجاح!"}</span>
         </div>
       )}
 

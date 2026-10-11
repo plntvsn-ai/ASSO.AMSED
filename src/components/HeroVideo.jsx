@@ -1,25 +1,22 @@
 import React from 'react';
-import Logo from './Logo';
 
 export default function HeroVideo() {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white pt-8 pb-16 sm:pt-12 sm:pb-20 border-b border-slate-800">
-      {/* Background Subtle Accents */}
-      <div className="absolute top-0 end-0 w-96 h-96 bg-emerald-600/10 rounded-full blur-3xl pointer-events-none"></div>
-      <div className="absolute bottom-0 start-0 w-96 h-96 bg-amber-600/10 rounded-full blur-3xl pointer-events-none"></div>
-
-      <div className="relative max-w-6xl mx-auto px-4 sm:px-6 flex flex-col items-center text-center">
+    <section className="bg-slate-950 text-white pt-8 pb-16 sm:pt-12 sm:pb-20 border-b border-slate-800">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col items-center text-center">
         
-        {/* 1. شعار الجمعية في الأعلى (بدون أي خلفية مربعة - دمج دائري شفاف وسلس) */}
-        <div className="mb-4 relative">
-          <div className="p-2 rounded-full bg-slate-900/40 border border-slate-700/50 shadow-xl backdrop-blur-sm">
-            <Logo size={105} className="transition-transform duration-300 hover:scale-105" />
-          </div>
+        {/* 1. شعار الجمعية في الأعلى - صورة واحدة فقط واضحة ودائرية بلا شفافية وبلا overlapping */}
+        <div className="mb-5 flex justify-center">
+          <img
+            src="/logo.jpg"
+            alt="شعار جمعية المبادرة المغربية للتكافل والتعاون"
+            className="w-28 h-28 sm:w-32 sm:h-32 rounded-full object-cover shadow-2xl border-2 border-amber-500/80 transition-transform duration-300 hover:scale-105"
+          />
         </div>
 
         {/* 2. تحته مباشرة اسم الجمعية والشعار الوطني */}
         <div className="space-y-3 max-w-3xl mb-8">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-950/70 border border-amber-600/40 text-amber-400 text-xs font-bold tracking-wide">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-950 border border-amber-600/50 text-amber-400 text-xs font-bold tracking-wide">
             <span>★</span>
             <span>الله • الوطن • الملك</span>
             <span>★</span>
