@@ -57,10 +57,11 @@ export async function POST(){
     let final_content_en = ''
 
     // Try Gemini AI generation
-    const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY
+    const geminiKey = (process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY || "").trim()
+    console.log("API KEY FOUND:", geminiKey ? geminiKey.substring(0, 15) + "..." : "AUCUNE")
     let generatedWithAi = false
 
-    if (geminiKey) {
+    if (geminiKey && geminiKey.startsWith("AIza")) {
       try {
         const genAI = new GoogleGenerativeAI(geminiKey)
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" })

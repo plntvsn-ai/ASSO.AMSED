@@ -3,9 +3,9 @@ import { GoogleGenerativeAI } from "@google/generative-ai"
 console.log("GEMINI KEY EXISTS:", !!process.env.GEMINI_API_KEY)
 
 export function getGenAI() {
-  const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY
-  console.log("GEMINI KEY EXISTS:", !!process.env.GEMINI_API_KEY)
-  if (!apiKey) return null
+  const apiKey = (process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY || "").trim()
+  console.log("API KEY FOUND:", apiKey ? apiKey.substring(0, 15) + "..." : "AUCUNE")
+  if (!apiKey || !apiKey.startsWith("AIza")) return null
   return new GoogleGenerativeAI(apiKey)
 }
 
