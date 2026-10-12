@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Radio, ExternalLink } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 const FALLBACK_NEWS = [
   {
@@ -29,6 +30,7 @@ const FALLBACK_NEWS = [
 ];
 
 export default function NewsCarousel() {
+  const { getLocalized } = useLanguage();
   const [news, setNews] = useState(FALLBACK_NEWS);
 
   useEffect(() => {
@@ -91,7 +93,7 @@ export default function NewsCarousel() {
                 </div>
               )}
               <h3 className="text-xs font-bold text-slate-900 group-hover:text-emerald-700 transition leading-snug line-clamp-2">
-                {item.title}
+                {getLocalized(item, 'title')}
               </h3>
               <div className="mt-1.5 flex items-center justify-between text-[10px] text-slate-400">
                 <span>{item.formattedDate || 'حديثاً'}</span>

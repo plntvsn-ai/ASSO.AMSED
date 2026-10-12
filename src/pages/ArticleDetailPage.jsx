@@ -1,6 +1,7 @@
 import React from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useCms } from '../context/CmsContext';
+import { useLanguage } from '../context/LanguageContext';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
 import { 
@@ -13,6 +14,7 @@ export const ArticleDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { cmsData } = useCms();
+  const { getLocalized } = useLanguage();
 
   const article = (cmsData.articles || []).find(a => a.id === id);
   const otherArticles = (cmsData.articles || []).filter(a => a.id !== id && a.published !== false).slice(0, 3);
@@ -64,7 +66,7 @@ export const ArticleDetailPage = () => {
             </span>
 
             <h1 className="text-2xl sm:text-4xl font-black text-slate-900 leading-tight">
-              {article.title}
+              {getLocalized(article, 'title')}
             </h1>
 
             <div className="flex flex-wrap items-center justify-between gap-4 py-3 border-y border-slate-200 text-xs text-slate-500">
@@ -101,7 +103,7 @@ export const ArticleDetailPage = () => {
             <div className="rounded-3xl overflow-hidden shadow-xl border border-slate-200 bg-slate-100 max-h-[500px]">
               <img
                 src={article.image}
-                alt={article.title}
+                alt={getLocalized(article, 'title')}
                 className="w-full h-full object-cover max-h-[500px]"
               />
             </div>
@@ -111,7 +113,7 @@ export const ArticleDetailPage = () => {
           <article className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-sm">
             <div 
               className="prose prose-slate max-w-none text-slate-800 text-sm sm:text-base leading-loose whitespace-pre-line"
-              dangerouslySetInnerHTML={{ __html: article.content }}
+              dangerouslySetInnerHTML={{ __html: getLocalized(article, 'content') || article.content }}
             />
           </article>
 

@@ -1,9 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { translations } from '../translations/translations';
+import { autoTranslateIfMissing } from '../services/translator';
 
 const LanguageContext = createContext();
 
 export const LanguageProvider = ({ children }) => {
+  const [dynTranslations, setDynTranslations] = useState({});
   const [lang, setLangState] = useState(() => {
     // 1. Check saved user preference in localStorage
     const saved = localStorage.getItem('amsed_language');
@@ -64,17 +66,48 @@ export const LanguageProvider = ({ children }) => {
     }
   };
 
-  // Helper to extract localized property from an item (e.g. titleAr, titleFr, titleEn)
+  // Helper to extract localized property from an item (with automatic frontend fallback translation if missing)
   const getLocalized = (obj, propName) => {
     if (!obj) return '';
     const suffix = lang === 'ar' ? 'Ar' : lang === 'fr' ? 'Fr' : 'En';
-    const localized = obj[`${propName}${suffix}`];
-    if (localized) return localized;
-    return obj[`${propName}Ar`] || obj[`${propName}Fr`] || obj[`${propName}En`] || obj[propName] || '';
+    const underscoreSuffix = lang === 'ar' ? '_ar' : lang === 'fr' ? '_fr' : '_en';
+
+    // 1. Explicit pre-existing localized string
+    const localized = obj[`${propName}${suffix}`] || obj[`${propName}${underscoreSuffix}`];
+    if (localized && localized !== obj[`${propName}Ar`] && localized !== obj[`${propName}_ar`]) {
+      return localized;
+    }
+    if (localized && lang === 'ar') {
+      return localized;
+    }
+
+    const baseText = obj[`${propName}Ar`] || obj[`${propName}_ar`] || obj[propName] || '';
+
+    // 2. If Arabic, return base Arabic text immediately
+    if (lang === 'ar' || !baseText) {
+      return baseText;
+    }
+
+    // 3. Dynamic frontend translation cache if translation is missing
+    const cacheKey = `${lang}:${baseText}`;
+    if (dynTranslations[cacheKey]) {
+      return dynTranslations[cacheKey];
+    }
+
+    // Trigger free lazy translation in background and update state
+    autoTranslateIfMissing(baseText, lang)
+      .then(translated => {
+        if (translated && translated !== baseText) {
+          setDynTranslations(prev => ({ ...prev, [cacheKey]: translated }));
+        }
+      })
+      .catch(() => {});
+
+    return baseText;
   };
 
   return (
-    <LanguageContext.Provider value={{ lang, dir, setLanguage, t, getLocalized }}>
+    <LanguageContext.Provider value={{ lang, dir, setLanguage, t, getLocalized, autoTranslateIfMissing }}>
       {children}
     </LanguageContext.Provider>
   );

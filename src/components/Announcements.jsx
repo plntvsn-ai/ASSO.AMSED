@@ -200,8 +200,8 @@ export const Announcements = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {displayList.map((item) => {
               const badge = getCategoryBadge(item.category, item.source);
-              const title = item.isRss ? item.title : getLocalized(item, 'title');
-              const desc = item.isRss ? item.desc : getLocalized(item, 'desc');
+              const title = getLocalized(item, 'title');
+              const desc = getLocalized(item, 'desc');
 
               return (
                 <article

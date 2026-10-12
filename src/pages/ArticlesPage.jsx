@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useCms } from '../context/CmsContext';
+import { useLanguage } from '../context/LanguageContext';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
 import { 
@@ -10,6 +11,7 @@ import {
 
 export const ArticlesPage = () => {
   const { cmsData } = useCms();
+  const { getLocalized } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [rssArticles, setRssArticles] = useState([]);
@@ -168,11 +170,11 @@ export const ArticlesPage = () => {
                       <h3 className="text-lg font-bold text-slate-900 group-hover:text-emerald-700 transition leading-snug line-clamp-2">
                         {art.isRss && art.link ? (
                           <a href={art.link} target="_blank" rel="noopener noreferrer">
-                            {art.title}
+                            {getLocalized(art, 'title')}
                           </a>
                         ) : (
                           <Link to={`/article/${art.id}`}>
-                            {art.title}
+                            {getLocalized(art, 'title')}
                           </Link>
                         )}
                       </h3>
