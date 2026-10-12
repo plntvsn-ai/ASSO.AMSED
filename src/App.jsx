@@ -22,6 +22,7 @@ import { AdminLayout } from './admin/AdminLayout';
 import { Dashboard } from './admin/pages/Dashboard';
 import { AdvancedSettings } from './admin/pages/AdvancedSettings';
 import { AutoPublisher } from './admin/pages/AutoPublisher';
+import { RobotsAdmin } from './admin/pages/RobotsAdmin';
 import { ArticlesAdmin } from './admin/pages/ArticlesAdmin';
 import { VideosAdmin } from './admin/pages/VideosAdmin';
 import { TopicsAdmin } from './admin/pages/TopicsAdmin';
@@ -69,6 +70,7 @@ export default function App() {
                 <Route path="settings" element={<SettingsPage />} />
                 <Route path="settings/advanced" element={<AdvancedSettings />} />
                 <Route path="auto" element={<AutoPublisher />} />
+                <Route path="robots" element={<RobotsAdmin />} />
                 <Route path="articles" element={<ArticlesAdmin />} />
                 <Route path="videos" element={<VideosAdmin />} />
                 <Route path="topics" element={<TopicsAdmin />} />
@@ -96,6 +98,7 @@ export default function App() {
                 <Route index element={<Dashboard />} />
                 <Route path="settings/advanced" element={<AdvancedSettings />} />
                 <Route path="auto" element={<AutoPublisher />} />
+                <Route path="robots" element={<RobotsAdmin />} />
                 <Route path="articles" element={<ArticlesAdmin />} />
                 <Route path="videos" element={<VideosAdmin />} />
                 <Route path="topics" element={<TopicsAdmin />} />

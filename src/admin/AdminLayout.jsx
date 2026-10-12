@@ -24,6 +24,7 @@ export const AdminLayout = () => {
     { path: '/admin/articles', label: 'المقالات والأخبار', icon: FileText, count: cmsData.articles?.length },
     { path: '/admin/services', label: 'إعدادات الخدمات', icon: HandHeart, count: 8 },
     { path: '/admin/auto', label: 'النشر الأوتوماتيكي ⚡', icon: Bot, count: cmsData.autoTopics?.filter(t => !t.used)?.length },
+    { path: '/admin/robots', label: 'الماستر روبوت 🤖 Master', icon: Bot },
     { path: '/admin/topics', label: 'خزان المواضيع', icon: BookOpen },
     { path: '/admin/review', label: 'مراجعة المقالات', icon: CheckSquare },
     { path: '/admin/researchers', label: 'المحررون والباحثون', icon: Users },

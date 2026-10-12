@@ -21,16 +21,20 @@
   ],
   "rewrites": [
     {
+      "source": "/api/autonomous-publish",
+      "destination": "/api/cron/master"
+    },
+    {
       "source": "/api/auto-publish",
-      "destination": "/api/autonomous-publish"
+      "destination": "/api/cron/master"
     },
     {
       "source": "/api/auto",
-      "destination": "/api/autonomous-publish"
+      "destination": "/api/cron/master"
     },
     {
       "source": "/api/publish",
-      "destination": "/api/autonomous-publish"
+      "destination": "/api/cron/master"
     },
     {
       "source": "/api/site_settings",
@@ -51,8 +55,8 @@
   ],
   "crons": [
     {
-      "path": "/api/autonomous-publish",
-      "schedule": "0 8 * * *"
+      "path": "/api/cron/master",
+      "schedule": "0 9 * * *"
     }
   ]
 }

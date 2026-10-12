@@ -9,6 +9,7 @@ import {
   MessageCircle, Clock, ArrowLeft 
 } from 'lucide-react';
 import { FacebookIcon } from '../components/SocialIcons';
+import { ArticleSchema } from '../components/seo/ArticleSchema';
 
 export const ArticleDetailPage = () => {
   const { id } = useParams();
@@ -46,6 +47,7 @@ export const ArticleDetailPage = () => {
       <Navbar />
 
       <main className="flex-1 py-10">
+        <ArticleSchema article={article} />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 space-y-8">
           
           {/* Back Button */}
