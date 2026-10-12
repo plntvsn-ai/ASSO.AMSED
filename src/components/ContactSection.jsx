@@ -371,9 +371,10 @@ export const ContactSection = () => {
           <div className="relative w-full h-80 sm:h-96 bg-slate-100">
             <iframe
               title="موقع جمعية المبادرة المغربية للتكافل والتعاون بالقنيطرة"
-              src="https://maps.google.com/maps?q=34.2610,-6.5802&hl=ar&z=15&output=embed"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3946.3352707977733!2d-6.542888223788758!3d34.250668007226096!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xda7598d933e7443%3A0xf8e9c56f2cb95186!2z2KzZhdi52YrYqSDYp9mE2YXYqNin2K_YsdipINin2YTZhdi62LHYqNmK2Kkg2YTZhNiq2YPYp9mB2YQg2YjYp9mE2KrYudin2YjZhiDZhNix2LnYp9mK2Kkg2KfZhNij2LfZgdin2YQg2YHZiiDZiNi22LnZitipINi12LnYqNip!5e1!3m2!1sen!2sma!4v1791728796328!5m2!1sen!2sma"
               className="w-full h-full border-0"
               loading="lazy"
+              allowFullScreen
               referrerPolicy="no-referrer-when-downgrade"
             ></iframe>
 

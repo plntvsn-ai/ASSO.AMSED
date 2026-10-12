@@ -2,42 +2,35 @@ import React from 'react';
 
 export default function HeroVideo() {
   return (
-    <section className="bg-slate-950 text-white pt-8 pb-16 sm:pt-12 sm:pb-20 border-b border-slate-800">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 flex flex-col items-center text-center">
+    <section className="bg-[#0a4a3a] text-white pt-8 pb-14 sm:pt-10 sm:pb-16 border-b border-emerald-900 text-center">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 flex flex-col items-center">
         
-        {/* 1. شعار الجمعية في الأعلى - صورة واحدة فقط واضحة ودائرية بلا شفافية وبلا overlapping */}
-        <div className="mb-5 flex justify-center">
+        {/* 1. اسم الجمعية في الأعلى */}
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tight leading-tight mb-2">
+          جمعية المبادرة المغربية للتكافل والتعاون لرعاية الأطفال في وضعية صعبة
+        </h1>
+
+        <h2 className="text-sm sm:text-base font-semibold text-emerald-200 mb-3">
+          AMSED - Association Marocaine d'Entraide et de Solidarité
+        </h2>
+
+        {/* شارة الإيداع القانوني والعنوان */}
+        <div className="inline-block bg-white/15 backdrop-blur-sm text-emerald-100 text-xs px-4 py-1.5 rounded-full mb-5 border border-white/20">
+          الإيداع القانوني: 376.58.1 | SAKNIA 30 LOT EL HIZAM N° D Kénitra
+        </div>
+
+        {/* الشعار الرسمي - صورة واحدة فقط واضحة ودائرية بلا شفافية وبلا overlapping */}
+        <div className="mb-6 flex justify-center">
           <img
             src="/logo.jpg"
-            alt="شعار جمعية المبادرة المغربية للتكافل والتعاون"
-            className="w-28 h-28 sm:w-32 sm:h-32 rounded-full object-cover shadow-2xl border-2 border-amber-500/80 transition-transform duration-300 hover:scale-105"
+            alt="شعار جمعية AMSED"
+            className="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover shadow-2xl border-4 border-white/90 bg-white p-1"
           />
         </div>
 
-        {/* 2. تحته مباشرة اسم الجمعية والشعار الوطني */}
-        <div className="space-y-3 max-w-3xl mb-8">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-950 border border-amber-600/50 text-amber-400 text-xs font-bold tracking-wide">
-            <span>★</span>
-            <span>الله • الوطن • الملك</span>
-            <span>★</span>
-          </div>
-
-          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-white tracking-tight leading-tight">
-            جمعية المبادرة المغربية للتكافل والتعاون
-          </h1>
-
-          <h2 className="text-base sm:text-lg md:text-xl font-bold text-emerald-400">
-            لرعاية الأطفال في وضعية صعبة بالقنيطرة
-          </h2>
-
-          <p className="text-xs sm:text-sm md:text-base text-slate-300 max-w-2xl mx-auto leading-relaxed">
-            مؤسسة اجتماعية وتربوية متخصصة في رعاية وتأهيل أطفال التوحد • التعليم الأولي المكيف • ورشات المهارات الحياتية • التأهيل المهني والإدماج المدرسي
-          </p>
-        </div>
-
-        {/* 3. الفيديو الخاص بتقديم الجمعية بشكل واضح ومباشر بعد الشعار والاسم */}
-        <div className="w-full max-w-5xl">
-          <div className="relative w-full aspect-video rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border border-slate-700/80 bg-black">
+        {/* 2. الفيديو الخاص بتقديم الجمعية */}
+        <div className="w-full max-w-3xl mb-6">
+          <div className="relative w-full aspect-video rounded-2xl overflow-hidden shadow-2xl border-2 border-emerald-800/80 bg-black">
             <iframe
               src="https://www.youtube-nocookie.com/embed/CSwDq9szfj0?autoplay=0&controls=1&modestbranding=1&rel=0"
               title="فيديو تقديم جمعية AMSED"
@@ -46,10 +39,23 @@ export default function HeroVideo() {
               className="w-full h-full border-0"
             ></iframe>
           </div>
-          <div className="mt-3 flex items-center justify-between text-xs text-slate-400 px-2">
-            <span className="font-semibold text-slate-300">الفيديو التعريفي الرسمي بأنشطة وخدمات الجمعية</span>
-            <span className="text-emerald-400 font-mono">AMSED Official Presentation</span>
+          <div className="mt-2.5 flex items-center justify-between text-xs text-emerald-200/80 px-2">
+            <span>الفيديو التعريفي الرسمي بأنشطة وخدمات الجمعية</span>
+            <span className="font-mono text-amber-300">AMSED Official Presentation</span>
           </div>
+        </div>
+
+        {/* زر صغير فقط - اتصال مباشر بلا تبرع */}
+        <div className="mt-2 flex flex-col items-center gap-2">
+          <a
+            href="tel:0654240523"
+            className="inline-flex items-center gap-2 bg-white text-[#0a4a3a] hover:bg-emerald-50 font-bold px-7 py-3 rounded-full shadow-lg transition text-sm hover:scale-105"
+          >
+            <span>📞 اتصلوا بنا - 06 54 24 05 23</span>
+          </a>
+          <p className="text-xs text-emerald-200/80">
+            يفتح من الإثنين إلى السبت ابتداءً من 9:00 صباحاً - الساكنية 30
+          </p>
         </div>
 
       </div>
