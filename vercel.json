@@ -6,11 +6,11 @@
     },
     {
       "source": "/sitemap.xml",
-      "destination": "/api/seo/sitemap"
+      "destination": "/sitemap.xml"
     },
     {
       "source": "/robots.txt",
-      "destination": "/api/seo/robots"
+      "destination": "/robots.txt"
     },
     {
       "source": "/google474987270931ac4d.html",
