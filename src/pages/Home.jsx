@@ -10,6 +10,7 @@ import { Announcements } from '../components/Announcements';
 import { Gallery } from '../components/Gallery';
 import { VideosSection } from '../components/VideosSection';
 import { DonationSection } from '../components/DonationSection';
+import { BankAccountSection } from '../components/BankAccountSection';
 import { ContactSection } from '../components/ContactSection';
 import { Footer } from '../components/Footer';
 import { useCms } from '../context/CmsContext';
@@ -20,7 +21,7 @@ import { Phone, MessageCircle } from 'lucide-react';
 
 export default function Home() {
   const { cmsData, triggerAutoPublish } = useCms();
-  const [siteSettings, setSiteSettings] = useState(() => {
+  const [settings, setSettings] = useState(() => {
     try {
       const cached = localStorage.getItem('site_settings');
       if (cached) return JSON.parse(cached);
@@ -28,20 +29,15 @@ export default function Home() {
     return {
       show_donation: false,
       show_bank: false,
-      address_ar: "SAKNIA 30 LOT EL HIZAM N° D 376.58.1 Kénitra",
-      phone: "06 23 05 24 54 06"
+      address_ar: '',
+      phone: ''
     };
   });
 
   useEffect(() => {
     fetch('/api/settings')
       .then(r => r.json())
-      .then(d => {
-        if (d && typeof d === 'object') {
-          setSiteSettings(prev => ({ ...prev, ...d }));
-          try { localStorage.setItem('site_settings', JSON.stringify(d)); } catch {}
-        }
-      })
+      .then(setSettings)
       .catch(() => {});
   }, []);
 
@@ -82,7 +78,7 @@ export default function Home() {
     })();
   }, []);
 
-  const phoneForCall = siteSettings?.phone || cmsData?.contact?.phone1 || '06 23 05 24 54 06';
+  const phoneForCall = settings?.phone || cmsData?.contact?.phone1 || '06 23 05 24 54 06';
   const rawPhone = phoneForCall.replace(/\D/g, '');
   const intlPhone = rawPhone.startsWith('0') ? '212' + rawPhone.substring(1) : (rawPhone || '212623052454');
   const whatsappUrl = `https://wa.me/${intlPhone}`;
@@ -125,14 +121,22 @@ export default function Home() {
       {/* 8. Gallery */}
       <Gallery />
 
-      {/* 9. Donation & Sponsorship (Conditionally rendered via site settings) */}
-      {siteSettings.show_donation && <DonationSection showBank={siteSettings.show_bank} />}
+      {/* 9. Donation Programs Section */}
+      {settings.show_donation && <DonationSection />}
 
-      {/* 10. Contact & Maps */}
+      {/* 10. Official Bank Account Section (RIB) */}
+      {settings.show_bank && <BankAccountSection />}
+
+      {/* 11. Contact & Maps */}
       <ContactSection />
 
-      {/* 11. Footer */}
-      <Footer siteSettings={siteSettings} />
+      {/* 12. Main Footer */}
+      <Footer siteSettings={settings} />
+
+      {/* 13. Exact LTR Footer Strip */}
+      <footer dir="ltr" style={{ unicodeBidi: 'isolate' }} className="bg-slate-950 text-slate-400 text-xs py-3 text-center border-t border-slate-900 font-mono">
+        {settings.address_ar} | {settings.phone}
+      </footer>
 
       {/* Floating Action Buttons */}
       <aside aria-label="أزرار التواصل السريع" className="fixed bottom-6 left-6 z-30 flex flex-col gap-3">
