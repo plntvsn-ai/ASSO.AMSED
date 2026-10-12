@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Logo from './Logo';
 import { useLanguage } from '../context/LanguageContext';
@@ -10,10 +10,34 @@ import {
 } from 'lucide-react';
 import { FacebookIcon, YoutubeIcon } from './SocialIcons';
 
-export const Footer = () => {
+export const Footer = ({ siteSettings: propSettings }) => {
   const { lang, t } = useLanguage();
   const { data } = useData();
   const { cmsData } = useCms();
+  const [siteSettings, setSiteSettings] = useState(() => {
+    if (propSettings) return propSettings;
+    try {
+      const cached = localStorage.getItem('site_settings');
+      if (cached) return JSON.parse(cached);
+    } catch {}
+    return null;
+  });
+
+  useEffect(() => {
+    if (propSettings) {
+      setSiteSettings(propSettings);
+      return;
+    }
+    fetch('/api/settings')
+      .then(r => r.json())
+      .then(d => {
+        if (d && typeof d === 'object') {
+          setSiteSettings(d);
+          try { localStorage.setItem('site_settings', JSON.stringify(d)); } catch {}
+        }
+      })
+      .catch(() => {});
+  }, [propSettings]);
 
   const association = data.association;
   const contact = cmsData?.contact || association;
@@ -112,12 +136,12 @@ export const Footer = () => {
             <div className="space-y-3 text-xs sm:text-sm text-slate-400">
               <div className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                <span>{contact.address}</span>
+                <span>{siteSettings?.address_ar || contact.address}</span>
               </div>
               <div className="flex items-center gap-2.5">
                 <Phone className="w-4 h-4 text-emerald-400 shrink-0" />
-                <a href={`tel:${contact.phone1}`} className="hover:text-white transition font-mono inline-block" dir="ltr" style={{ unicodeBidi: 'isolate' }}>
-                  {contact.phone1}
+                <a href={`tel:${siteSettings?.phone || contact.phone1}`} className="hover:text-white transition font-mono inline-block" dir="ltr" style={{ unicodeBidi: 'isolate' }}>
+                  {siteSettings?.phone || contact.phone1}
                 </a>
                 {contact.phone2 && (
                   <>
@@ -140,15 +164,15 @@ export const Footer = () => {
         </div>
 
         {/* Bottom bar - 3 columns */}
-        <div className="pt-8 grid grid-cols-1 md:grid-cols-3 gap-6 text-sm text-slate-400 items-center">
-          <div className="text-center md:text-start">
-            SAKNIA 30 LOT EL HIZAM N° D 376.58.1 Kénitra
+        <div className="pt-8 grid md:grid-cols-3 gap-6 text-sm text-slate-400 items-center">
+          <div>
+            {siteSettings?.address_ar || "SAKNIA 30 LOT EL HIZAM N° D 376.58.1 Kénitra"}
           </div>
           <div className="text-center font-bold text-white">
             © AMSED
           </div>
-          <div dir="ltr" className="text-center md:text-left font-mono font-bold text-emerald-400" style={{ unicodeBidi: 'isolate' }}>
-            06 54 24 05 23
+          <div dir="ltr" className="text-left font-mono font-bold text-emerald-400" style={{ unicodeBidi: 'isolate' }}>
+            {siteSettings?.phone || "06 23 05 24 54 06"}
           </div>
         </div>
 

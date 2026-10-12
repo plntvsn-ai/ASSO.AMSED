@@ -41,6 +41,7 @@ import { ContactAdmin } from './admin/pages/ContactAdmin';
 import { LogoAdmin } from './admin/pages/LogoAdmin';
 import { FirebaseSettingsAdmin } from './admin/pages/FirebaseSettingsAdmin';
 import { ServicesAdmin } from './admin/pages/ServicesAdmin';
+import { SettingsPage } from './admin/pages/SettingsPage';
 
 export default function App() {
   return (
@@ -51,6 +52,7 @@ export default function App() {
             <Routes>
               {/* Public Website Routes */}
               <Route path="/" element={<Home />} />
+              <Route path="/settings" element={<SettingsPage />} />
               <Route path="/articles" element={<ArticlesPage />} />
               <Route path="/article/:id" element={<ArticleDetailPage />} />
               <Route path="/about" element={<AboutPage />} />
@@ -62,6 +64,7 @@ export default function App() {
               {/* 100% Protected Admin Area (Zero White Screen) */}
               <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
                 <Route index element={<Dashboard />} />
+                <Route path="settings" element={<SettingsPage />} />
                 <Route path="settings/advanced" element={<AdvancedSettings />} />
                 <Route path="auto" element={<AutoPublisher />} />
                 <Route path="articles" element={<ArticlesAdmin />} />
