@@ -1,122 +1,72 @@
 export const dynamic = 'force-dynamic'
+export const maxDuration = 60
 
-// ترجمة مجانية بلا مفتاح - MyMemory (1000 ترجمة فالنهار فابور)
-async function translateFree(text: string, to: 'fr' | 'en') {
-  if (!text) return text
-  // MyMemory كيبغي نصوص قصار - كنقطعو
-  const chunks = text.match(/.{1,400}/g) || [text]
-  let result = ''
-  for (const chunk of chunks) {
-    try {
-      const res = await fetch(
-        `https://api.mymemory.translated.net/get?q=${encodeURIComponent(chunk)}&langpair=ar|${to}`
-      )
-      const j = await res.json()
-      // إصلاح الترجمة الحرفية باش تولي إنسانية
-      let t = j.responseData?.translatedText || chunk
-      // تنقية
-      t = t.replace(/AMSED/g, 'AMSED').replace(/SAKNIA/g, 'SAKNIA')
-      result += t + ' '
-      await new Promise(r => setTimeout(r, 300)) // باش ما نبلوكيوش API المجاني
-    } catch {
-      result += chunk + ' '
-    }
-  }
-  return result.trim()
+async function translateFree(text: string, to: 'fr'|'en'){
+  try{
+    const r = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text.slice(0,400))}&langpair=ar|${to}`)
+    const j = await r.json()
+    return j.responseData?.translatedText || text
+  }catch{ return text }
 }
 
-const TEMPLATE_AR = (topic: string) => `# ${topic} - دليل عملي من مركز AMSED
+function makeArticle(topic: string){
+  return {
+    ar: `# ${topic}
 
-في قلب الساكنية بالقنيطرة، في مركزنا SAKNIA 30 LOT EL HIZAM N° D 376.58.1، نستقبل كل صباح أمهات جايين مقلقين على ولداتهم. اليوم غادي نهضرو على موضوع مهم بزاف: ${topic}.
+في مركز AMSED بالساكنية القنيطرة (SAKNIA 30 LOT EL HIZAM N° D 376.58.1) نستقبل يوميا أمهات...
 
-## شنو هو ${topic}؟
+## ما هو ${topic}؟
 
-## كيفاش كنخدمو هاد الموضوع فالجمعية ديالنا؟
+## كيف نساعد في الجمعية؟
 
-عندنا 8 خدمات: الترويض الطبي، تقويم النطق، الدعم المدرسي AVS، ورشات مهنية، مواكبة نفسية.
+لدينا 8 خدمات: ترويض، نطق، دعم مدرسي AVS، ورشات مهنية، مواكبة نفسية.
 
-## 3 نصائح اليوم
-1. الروتين هو الأمان
-2. التشجيع ماشي العقاب
-3. تواصلي معنا: 06 54 24 05 23`
+## نصائح اليوم
 
-const TEMPLATE_FR = (topic_fr: string) => `# ${topic_fr} - Guide pratique du centre AMSED
+1. الروتين ثابت
+2. التشجيع الإيجابي
+3. اتصلي بنا: 06 54 24 05 23
 
-Au cœur de Saknia à Kénitra (SAKNIA 30 LOT EL HIZAM N° D 376.58.1), nous accueillons chaque matin des mamans inquiètes pour leurs enfants. Parlons aujourd'hui de : ${topic_fr}.
+-- جمعية AMSED - 650+ طفل مستفيد`,
+    fr: '',
+    en: ''
+  }
+}
 
-## C'est quoi ${topic_fr}?
-
-## Notre accompagnement à AMSED
-
-8 services: psychomotricité, orthophonie, AVS scolaire, ateliers professionnels, soutien psychologique.
-
-## 3 conseils pour aujourd'hui
-1. La routine rassure
-2. Encourager, pas punir
-3. Contactez-nous: 06 54 24 05 23`
-
-const TEMPLATE_EN = (topic_en: string) => `# ${topic_en} - Practical guide from AMSED center
-
-In Saknia, Kenitra (SAKNIA 30 LOT EL HIZAM N° D 376.58.1), we welcome worried mothers every morning. Let's talk about: ${topic_en}.
-
-## What is ${topic_en}?
-
-## How we help at AMSED
-
-8 services: therapy, speech, school support AVS, workshops, psychological support.
-
-Contact: 06 54 24 05 23`
-
-export async function POST() {
-  try {
-    const { createClient } = await import('@supabase/supabase-js')
+export async function POST(){
+  try{
+    const {createClient} = await import('@supabase/supabase-js')
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || 'https://xyzcompany.supabase.co'
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'dummy_key'
     const supabase = createClient(supabaseUrl, supabaseKey)
 
-    const { data: topics, error: fetchErr } = await supabase.from('topics_bank').select('*').eq('used', false).limit(1)
-    if (fetchErr || !topics?.length) {
-      return Response.json({ error: 'الخزان خاوي', details: fetchErr?.message })
-    }
+    const {data: topics, error: tError} = await supabase.from('topics_bank').select('*').eq('used', false).limit(1)
+    if(tError) return Response.json({error: tError.message}, {status:500})
+    if(!topics?.length) return Response.json({error: 'الخزان خاوي - زيد مواضيع'}, {status:400})
 
-    const topic_ar = topics[0].title
-
-    // 1. ترجمة العنوان فابور
+    const topic_ar = topics[0].topic || topics[0].title
     const topic_fr = await translateFree(topic_ar, 'fr')
     const topic_en = await translateFree(topic_ar, 'en')
 
-    // 2. توليد مقالات ب 3 لغات (ماشي ترجمة حرفية - قوالب إنسانية)
-    const content_ar = TEMPLATE_AR(topic_ar)
-    const content_fr = TEMPLATE_FR(topic_fr)
-    const content_en = TEMPLATE_EN(topic_en)
+    const art = makeArticle(topic_ar)
 
-    // 3. نشر
-    const { error: insertErr } = await supabase.from('articles').insert({
+    const {error: iError} = await supabase.from('articles').insert({
       title_ar: topic_ar,
       title_fr: topic_fr,
       title_en: topic_en,
-      content_ar,
-      content_fr,
-      content_en,
-      status: 'published',
-      created_at: new Date().toISOString()
+      content_ar: art.ar,
+      content_fr: `Guide AMSED: ${topic_fr} - Contact 06 54 24 05 23 - SAKNIA 30 LOT EL HIZAM`,
+      content_en: `AMSED Guide: ${topic_en} - Contact 06 54 24 05 23`,
+      status: 'published'
     })
+    if(iError) return Response.json({error: iError.message}, {status:500})
 
-    if (insertErr) {
-      return Response.json({ error: 'فشل إدخال المقال في قاعدة البيانات', details: insertErr.message }, { status: 500 })
-    }
+    await supabase.from('topics_bank').update({used: true}).eq('id', topics[0].id)
 
-    await supabase.from('topics_bank').update({ used: true }).eq('id', topics[0].id)
-
-    return Response.json({
-      success: true,
-      ar: topic_ar,
-      fr: topic_fr,
-      en: topic_en
-    })
-  } catch (err: any) {
-    return Response.json({ error: err?.message || 'Server error' }, { status: 500 })
+    return Response.json({success:true, ar: topic_ar, fr: topic_fr, en: topic_en})
+  }catch(e:any){
+    return Response.json({error: e.message}, {status:500})
   }
 }
 
-export async function GET() { return POST() }
+export async function GET(){ return POST() }
