@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useCms } from '../../context/CmsContext';
 import { RichTextEditor } from '../components/RichTextEditor';
 import { ImageUploader } from '../components/ImageUploader';
+import { smartTranslate } from '../../services/translator';
 import { 
   Plus, Edit, Trash2, Eye, EyeOff, Search, 
   Calendar, User, Tag, Check, X, FileText, Save 
@@ -82,20 +83,46 @@ export const ArticlesAdmin = () => {
     setIsModalOpen(true);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!form.title || !form.content) {
       alert("يرجى ملء العنوان ومحتوى المقال");
       return;
     }
 
+    const title_ar = form.title_ar || form.title;
+    let title_fr = form.title_fr;
+    let title_en = form.title_en;
+
+    // ملي كتنشر مقال بالعربية:
+    if (title_ar && (!title_fr || !title_en)) {
+      try {
+        const [fr, en] = await Promise.all([
+          title_fr ? Promise.resolve(title_fr) : smartTranslate(title_ar, 'fr'),
+          title_en ? Promise.resolve(title_en) : smartTranslate(title_ar, 'en')
+        ]);
+        title_fr = fr;
+        title_en = en;
+      } catch (err) {}
+    }
+
+    const payload = {
+      ...form,
+      title: title_ar,
+      title_ar,
+      title_fr: title_fr || title_ar,
+      title_en: title_en || title_ar,
+      status: 'published',
+      isApproved: true
+    };
+
     if (editingArticle) {
-      updateArticle(editingArticle.id, { ...form, status: 'published', isApproved: true });
+      await updateArticle(editingArticle.id, payload);
     } else {
-      addArticle({ ...form, status: 'published', isApproved: true });
+      await addArticle(payload);
     }
     setIsModalOpen(false);
-    setSavedMessage("تم حفظ وتحديث المقال في Firebase والموقع بنجاح!");
+    setSavedMessage("تم حفظ وتحديث المقال مع الترجمة الذكية (FR & EN) بنجاح!");
     setTimeout(() => setSavedMessage(''), 4000);
   };
 

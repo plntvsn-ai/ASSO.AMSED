@@ -7,6 +7,7 @@ import {
   fetchYouTubeInfo 
 } from '../services/cmsService';
 import { executeAutoPublish } from '../services/autoPublisher';
+import { smartTranslate } from '../services/translator';
 import { db, isFirebaseConfigured, initFirebase, getStoredFirebaseConfig } from '../services/firebase';
 import { doc, getDoc, setDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 
@@ -87,10 +88,30 @@ export const CmsProvider = ({ children }) => {
   };
 
   // --- 1. Articles Operations ---
-  const addArticle = (newArticle) => {
+  const addArticle = async (newArticle) => {
+    const title_ar = newArticle.title_ar || newArticle.title || '';
+    let title_fr = newArticle.title_fr;
+    let title_en = newArticle.title_en;
+
+    // ملي كتنشر مقال بالعربية:
+    if (title_ar && (!title_fr || !title_en)) {
+      try {
+        const [fr, en] = await Promise.all([
+          title_fr ? Promise.resolve(title_fr) : smartTranslate(title_ar, 'fr'),
+          title_en ? Promise.resolve(title_en) : smartTranslate(title_ar, 'en')
+        ]);
+        title_fr = fr;
+        title_en = en;
+      } catch (err) {}
+    }
+
     const article = {
       ...newArticle,
-      id: 'art-' + Date.now(),
+      id: newArticle.id || 'art-' + Date.now(),
+      title: title_ar,
+      title_ar,
+      title_fr: title_fr || title_ar,
+      title_en: title_en || title_ar,
       createdAt: newArticle.createdAt || new Date().toISOString().split('T')[0],
       published: true,
       status: 'published',
@@ -101,9 +122,21 @@ export const CmsProvider = ({ children }) => {
     return article;
   };
 
-  const updateArticle = (id, updatedFields) => {
+  const updateArticle = async (id, updatedFields) => {
+    let fields = { ...updatedFields };
+    const title_ar = fields.title_ar || fields.title;
+    if (title_ar && (!fields.title_fr || !fields.title_en)) {
+      try {
+        const [fr, en] = await Promise.all([
+          fields.title_fr ? Promise.resolve(fields.title_fr) : smartTranslate(title_ar, 'fr'),
+          fields.title_en ? Promise.resolve(fields.title_en) : smartTranslate(title_ar, 'en')
+        ]);
+        fields.title_fr = fr;
+        fields.title_en = en;
+      } catch (err) {}
+    }
     const updated = cmsData.articles.map(art => 
-      art.id === id ? { ...art, ...updatedFields } : art
+      art.id === id ? { ...art, ...fields } : art
     );
     persistUpdate('articles', updated);
   };

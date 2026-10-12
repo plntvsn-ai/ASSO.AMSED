@@ -1,5 +1,6 @@
 import { collection, getDocs, query, where, limit, addDoc, updateDoc, doc, serverTimestamp, getDoc, setDoc } from "firebase/firestore";
 import { db } from "../firebase";
+import { smartTranslate } from "./translator";
 
 async function fetchFromWikipedia(topic){
   try{
@@ -56,8 +57,25 @@ export async function autoGenerateAndPublish(){
     <p><em>"الطفل ليس مختلفاً ليعزل، بل هو مميز ليحتضن. بتضافر جهودنا جميعاً، نصنع غداً أفضل وأكثر إشراقاً لأطفالنا."</em></p>
   `.trim();
 
+  // ملي كتنشر مقال بالعربية: ترجمة ذكية عبر MyMemory
+  let title_fr = topicTitle;
+  let title_en = topicTitle;
+  try {
+    const [fr, en] = await Promise.all([
+      smartTranslate(topicTitle, 'fr'),
+      smartTranslate(topicTitle, 'en')
+    ]);
+    title_fr = fr;
+    title_en = en;
+  } catch (tErr) {
+    console.warn('Auto translation notice:', tErr);
+  }
+
   await addDoc(collection(db,"articles"),{
     title: topicTitle,
+    title_ar: topicTitle,
+    title_fr,
+    title_en,
     content,
     excerpt: `مقال توجيهي وتطبيقي من جمعية AMSED حول ${topicTitle} وسبل دعم وتأهيل الأطفال خطوة بخطوة.`,
     imageUrl: `https://picsum.photos/seed/${Date.now()}/800/600`,

@@ -1,5 +1,16 @@
 import { NextResponse } from 'next/server'
 
+async function smartTranslate(text: string, target: string): Promise<string> {
+  // استعمل MyMemory فابور - ترجمة ذكية ماشي حرفية
+  try {
+    const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=ar|${target}`)
+    const data = await res.json()
+    return data?.responseData?.translatedText || text
+  } catch {
+    return text
+  }
+}
+
 const TOPICS = [
   "كيفاش نعلم طفل التوحد يطلب الماء",
   "تمارين التخاطب للأطفال في المنزل",
@@ -15,6 +26,10 @@ export async function GET() {
       "https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?auto=format&fit=crop&w=800&q=80",
       "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80"
     ]
+
+    // ملي كتنشر مقال بالعربية:
+    const fr = await smartTranslate(topic, 'fr')
+    const en = await smartTranslate(topic, 'en')
 
     const articleContent = `
       <h2>مقدمة</h2>
@@ -33,6 +48,9 @@ export async function GET() {
     const data = {
       id: Date.now().toString(),
       title: topic,
+      title_ar: topic,
+      title_fr: fr,
+      title_en: en,
       content: articleContent,
       images: images,
       image: images[0],

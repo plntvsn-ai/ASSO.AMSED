@@ -1,3 +1,16 @@
+// api/autonomous-publish.js - Autonomous Article Publisher with Smart Translation
+
+async function smartTranslate(text, target) {
+  // استعمل MyMemory فابور - ترجمة ذكية ماشي حرفية
+  try {
+    const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=ar|${target}`);
+    const data = await res.json();
+    return data?.responseData?.translatedText || text;
+  } catch {
+    return text;
+  }
+}
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -22,6 +35,10 @@ export default async function handler(req, res) {
       "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=800&q=80"
     ];
 
+    // ملي كتنشر مقال بالعربية:
+    const fr = await smartTranslate(topic, 'fr');
+    const en = await smartTranslate(topic, 'en');
+
     const articleContent = `
       <h2>مقدمة</h2>
       <p>بزاف ديال الأمهات فالقنيطرة كيسولونا على ${topic}... هاد التجربة ديال أم سارة من الساكنية 30 غادي تفيدكم بزاف.</p>
@@ -39,6 +56,9 @@ export default async function handler(req, res) {
     const newArticle = {
       id: Date.now().toString(),
       title: topic,
+      title_ar: topic,
+      title_fr: fr,
+      title_en: en,
       content: articleContent,
       images: images,
       image: images[0],
