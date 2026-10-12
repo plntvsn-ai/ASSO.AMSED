@@ -40,7 +40,9 @@ export default function Home() {
         </div>
         {/* زر صغير فقط - بلا تبرع */}
         <div style={{marginTop:'25px'}}>
-          <a href="tel:0654240523" style={{background:'white', color:'#0a4a3a', padding:'10px 25px', borderRadius:'50px', textDecoration:'none', fontWeight:'bold', fontSize:'14px', display:'inline-block'}}>📞 اتصلوا بنا - 06 54 24 05 23</a>
+          <a href="tel:0654240523" style={{background:'white', color:'#0a4a3a', padding:'10px 25px', borderRadius:'50px', textDecoration:'none', fontWeight:'bold', fontSize:'14px', display:'inline-block'}}>
+            📞 اتصلوا بنا - <span dir="ltr" className="inline-block" style={{unicodeBidi: 'isolate'}}>06 54 24 05 23</span>
+          </a>
           <p style={{fontSize:'11px', marginTop:'8px', opacity:0.7}}>Lundi 9h - SAKNIA 30</p>
         </div>
       </header>

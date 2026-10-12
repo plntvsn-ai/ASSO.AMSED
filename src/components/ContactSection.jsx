@@ -124,7 +124,7 @@ export const ContactSection = () => {
                   <span className="text-xs text-slate-500 block mb-1">
                     {lang === 'ar' ? 'الرقم الأول (واتساب)' : 'Ligne 1 (WhatsApp)'}
                   </span>
-                  <span className="text-sm font-extrabold text-emerald-800" dir="ltr">
+                  <span className="text-sm font-extrabold text-emerald-800 inline-block font-mono" dir="ltr" style={{ unicodeBidi: 'isolate' }}>
                     {association.phone1}
                   </span>
                 </a>
@@ -136,7 +136,7 @@ export const ContactSection = () => {
                   <span className="text-xs text-slate-500 block mb-1">
                     {lang === 'ar' ? 'الرقم الثاني' : 'Ligne 2'}
                   </span>
-                  <span className="text-sm font-extrabold text-emerald-800" dir="ltr">
+                  <span className="text-sm font-extrabold text-emerald-800 inline-block font-mono" dir="ltr" style={{ unicodeBidi: 'isolate' }}>
                     {association.phone2}
                   </span>
                 </a>

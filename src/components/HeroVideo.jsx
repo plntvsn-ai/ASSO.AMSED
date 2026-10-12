@@ -51,7 +51,10 @@ export default function HeroVideo() {
             href="tel:0654240523"
             className="inline-flex items-center gap-2 bg-white text-[#0a4a3a] hover:bg-emerald-50 font-bold px-7 py-3 rounded-full shadow-lg transition text-sm hover:scale-105"
           >
-            <span>📞 اتصلوا بنا - 06 54 24 05 23</span>
+            <span>📞 اتصلوا بنا - </span>
+            <span dir="ltr" className="inline-block font-mono tracking-wider" style={{ unicodeBidi: 'isolate' }}>
+              06 54 24 05 23
+            </span>
           </a>
           <p className="text-xs text-emerald-200/80">
             يفتح من الإثنين إلى السبت ابتداءً من 9:00 صباحاً - الساكنية 30

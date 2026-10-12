@@ -116,13 +116,13 @@ export const Footer = () => {
               </div>
               <div className="flex items-center gap-2.5">
                 <Phone className="w-4 h-4 text-emerald-400 shrink-0" />
-                <a href={`tel:${contact.phone1}`} className="hover:text-white transition font-mono" dir="ltr">
+                <a href={`tel:${contact.phone1}`} className="hover:text-white transition font-mono inline-block" dir="ltr" style={{ unicodeBidi: 'isolate' }}>
                   {contact.phone1}
                 </a>
                 {contact.phone2 && (
                   <>
                     <span>/</span>
-                    <a href={`tel:${contact.phone2}`} className="hover:text-white transition font-mono" dir="ltr">
+                    <a href={`tel:${contact.phone2}`} className="hover:text-white transition font-mono inline-block" dir="ltr" style={{ unicodeBidi: 'isolate' }}>
                       {contact.phone2}
                     </a>
                   </>
