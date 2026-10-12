@@ -139,17 +139,16 @@ export const Footer = () => {
 
         </div>
 
-        {/* Bottom copyright (Zero public admin links or lock icons) */}
-        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
-          <div>
-            {t('footer', 'rights')}
+        {/* Bottom bar - 3 columns */}
+        <div className="pt-8 grid grid-cols-1 md:grid-cols-3 gap-6 text-sm text-slate-400 items-center">
+          <div className="text-center md:text-start">
+            SAKNIA 30 LOT EL HIZAM N° D 376.58.1 Kénitra
           </div>
-
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1 text-slate-400">
-              <Heart className="w-3.5 h-3.5 text-red-500 fill-red-500" />
-              <span>{t('footer', 'builtWithHeart')}</span>
-            </span>
+          <div className="text-center font-bold text-white">
+            © AMSED
+          </div>
+          <div dir="ltr" className="text-center md:text-left font-mono font-bold text-emerald-400" style={{ unicodeBidi: 'isolate' }}>
+            06 54 24 05 23
           </div>
         </div>
 

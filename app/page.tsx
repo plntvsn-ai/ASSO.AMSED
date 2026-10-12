@@ -79,8 +79,12 @@ export default function Home() {
         </div>
       </section>
 
-      <footer style={{background:'#0a4a3a', color:'white', padding:'25px 15px', textAlign:'center', fontSize:'13px'}}>
-        <p>© 2026 AMSED | الإيداع القانوني 376.58.1 | SAKNIA 30 LOT EL HIZAM N° D, Kénitra</p>
+      <footer style={{background:'#0a4a3a', color:'white', padding:'25px 15px', fontSize:'13px'}}>
+        <div style={{maxWidth:'1200px', margin:'0 auto', display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))', gap:'20px', alignItems:'center'}}>
+          <div>SAKNIA 30 LOT EL HIZAM N° D 376.58.1 Kénitra</div>
+          <div style={{textAlign:'center', fontWeight:'bold'}}>© AMSED</div>
+          <div dir="ltr" style={{textAlign:'left', unicodeBidi:'isolate', fontFamily:'monospace'}}>06 54 24 05 23</div>
+        </div>
       </footer>
     </main>
   )
