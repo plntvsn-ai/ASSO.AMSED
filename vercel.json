@@ -11,15 +11,7 @@
   ],
   "crons": [
     {
-      "path": "/api/news",
-      "schedule": "0 8 * * *"
-    },
-    {
       "path": "/api/autonomous-publish",
-      "schedule": "0 8 * * *"
-    },
-    {
-      "path": "/api/cron/auto-publish",
       "schedule": "0 8 * * *"
     }
   ]
