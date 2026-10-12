@@ -21,42 +21,26 @@
   ],
   "rewrites": [
     {
-      "source": "/api/autonomous-publish",
-      "destination": "/api/cron/master"
-    },
-    {
-      "source": "/api/auto-publish",
-      "destination": "/api/cron/master"
-    },
-    {
-      "source": "/api/auto",
-      "destination": "/api/cron/master"
-    },
-    {
-      "source": "/api/publish",
-      "destination": "/api/cron/master"
-    },
-    {
-      "source": "/api/site_settings",
-      "destination": "/api/settings"
-    },
-    {
-      "source": "/api/site-settings",
-      "destination": "/api/settings"
-    },
-    {
-      "source": "/api/settings/advanced",
-      "destination": "/api/advanced-settings"
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
     },
     {
       "source": "/google474987270931ac4d.html",
       "destination": "/google474987270931ac4d.html"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ],
   "crons": [
     {
       "path": "/api/cron/master",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/boss",
+      "schedule": "*/30 * * * *"
     }
   ]
 }

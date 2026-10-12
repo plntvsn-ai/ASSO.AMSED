@@ -23,6 +23,8 @@ import { Dashboard } from './admin/pages/Dashboard';
 import { AdvancedSettings } from './admin/pages/AdvancedSettings';
 import { AutoPublisher } from './admin/pages/AutoPublisher';
 import { RobotsAdmin } from './admin/pages/RobotsAdmin';
+import RobotSettings from './admin/pages/RobotSettings.jsx';
+import SecureLogin from './admin/pages/SecureLogin.jsx';
 import { ArticlesAdmin } from './admin/pages/ArticlesAdmin';
 import { VideosAdmin } from './admin/pages/VideosAdmin';
 import { TopicsAdmin } from './admin/pages/TopicsAdmin';
@@ -59,6 +61,12 @@ export default function App() {
               <Route path="/articles" element={<ArticlesPage />} />
               <Route path="/article/:id" element={<ArticleDetailPage />} />
               <Route path="/about" element={<AboutPage />} />
+
+              {/* Secure Hidden AMSED Robots Control Panel */}
+              <Route path="/am-ctrl-9k2l8x-2026-secure-panel-77/login" element={<SecureLogin />} />
+              <Route path="/am-ctrl-9k2l8x-2026-secure-panel-77" element={<RobotSettings />} />
+              <Route path="/admin/robots" element={<div className="p-12 text-center text-xl font-bold">404 Not Found</div>} />
+              <Route path="/admin" element={<div className="p-12 text-center text-xl font-bold">404 Not Found</div>} />
 
               {/* Researcher Portal */}
               <Route path="/researcher/login" element={<ResearcherLogin />} />
