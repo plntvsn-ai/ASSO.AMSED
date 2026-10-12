@@ -41,9 +41,7 @@ export default function HeadSeo() {
       setMeta('name', 'geo.placename', settings.geo_city || settings.city || 'Kenitra');
       setMeta('name', 'geo.region', settings.geo_region || 'MA-KEN');
 
-      if (settings.google_verification) {
-        setMeta('name', 'google-site-verification', settings.google_verification);
-      }
+      setMeta('name', 'google-site-verification', settings.google_verification || 'kjDkzRmJppvcCc_okAdKUPHcr9FoarzwnytGYEEng14');
 
       let schemaScript = document.getElementById('schema-jsonld');
       if (!schemaScript) {

@@ -9,7 +9,7 @@ export const defaultSettings: Record<string, string> = {
   robots_txt: 'User-agent: *\nAllow: /\n\nSitemap: https://asso-amsed.vercel.app/api/seo/sitemap',
   sitemap_enabled: 'true',
   google_analytics: 'G-XXXXXXXXXX',
-  google_verification: '',
+  google_verification: 'kjDkzRmJppvcCc_okAdKUPHcr9FoarzwnytGYEEng14',
   gtm_id: '',
   search_console: '',
   geo_lat: '34.2610',
@@ -132,7 +132,8 @@ export default async function RootLayout({
         <meta name="ICBM" content={`${settings.geo_lat}, ${settings.geo_lng}`} />
 
         {/* Google Site Verification */}
-        {settings.google_verification && (
+        <meta name="google-site-verification" content="kjDkzRmJppvcCc_okAdKUPHcr9FoarzwnytGYEEng14" />
+        {settings.google_verification && settings.google_verification !== "kjDkzRmJppvcCc_okAdKUPHcr9FoarzwnytGYEEng14" && (
           <meta name="google-site-verification" content={settings.google_verification} />
         )}
 

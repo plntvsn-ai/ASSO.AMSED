@@ -21,7 +21,7 @@ export default function AdvancedSettings() {
     robots_txt: 'User-agent: *\nAllow: /\n\nSitemap: https://asso-amsed.vercel.app/api/seo/sitemap',
     sitemap_enabled: 'true',
     google_analytics: 'G-XXXXXXXXXX',
-    google_verification: '',
+    google_verification: 'kjDkzRmJppvcCc_okAdKUPHcr9FoarzwnytGYEEng14',
     gtm_id: '',
     search_console: '',
     geo_lat: '34.2610',

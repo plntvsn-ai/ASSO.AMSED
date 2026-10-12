@@ -37,7 +37,7 @@ insert into advanced_settings (key, value, category) values
 
   -- Google GSR (Google Search & Reporting)
   ('google_analytics', 'G-XXXXXXXXXX', 'google'),
-  ('google_verification', '', 'google'),
+  ('google_verification', 'kjDkzRmJppvcCc_okAdKUPHcr9FoarzwnytGYEEng14', 'google'),
   ('gtm_id', '', 'google'),
   ('search_console', '', 'google'),
 

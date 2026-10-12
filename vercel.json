@@ -13,6 +13,10 @@
       "destination": "/api/seo/robots"
     },
     {
+      "source": "/google474987270931ac4d.html",
+      "destination": "/google474987270931ac4d.html"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
