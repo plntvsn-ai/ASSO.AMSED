@@ -1,23 +1,60 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useCms } from '../context/CmsContext';
 import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
 import { 
   Calendar, User, Tag, Search, ArrowLeft, 
-  FileText, ArrowRight, Sparkles 
+  FileText, ArrowRight, Sparkles, ExternalLink, Rss 
 } from 'lucide-react';
 
 export const ArticlesPage = () => {
   const { cmsData } = useCms();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [rssArticles, setRssArticles] = useState([]);
 
-  const articles = (cmsData.articles || []).filter(a => a.published !== false);
+  // كيجيب الأخبار فابور من RSS
+  useEffect(() => {
+    // Google News RSS - فابور 100%
+    fetch('/api/news')
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.news && Array.isArray(data.news)) {
+          setRssArticles(data.news);
+        }
+      })
+      .catch(err => console.warn('RSS news fetch notice:', err));
+  }, []);
 
-  const categories = ["الكل", "التعليم والإدماج", "التأهيل المهني", "أنشطة وترفيه", "قوافل ومبادرات", "أخبار الجمعية"];
+  const localArticles = (cmsData.articles || []).filter(a => a.published !== false);
 
-  const filtered = articles.filter(art => {
+  const formattedRssArticles = rssArticles.map(item => ({
+    id: item.id,
+    title: item.title,
+    content: item.summary || item.rawTitle || item.title,
+    createdAt: item.formattedDate || item.pubDate,
+    author: item.source || 'Google News RSS',
+    category: 'أخبار وطنية (RSS)',
+    image: item.image,
+    link: item.link,
+    source: item.source,
+    isRss: true
+  }));
+
+  const allCombined = [...localArticles, ...formattedRssArticles];
+
+  const categories = [
+    "الكل", 
+    "أخبار وطنية (RSS)", 
+    "التعليم والإدماج", 
+    "التأهيل المهني", 
+    "أنشطة وترفيه", 
+    "قوافل ومبادرات", 
+    "أخبار الجمعية"
+  ];
+
+  const filtered = allCombined.filter(art => {
     const matchesSearch = art.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
                           (art.content || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCat = selectedCategory === 'all' || art.category === selectedCategory;
@@ -35,13 +72,13 @@ export const ArticlesPage = () => {
           <div className="text-center max-w-3xl mx-auto space-y-3">
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-200">
               <FileText className="w-3.5 h-3.5 text-emerald-700" />
-              <span>مستجدات وبلاغات الجمعية</span>
+              <span>مستجدات وبلاغات الجمعية والصحافة الوطنية</span>
             </div>
             <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
               المقالات، البلاغات والأخبار الميدانية
             </h1>
             <p className="text-sm sm:text-base text-slate-600">
-              تابع كافة الأنشطة، ورشات التأهيل المهني، قسم التعليم الأولي المكيف، وتدخلات الإدماج المدرسي
+              تابع كافة الأنشطة، ورشات التأهيل المهني، قسم التعليم الأولي المكيف، وتدخلات الإدماج المدرسي وأخبار التوحد
             </p>
           </div>
 
@@ -63,13 +100,19 @@ export const ArticlesPage = () => {
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat === "الكل" ? "all" : cat)}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap ${
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition whitespace-nowrap flex items-center gap-1 ${
                     (selectedCategory === 'all' && cat === "الكل") || selectedCategory === cat
                       ? 'bg-emerald-700 text-white shadow-md'
                       : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                   }`}
                 >
-                  {cat}
+                  {cat === "أخبار وطنية (RSS)" && (
+                    <span className="flex h-2 w-2 relative">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                    </span>
+                  )}
+                  <span>{cat}</span>
                 </button>
               ))}
             </div>
@@ -97,7 +140,11 @@ export const ArticlesPage = () => {
                         loading="lazy"
                       />
                       <div className="absolute top-3 start-3">
-                        <span className="px-3 py-1 rounded-lg text-[11px] font-bold bg-slate-900/80 text-white backdrop-blur-md shadow">
+                        <span className={`px-3 py-1 rounded-lg text-[11px] font-bold shadow ${
+                          art.isRss 
+                            ? 'bg-emerald-800 text-white' 
+                            : 'bg-slate-900/80 text-white backdrop-blur-md'
+                        }`}>
                           {art.category}
                         </span>
                       </div>
@@ -118,9 +165,15 @@ export const ArticlesPage = () => {
                       </div>
 
                       <h3 className="text-lg font-bold text-slate-900 group-hover:text-emerald-700 transition leading-snug line-clamp-2">
-                        <Link to={`/article/${art.id}`}>
-                          {art.title}
-                        </Link>
+                        {art.isRss && art.link ? (
+                          <a href={art.link} target="_blank" rel="noopener noreferrer">
+                            {art.title}
+                          </a>
+                        ) : (
+                          <Link to={`/article/${art.id}`}>
+                            {art.title}
+                          </Link>
+                        )}
                       </h3>
 
                       <div 
@@ -132,13 +185,25 @@ export const ArticlesPage = () => {
 
                   {/* Read More Footer */}
                   <div className="p-6 pt-0">
-                    <Link
-                      to={`/article/${art.id}`}
-                      className="w-full inline-flex items-center justify-between bg-slate-100 hover:bg-emerald-700 hover:text-white text-slate-700 font-bold px-4 py-2.5 rounded-xl transition text-xs"
-                    >
-                      <span>قراءة المقال كاملاً</span>
-                      <ArrowLeft className="w-4 h-4" />
-                    </Link>
+                    {art.isRss && art.link ? (
+                      <a
+                        href={art.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full inline-flex items-center justify-between bg-emerald-50 hover:bg-emerald-700 hover:text-white text-emerald-800 font-bold px-4 py-2.5 rounded-xl transition text-xs border border-emerald-200"
+                      >
+                        <span>قراءة في {art.source || 'المصدر'}</span>
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
+                    ) : (
+                      <Link
+                        to={`/article/${art.id}`}
+                        className="w-full inline-flex items-center justify-between bg-slate-100 hover:bg-emerald-700 hover:text-white text-slate-700 font-bold px-4 py-2.5 rounded-xl transition text-xs"
+                      >
+                        <span>قراءة المقال كاملاً</span>
+                        <ArrowLeft className="w-4 h-4" />
+                      </Link>
+                    )}
                   </div>
                 </article>
               ))}

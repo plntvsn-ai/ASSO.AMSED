@@ -1,22 +1,73 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useData } from '../context/DataContext';
-import { Bell, Calendar, AlertCircle, ArrowLeft, ArrowRight, X, Sparkles, Tag } from 'lucide-react';
+import { 
+  Bell, Calendar, AlertCircle, ArrowLeft, ArrowRight, 
+  X, Sparkles, Tag, ExternalLink, Rss, Radio 
+} from 'lucide-react';
 
 export const Announcements = () => {
   const { lang, dir, t, getLocalized } = useLanguage();
   const { data } = useData();
   const [activeFilter, setActiveFilter] = useState('all');
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
+  const [rssNews, setRssNews] = useState([]);
+  const [loadingRss, setLoadingRss] = useState(false);
 
-  const announcements = data.announcements || [];
+  // كيجيب الأخبار فابور من RSS
+  useEffect(() => {
+    // Google News RSS - فابور 100%
+    const fetchNews = async () => {
+      setLoadingRss(true);
+      try {
+        const res = await fetch('/api/news');
+        if (res.ok) {
+          const json = await res.json();
+          if (json && json.news && Array.isArray(json.news)) {
+            setRssNews(json.news);
+          }
+        }
+      } catch (err) {
+        console.warn('Google News RSS notice:', err);
+      } finally {
+        setLoadingRss(false);
+      }
+    };
 
-  const filteredAnnouncements = announcements.filter(item => {
-    if (activeFilter === 'all') return true;
-    return item.category === activeFilter;
-  });
+    fetchNews();
+  }, []);
 
-  const getCategoryBadge = (category) => {
+  const rawAnnouncements = data.announcements || [];
+
+  const formattedRssItems = rssNews.map(item => ({
+    id: item.id,
+    title: item.title,
+    titleAr: item.title,
+    titleFr: item.title,
+    titleEn: item.title,
+    desc: item.summary || item.rawTitle || item.title,
+    descAr: item.summary || item.rawTitle || item.title,
+    descFr: item.summary || item.rawTitle || item.title,
+    descEn: item.summary || item.rawTitle || item.title,
+    date: item.formattedDate || item.pubDate,
+    category: 'rss',
+    image: item.image,
+    source: item.source,
+    link: item.link,
+    isRss: true
+  }));
+
+  // Combine or filter
+  let displayList = [];
+  if (activeFilter === 'rss') {
+    displayList = formattedRssItems;
+  } else if (activeFilter === 'all') {
+    displayList = [...rawAnnouncements, ...formattedRssItems.slice(0, 3)];
+  } else {
+    displayList = rawAnnouncements.filter(item => item.category === activeFilter);
+  }
+
+  const getCategoryBadge = (category, source) => {
     switch (category) {
       case 'urgent':
         return {
@@ -27,6 +78,11 @@ export const Announcements = () => {
         return {
           label: lang === 'ar' ? 'نشاط وقافلة' : lang === 'fr' ? 'Événement' : 'Event',
           color: 'bg-emerald-100 text-emerald-800 border-emerald-200'
+        };
+      case 'rss':
+        return {
+          label: `مباشر • ${source || 'Google News'}`,
+          color: 'bg-teal-100 text-teal-800 border-teal-200'
         };
       default:
         return {
@@ -43,7 +99,7 @@ export const Announcements = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-12">
+        <div className="text-center max-w-3xl mx-auto mb-10">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-red-100 text-red-800 text-xs font-bold mb-3 border border-red-200">
             <Bell className="w-3.5 h-3.5 text-red-600 animate-pulse" />
             <span>{t('announcements', 'badge')}</span>
@@ -54,6 +110,21 @@ export const Announcements = () => {
           <p className="mt-3 text-slate-600 text-base sm:text-lg">
             {t('announcements', 'subtitle')}
           </p>
+
+          {/* Live RSS Ticker strip if news are loaded */}
+          {rssNews.length > 0 && (
+            <div className="mt-5 inline-flex items-center gap-2.5 px-4 py-2 bg-emerald-50 text-emerald-900 border border-emerald-200/90 rounded-2xl text-xs sm:text-sm font-semibold max-w-2xl mx-auto shadow-sm text-right">
+              <span className="flex h-2.5 w-2.5 relative flex-shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+              </span>
+              <span className="font-bold text-emerald-800 whitespace-nowrap">مباشر RSS:</span>
+              <span className="truncate">{rssNews[0]?.title}</span>
+              <span className="text-[11px] bg-white px-2 py-0.5 rounded text-emerald-700 border border-emerald-200 flex-shrink-0">
+                {rssNews[0]?.source}
+              </span>
+            </div>
+          )}
 
           {/* Filter Tabs */}
           <div className="flex flex-wrap items-center justify-center gap-2 mt-8">
@@ -98,20 +169,38 @@ export const Announcements = () => {
             >
               {t('announcements', 'news')}
             </button>
+            <button
+              onClick={() => setActiveFilter('rss')}
+              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition flex items-center gap-1.5 ${
+                activeFilter === 'rss'
+                  ? 'bg-emerald-700 text-white shadow'
+                  : 'bg-white text-emerald-800 hover:bg-emerald-50 border border-emerald-300'
+              }`}
+            >
+              <Radio className="w-3.5 h-3.5 text-emerald-500 animate-pulse" />
+              <span>{t('announcements', 'rss')}</span>
+              {rssNews.length > 0 && (
+                <span className="text-[10px] bg-emerald-100 text-emerald-900 px-1.5 py-0.5 rounded-full font-mono">
+                  {rssNews.length}
+                </span>
+              )}
+            </button>
           </div>
         </div>
 
         {/* Announcements Grid */}
-        {filteredAnnouncements.length === 0 ? (
+        {displayList.length === 0 ? (
           <div className="text-center py-12 bg-white rounded-2xl border border-slate-200 max-w-md mx-auto">
-            <p className="text-slate-500 font-medium">{t('announcements', 'noAnnouncements')}</p>
+            <p className="text-slate-500 font-medium">
+              {loadingRss ? 'جارٍ جلب آخر الأخبار...' : t('announcements', 'noAnnouncements')}
+            </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredAnnouncements.map((item) => {
-              const badge = getCategoryBadge(item.category);
-              const title = getLocalized(item, 'title');
-              const desc = getLocalized(item, 'desc');
+            {displayList.map((item) => {
+              const badge = getCategoryBadge(item.category, item.source);
+              const title = item.isRss ? item.title : getLocalized(item, 'title');
+              const desc = item.isRss ? item.desc : getLocalized(item, 'desc');
 
               return (
                 <article
@@ -136,10 +225,17 @@ export const Announcements = () => {
                   {/* Content */}
                   <div className="p-6 flex-1 flex flex-col justify-between">
                     <div>
-                      {/* Date */}
-                      <div className="flex items-center gap-2 text-xs text-slate-500 mb-3">
-                        <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                        <time dateTime={item.date}>{item.date}</time>
+                      {/* Date & Source */}
+                      <div className="flex items-center justify-between text-xs text-slate-500 mb-3">
+                        <div className="flex items-center gap-1.5">
+                          <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                          <time dateTime={item.date}>{item.date}</time>
+                        </div>
+                        {item.source && (
+                          <span className="font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
+                            {item.source}
+                          </span>
+                        )}
                       </div>
 
                       {/* Title */}
@@ -155,13 +251,25 @@ export const Announcements = () => {
 
                     {/* Footer / Read More */}
                     <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
-                      <button
-                        onClick={() => setSelectedAnnouncement(item)}
-                        className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 hover:text-emerald-900 transition"
-                      >
-                        <span>{t('announcements', 'readMore')}</span>
-                        <ArrowIcon className="w-3.5 h-3.5" />
-                      </button>
+                      {item.isRss && item.link ? (
+                        <a
+                          href={item.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 hover:text-emerald-900 transition"
+                        >
+                          <span>قراءة المقال في {item.source || 'المصدر'}</span>
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+                      ) : (
+                        <button
+                          onClick={() => setSelectedAnnouncement(item)}
+                          className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 hover:text-emerald-900 transition"
+                        >
+                          <span>{t('announcements', 'readMore')}</span>
+                          <ArrowIcon className="w-3.5 h-3.5" />
+                        </button>
+                      )}
 
                       {item.category === 'urgent' && (
                         <a
@@ -190,7 +298,7 @@ export const Announcements = () => {
               <div className="relative h-60 w-full overflow-hidden rounded-t-3xl">
                 <img
                   src={selectedAnnouncement.image}
-                  alt={getLocalized(selectedAnnouncement, 'title')}
+                  alt={selectedAnnouncement.isRss ? selectedAnnouncement.title : getLocalized(selectedAnnouncement, 'title')}
                   className="w-full h-full object-cover"
                 />
                 <button
@@ -205,8 +313,8 @@ export const Announcements = () => {
 
             <div className="p-6 sm:p-8 space-y-4">
               <div className="flex items-center justify-between gap-2">
-                <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getCategoryBadge(selectedAnnouncement.category).color}`}>
-                  {getCategoryBadge(selectedAnnouncement.category).label}
+                <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getCategoryBadge(selectedAnnouncement.category, selectedAnnouncement.source).color}`}>
+                  {getCategoryBadge(selectedAnnouncement.category, selectedAnnouncement.source).label}
                 </span>
                 <span className="text-xs text-slate-500 flex items-center gap-1">
                   <Calendar className="w-3.5 h-3.5" />
@@ -215,21 +323,33 @@ export const Announcements = () => {
               </div>
 
               <h3 className="text-2xl font-bold text-slate-900">
-                {getLocalized(selectedAnnouncement, 'title')}
+                {selectedAnnouncement.isRss ? selectedAnnouncement.title : getLocalized(selectedAnnouncement, 'title')}
               </h3>
 
               <div className="text-slate-700 leading-relaxed whitespace-pre-line text-sm sm:text-base border-t border-b border-slate-100 py-4">
-                {getLocalized(selectedAnnouncement, 'desc')}
+                {selectedAnnouncement.isRss ? selectedAnnouncement.desc : getLocalized(selectedAnnouncement, 'desc')}
               </div>
 
               <div className="flex flex-wrap items-center justify-end gap-3 pt-2">
-                <a
-                  href="#contact"
-                  onClick={() => setSelectedAnnouncement(null)}
-                  className="bg-emerald-700 hover:bg-emerald-800 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition shadow"
-                >
-                  {t('nav', 'contact')}
-                </a>
+                {selectedAnnouncement.isRss && selectedAnnouncement.link ? (
+                  <a
+                    href={selectedAnnouncement.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 bg-emerald-700 hover:bg-emerald-800 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition shadow"
+                  >
+                    <span>فتح الخبر في {selectedAnnouncement.source || 'المصدر الأصلي'}</span>
+                    <ExternalLink className="w-4 h-4" />
+                  </a>
+                ) : (
+                  <a
+                    href="#contact"
+                    onClick={() => setSelectedAnnouncement(null)}
+                    className="bg-emerald-700 hover:bg-emerald-800 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition shadow"
+                  >
+                    {t('nav', 'contact')}
+                  </a>
+                )}
                 <button
                   onClick={() => setSelectedAnnouncement(null)}
                   className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-5 py-2.5 rounded-xl text-sm font-bold transition"
