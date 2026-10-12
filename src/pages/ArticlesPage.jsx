@@ -20,8 +20,9 @@ export const ArticlesPage = () => {
     fetch('/api/news')
       .then(res => res.json())
       .then(data => {
-        if (data && data.news && Array.isArray(data.news)) {
-          setRssArticles(data.news);
+        const list = Array.isArray(data) ? data : (data?.news || []);
+        if (list.length > 0) {
+          setRssArticles(list);
         }
       })
       .catch(err => console.warn('RSS news fetch notice:', err));

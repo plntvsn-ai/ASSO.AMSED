@@ -23,8 +23,9 @@ export const Announcements = () => {
         const res = await fetch('/api/news');
         if (res.ok) {
           const json = await res.json();
-          if (json && json.news && Array.isArray(json.news)) {
-            setRssNews(json.news);
+          const list = Array.isArray(json) ? json : (json?.news || []);
+          if (list.length > 0) {
+            setRssNews(list);
           }
         }
       } catch (err) {
