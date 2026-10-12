@@ -7,14 +7,14 @@ export const metadata: Metadata = {
 
 export default function Home() {
   const services = [
-    { t: "تنمية المهارات الحركية", f: "Psychomotricité", img: "/products/01_psychomotricite.jpg" },
-    { t: "مركز أطفال التوحد TSA & ABA", f: "Centre TSA & ABA", img: "/products/02_tsa_aba.jpg" },
-    { t: "التخاطب Orthophonie", f: "Orthophonie", img: "/products/03_orthophonie.jpg" },
-    { t: "الإرشاد النفسي", f: "Soutien Psychologique", img: "/products/04_soutien_psy.jpg" },
-    { t: "تنمية المهارات الدقيقة", f: "Motricité Fine", img: "/products/05_psy_fine.jpg" },
-    { t: "التأهيل للدمج المدرسي", f: "Intégration Scolaire", img: "/products/06_integration.jpg" },
-    { t: "روض الأطفال Crèche", f: "Crèche Spécialisée", img: "/products/07_creche.jpg" },
-    { t: "المهارات الاجتماعية", f: "Habiletés Sociales", img: "/products/08_habiletes.jpg" },
+    { t: "تنمية المهارات الحركية", title: "تنمية المهارات الحركية", f: "Psychomotricité", img: "/products/01_psychomotricite.jpg" },
+    { t: "مركز أطفال التوحد TSA & ABA", title: "مركز أطفال التوحد TSA & ABA", f: "Centre TSA & ABA", img: "/products/02_tsa_aba.jpg" },
+    { t: "التخاطب Orthophonie", title: "التخاطب Orthophonie", f: "Orthophonie", img: "/products/03_orthophonie.jpg" },
+    { t: "الإرشاد النفسي", title: "الإرشاد النفسي", f: "Soutien Psychologique", img: "/products/04_soutien_psy.jpg" },
+    { t: "تنمية المهارات الدقيقة", title: "تنمية المهارات الدقيقة", f: "Motricité Fine", img: "/products/05_psy_fine.jpg" },
+    { t: "التأهيل للدمج المدرسي", title: "التأهيل للدمج المدرسي", f: "Intégration Scolaire", img: "/products/06_integration.jpg" },
+    { t: "روض الأطفال Crèche", title: "روض الأطفال Crèche", f: "Crèche Spécialisée", img: "/products/07_creche.jpg" },
+    { t: "المهارات الاجتماعية", title: "المهارات الاجتماعية", f: "Habiletés Sociales", img: "/products/08_habiletes.jpg" },
   ];
 
   return (
@@ -62,6 +62,24 @@ export default function Home() {
               </div>
             </div>
           ))}
+        </div>
+
+        {/* شريط التمرير الرأسي التلقائي */}
+        <div style={{marginTop:'45px'}}>
+          <h3 style={{textAlign:'center', fontSize:'20px', color:'#0a4a3a', marginBottom:'15px'}}>↕ شريط الخدمات المباشر المستمر</h3>
+          <div className="h-[600px] overflow-hidden relative rounded-2xl bg-white/5 backdrop-blur border border-slate-200 max-w-xl mx-auto shadow-inner">
+            <div className="animate-vertical-scroll">
+              {[...services, ...services].map((s, idx) => (
+                <div key={idx} className="p-4 m-2 bg-white rounded-xl shadow-lg hover:scale-105 transition flex items-center gap-4 border border-slate-100">
+                  <img src={s.img} alt={s.title} style={{width:'60px', height:'80px', objectFit:'cover', borderRadius:'10px'}} />
+                  <div>
+                    <h3 style={{margin:0, fontSize:'15px', fontWeight:'bold', color:'#111'}}>{s.title}</h3>
+                    <small style={{color:'#0a4a3a', fontWeight:600}}>{s.f}</small>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 

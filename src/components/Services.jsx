@@ -6,7 +6,8 @@ import { defaultCmsData } from '../services/cmsService';
 import { 
   HeartPulse, GraduationCap, Home, Smile, 
   Sparkles, Scale, ArrowLeft, ArrowRight, CheckCircle2, 
-  HandHeart, X, Compass, Star, Eye, MessageCircle, Phone
+  HandHeart, X, Compass, Star, Eye, MessageCircle, Phone,
+  LayoutGrid, ScrollText
 } from 'lucide-react';
 
 const iconMap = {
@@ -24,6 +25,7 @@ export const Services = () => {
   const { cmsData } = useCms();
   const [selectedService, setSelectedService] = useState(null);
   const [activeCategory, setActiveCategory] = useState('all');
+  const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'scroll'
 
   // Use services from CMS (or fallback to default 8 published services)
   const servicesList = (cmsData?.services && cmsData.services.length > 0)
@@ -92,25 +94,100 @@ export const Services = () => {
           </span>
         </div>
 
-        {/* Category Filter Tabs */}
-        <div className="flex flex-wrap items-center justify-center gap-2 mb-12">
-          {categories.map((cat) => (
+        {/* Category Filter Tabs & View Mode */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-10">
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            {categories.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setActiveCategory(cat.id)}
+                className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition shadow-sm ${
+                  activeCategory === cat.id
+                    ? 'bg-slate-900 text-white ring-2 ring-slate-900 shadow-md'
+                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
+                }`}
+              >
+                {cat.label}
+              </button>
+            ))}
+          </div>
+
+          {/* View Mode Toggle Buttons */}
+          <div className="inline-flex items-center gap-1.5 bg-slate-100 p-1.5 rounded-2xl border border-slate-200 shadow-sm shrink-0">
             <button
-              key={cat.id}
-              onClick={() => setActiveCategory(cat.id)}
-              className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition shadow-sm ${
-                activeCategory === cat.id
-                  ? 'bg-slate-900 text-white ring-2 ring-slate-900 shadow-md'
-                  : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
+              onClick={() => setViewMode('grid')}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                viewMode === 'grid'
+                  ? 'bg-white text-slate-900 shadow'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              {cat.label}
+              <LayoutGrid className="w-3.5 h-3.5" />
+              <span>{lang === 'ar' ? 'شبكة الملصقات' : 'Grille'}</span>
             </button>
-          ))}
+            <button
+              onClick={() => setViewMode('scroll')}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+                viewMode === 'scroll'
+                  ? 'bg-emerald-700 text-white shadow'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <ScrollText className="w-3.5 h-3.5" />
+              <span>{lang === 'ar' ? 'تمرير رأسي مستمر' : 'Défilement'}</span>
+            </button>
+          </div>
         </div>
 
-        {/* 8 Services Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {viewMode === 'scroll' ? (
+          /* Animated Vertical Scroll Carousel (User Request) */
+          <div className="h-[600px] max-w-2xl mx-auto overflow-hidden relative rounded-2xl bg-white/5 backdrop-blur border border-slate-200/80 shadow-lg p-2">
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-white via-white/80 to-transparent z-10" />
+
+            <div className="animate-vertical-scroll">
+              {[...filteredServices, ...filteredServices].map((s, idx) => {
+                const title = s.name || s.title || getLocalized(s, 'title');
+                const desc = s.description || s.desc || getLocalized(s, 'desc');
+
+                return (
+                  <div
+                    key={`${s.id || idx}-${idx}`}
+                    onClick={() => setSelectedService(s)}
+                    className="p-4 m-2 bg-white rounded-xl shadow-lg hover:scale-105 transition cursor-pointer border border-slate-100 flex items-center gap-4"
+                  >
+                    {s.image && (
+                      <img
+                        src={s.image}
+                        alt={title}
+                        className="w-16 h-20 rounded-xl object-cover shadow-sm shrink-0 border border-slate-100"
+                      />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <span className="text-[11px] font-bold bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded-md border border-emerald-100">
+                          {s.category}
+                        </span>
+                        <span className="text-[11px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                          ✓ متاح للتسجيل
+                        </span>
+                      </div>
+                      <h3 className="font-bold text-slate-900 truncate text-base hover:text-emerald-700 transition">
+                        {title}
+                      </h3>
+                      <p className="text-xs text-slate-500 line-clamp-1 mt-0.5 leading-relaxed">
+                        {desc}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-white via-white/80 to-transparent z-10" />
+          </div>
+        ) : (
+          /* 8 Services Grid */
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {filteredServices.map((item, index) => {
             const title = item.name || getLocalized(item, 'title');
             const desc = item.description || getLocalized(item, 'desc');
@@ -187,6 +264,7 @@ export const Services = () => {
             );
           })}
         </div>
+      )}
 
         {/* Bottom Callout with Kenitra Center Info */}
         <div className="mt-16 bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 rounded-3xl p-8 sm:p-10 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">

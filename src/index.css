@@ -83,3 +83,25 @@
   border: none !important;
   box-shadow: none !important;
 }
+
+/* Infinite Vertical Scroll Animation */
+@keyframes verticalScroll {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-50%);
+  }
+}
+
+.animate-vertical-scroll {
+  display: flex;
+  flex-direction: column;
+  animation: verticalScroll 24s linear infinite;
+  will-change: transform;
+}
+
+.animate-vertical-scroll:hover {
+  animation-play-state: paused;
+}
+
