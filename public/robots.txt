@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://asso-amsed.vercel.app/sitemap.xml

@@ -5,8 +5,7 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env
 const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 export default async function handler(req, res) {
-  const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://asso-amsed.vercel.app'
-  let robotsTxt = `User-agent: *\nAllow: /\n\nSitemap: ${baseUrl}/api/seo/sitemap`
+  let robotsTxt = `User-agent: *\nAllow: /\n\nSitemap: ${baseUrl}/sitemap.xml`
 
   try {
     const { data } = await supabase

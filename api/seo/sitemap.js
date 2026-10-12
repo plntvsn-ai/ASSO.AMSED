@@ -8,30 +8,33 @@ export default async function handler(req, res) {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://asso-amsed.vercel.app'
   const today = new Date().toISOString().split('T')[0]
 
-  let articles = []
+  const staticUrls = [
+    { loc: `${baseUrl}/`, priority: '1.0', changefreq: 'weekly' },
+    { loc: `${baseUrl}/about`, priority: '0.8', changefreq: 'weekly' },
+    { loc: `${baseUrl}/services`, priority: '0.8', changefreq: 'weekly' },
+    { loc: `${baseUrl}/articles`, priority: '0.8', changefreq: 'weekly' },
+    { loc: `${baseUrl}/blog`, priority: '0.8', changefreq: 'weekly' },
+    { loc: `${baseUrl}/contact`, priority: '0.8', changefreq: 'weekly' },
+    { loc: `${baseUrl}/donate`, priority: '0.8', changefreq: 'weekly' },
+  ]
+
+  let articleUrls = []
   try {
     const { data } = await supabase
       .from('articles')
-      .select('id, created_at, status')
-      .order('id', { ascending: false })
+      .select('slug, id, created_at, published')
       .limit(100)
-    if (data) articles = data
+    if (data && data.length > 0) {
+      articleUrls = data.map(a => ({
+        loc: `${baseUrl}/articles/${a.slug || a.id}`,
+        lastmod: a.created_at ? new Date(a.created_at).toISOString().split('T')[0] : today,
+        priority: '0.7',
+        changefreq: 'weekly'
+      }))
+    }
   } catch (err) {
     console.warn('Sitemap article fetch notice:', err)
   }
-
-  const staticUrls = [
-    { loc: `${baseUrl}/`, priority: '1.0', changefreq: 'daily' },
-    { loc: `${baseUrl}/articles`, priority: '0.9', changefreq: 'daily' },
-    { loc: `${baseUrl}/about`, priority: '0.8', changefreq: 'monthly' },
-  ]
-
-  const articleUrls = articles.map(a => ({
-    loc: `${baseUrl}/article/${a.id}`,
-    lastmod: a.created_at ? new Date(a.created_at).toISOString().split('T')[0] : today,
-    priority: '0.7',
-    changefreq: 'weekly'
-  }))
 
   const allUrls = [...staticUrls, ...articleUrls]
 
