@@ -85,19 +85,15 @@
 }
 
 /* Infinite Vertical Scroll Animation */
-@keyframes verticalScroll {
-  0% {
-    transform: translateY(0);
-  }
-  100% {
-    transform: translateY(-50%);
-  }
+@keyframes vertical-scroll {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
 }
 
 .animate-vertical-scroll {
   display: flex;
   flex-direction: column;
-  animation: verticalScroll 24s linear infinite;
+  animation: vertical-scroll 30s linear infinite;
   will-change: transform;
 }
 
