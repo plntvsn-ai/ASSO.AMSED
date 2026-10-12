@@ -21,24 +21,32 @@
   ],
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/$1"
+      "source": "/api/auto-publish",
+      "destination": "/api/autonomous-publish"
     },
     {
-      "source": "/sitemap.xml",
-      "destination": "/api/seo/sitemap"
+      "source": "/api/auto",
+      "destination": "/api/autonomous-publish"
     },
     {
-      "source": "/robots.txt",
-      "destination": "/api/seo/robots"
+      "source": "/api/publish",
+      "destination": "/api/autonomous-publish"
+    },
+    {
+      "source": "/api/site_settings",
+      "destination": "/api/settings"
+    },
+    {
+      "source": "/api/site-settings",
+      "destination": "/api/settings"
+    },
+    {
+      "source": "/api/settings/advanced",
+      "destination": "/api/advanced-settings"
     },
     {
       "source": "/google474987270931ac4d.html",
       "destination": "/google474987270931ac4d.html"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
     }
   ],
   "crons": [
