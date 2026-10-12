@@ -1,52 +1,67 @@
-// api/autonomous-publish.js - Autonomous Article Generator (100% Free Templates)
+// api/autonomous-publish.js - Autonomous Article Generator (AR / FR / EN)
 
-const TEMPLATES = [
-  (topic) => `# ${topic} - دليل عملي من مركز AMSED
+async function translateFree(text, to) {
+  if (!text) return text;
+  const chunks = text.match(/.{1,400}/g) || [text];
+  let result = '';
+  for (const chunk of chunks) {
+    try {
+      const res = await fetch(
+        `https://api.mymemory.translated.net/get?q=${encodeURIComponent(chunk)}&langpair=ar|${to}`
+      );
+      const j = await res.json();
+      let t = j.responseData?.translatedText || chunk;
+      t = t.replace(/AMSED/g, 'AMSED').replace(/SAKNIA/g, 'SAKNIA');
+      result += t + ' ';
+      await new Promise(r => setTimeout(r, 300));
+    } catch {
+      result += chunk + ' ';
+    }
+  }
+  return result.trim();
+}
+
+const TEMPLATE_AR = (topic) => `# ${topic} - دليل عملي من مركز AMSED
 
 في قلب الساكنية بالقنيطرة، في مركزنا SAKNIA 30 LOT EL HIZAM N° D 376.58.1، نستقبل كل صباح أمهات جايين مقلقين على ولداتهم. اليوم غادي نهضرو على موضوع مهم بزاف: ${topic}.
 
-## شنو هو ${topic} وكيفاش كيأثر على ولدك؟
-
-بزاف ديال الأمهات كيسولونا على هاد الموضوع. الحقيقة أن كل طفل توحد فريد، والفهم الصحيح هو أول خطوة للمساعدة. في AMSED، شفنا أن التدخل المبكر كيحسن التواصل بنسبة كبيرة.
+## شنو هو ${topic}؟
 
 ## كيفاش كنخدمو هاد الموضوع فالجمعية ديالنا؟
 
-عندنا 8 خدمات مجانية ومدعمة:
-🧠 الترويض الطبي - 🗣️ تقويم النطق - 👩🏫 الدعم المدرسي AVS
-🔧 ورشات مهنية - ❤️ مواكبة نفسية للأم - ⚽ أنشطة رياضية
+عندنا 8 خدمات: الترويض الطبي، تقويم النطق، الدعم المدرسي AVS، ورشات مهنية، مواكبة نفسية.
 
-كل خدمة كتدار من طرف مختصين متطوعين.
+## 3 نصائح اليوم
+1. الروتين هو الأمان
+2. التشجيع ماشي العقاب
+3. تواصلي معنا: 06 54 24 05 23`;
 
-## 3 نصائح تقدري تديريها اليوم فالدار
+const TEMPLATE_FR = (topic_fr) => `# ${topic_fr} - Guide pratique du centre AMSED
 
-1. **الروتين هو الأمان:** نفس الوقت للنوم والماكلة
-2. **التشجيع ماشي العقاب:** كل كلمة جديدة احتفلي بيها
-3. **تواصلي معنا:** ما تبقايش بوحدك
+Au cœur de Saknia à Kénitra (SAKNIA 30 LOT EL HIZAM N° D 376.58.1), nous accueillons chaque matin des mamans inquiètes pour leurs enfants. Parlons aujourd'hui de : ${topic_fr}.
 
-> جمعية AMSED - 85+ متطوع، 650+ طفل مستفيد
-> 📞 06 54 24 05 23 | العنوان: SAKNIA 30 LOT EL HIZAM
+## C'est quoi ${topic_fr}?
 
-#توحد #قنيطرة #AMSED #إعاقة`,
+## Notre accompagnement à AMSED
 
-  (topic) => `# أم كتسول: كيفاش نتعامل مع ${topic}؟
+8 services: psychomotricité, orthophonie, AVS scolaire, ateliers professionnels, soutien psychologique.
 
-سؤال كيجينا بزاف فالواتساب ديال الجمعية. الجواب ماشي ساهل ولكن التجربة علمتنا...
+## 3 conseils pour aujourd'hui
+1. La routine rassure
+2. Encourager, pas punir
+3. Contactez-nous: 06 54 24 05 23`;
 
-## التجربة ديالنا مع ${topic}
+const TEMPLATE_EN = (topic_en) => `# ${topic_en} - Practical guide from AMSED center
 
-منذ 2018 وحنا خدامين، لاحظنا أن الأطفال اللي الأمهات ديالهم كيتبعو التوجيهات كيتقدمو 3 مرات كثر.
+In Saknia, Kenitra (SAKNIA 30 LOT EL HIZAM N° D 376.58.1), we welcome worried mothers every morning. Let's talk about: ${topic_en}.
 
-## الخدمة اللي كنقترحو عليك
+## What is ${topic_en}?
 
-إلا كان ولدك كيعاني من ${topic}، عندنا برنامج خاص: حصة تقييم مجانية + خطة فردية + متابعة أسبوعية.
+## How we help at AMSED
 
-اتصلي دابا: 06 54 24 05 23`
-];
+8 services: therapy, speech, school support AVS, workshops, psychological support.
 
-function generate100Free(topic) {
-  const tpl = TEMPLATES[Math.floor(Math.random() * TEMPLATES.length)];
-  return tpl(topic);
-}
+Contact: 06 54 24 05 23`;
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -63,35 +78,45 @@ export default async function handler(req, res) {
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'dummy_key';
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // 1. جيب موضوع
     const { data: topics, error: fetchErr } = await supabase.from('topics_bank').select('*').eq('used', false).limit(1);
     if (fetchErr || !topics?.length) {
-      return res.status(200).json({ error: 'الخزان خاوي - زيد 50 موضوع آخر', details: fetchErr?.message });
+      return res.status(200).json({ error: 'الخزان خاوي', details: fetchErr?.message });
     }
 
-    // 2. ولد مقال بلا IA خارجي
-    const content = generate100Free(topics[0].title);
+    const topic_ar = topics[0].title;
+
+    // 1. ترجمة العنوان فابور
+    const topic_fr = await translateFree(topic_ar, 'fr');
+    const topic_en = await translateFree(topic_ar, 'en');
+
+    // 2. توليد مقالات ب 3 لغات
+    const content_ar = TEMPLATE_AR(topic_ar);
+    const content_fr = TEMPLATE_FR(topic_fr);
+    const content_en = TEMPLATE_EN(topic_en);
 
     // 3. نشر
     const { error: insertErr } = await supabase.from('articles').insert({
-      title_ar: topics[0].title,
-      title_fr: topics[0].title, // الترجمة غادي يديرها الكاروسل الجانبي تلقائيا فالفرونت
-      title_en: topics[0].title,
-      content_ar: content,
+      title_ar: topic_ar,
+      title_fr: topic_fr,
+      title_en: topic_en,
+      content_ar,
+      content_fr,
+      content_en,
       status: 'published',
       created_at: new Date().toISOString()
     });
 
     if (insertErr) {
-      return res.status(500).json({ error: 'تعذر نشر المقال في جدول articles', details: insertErr.message });
+      return res.status(500).json({ error: 'فشل إدخال المقال في قاعدة البيانات', details: insertErr.message });
     }
 
     await supabase.from('topics_bank').update({ used: true }).eq('id', topics[0].id);
 
     return res.status(200).json({
       success: true,
-      published: topics[0].title,
-      content_preview: content.slice(0, 100)
+      ar: topic_ar,
+      fr: topic_fr,
+      en: topic_en
     });
   } catch (err) {
     return res.status(500).json({ error: err?.message || 'Server error' });
