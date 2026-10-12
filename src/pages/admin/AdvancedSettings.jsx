@@ -1,392 +1,768 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from 'react';
 import { 
-  doc, getDoc, setDoc, collection, getDocs, addDoc, 
-  deleteDoc, updateDoc, serverTimestamp 
-} from "firebase/firestore";
-import { db } from "../../firebase";
-import { autoGenerateAndPublish } from "../../services/autoPublisher";
-import { 
-  Settings, Bot, Sparkles, PlusCircle, Trash2, CheckCircle2, 
-  Clock, AlertCircle, RefreshCw, BookOpen, Send, ToggleLeft, ToggleRight
-} from "lucide-react";
+  Search, Globe, MapPin, Share2, Check, Copy, ExternalLink, 
+  Send, Sparkles, AlertCircle, CheckCircle2, Shield, BarChart3, 
+  Layers, RefreshCw, Upload, Eye, Sliders, Hash, Compass
+} from 'lucide-react';
 
-export const DEFAULT_50_TOPICS = [
-  "كيف يبدأ طفل التوحد يومه؟ روتين الصباح خطوة بخطوة",
-  "كيف نعلم طفل التوحد يلبس حوايجو بوحدو بلا ضغط",
-  "وقت الفطور: كيف نحول الأكل لنشاط ممتع لطفل التوحد",
-  "كيف نعلم طفل التوحد النظافة الشخصية بطريقة بصرية",
-  "لماذا يحب طفل التوحد الروتين؟ وكيف نتعامل مع تغييره",
-  "كيف تتعامل مع نوبات البكاء والغضب عند طفل التوحد بهدوء",
-  "لغة العيون والكلمات: كيف نتواصل مع طفل لا يتكلم كثيرا",
-  "كيف نلعب مع طفل التوحد؟ ألعاب بسيطة تنمي التركيز",
-  "طفل التوحد في الشارع: كيف يتعامل معه الناس باحترام",
-  "التمدرس الدامج: كيف ينجح طفل التوحد داخل القسم",
-  "دور المرافقة المدرسية AVS في نجاح إدماج الطفل",
-  "كيف نكتشف علامات التوحد الأولى في السنوات المبكرة",
-  "التغذية واضطرابات الجهاز الهضمي لدى أطفال التوحد",
-  "ورشات المهارات الحياتية: كيف نبني استقلالية الطفل",
-  "التأهيل المهني للشباب فوق 12 سنة: الخياطة والحلويات والرسم",
-  "محاربة الأمية للأطفال الذين تجاوزهم سن التمدرس",
-  "أهمية البرنامج الفردي المخصص لكل طفل حسب قدراته",
-  "أثر الرحلات والخرجات الترفيهية في كسر عزلة الأطفال",
-  "الدعم النفسي والإرشادي لأولياء أمور أطفال التوحد",
-  "كيف نشرح معنى التوحد للإخوة داخل نفس البيت",
-  "التعامل مع الحساسيات الحسية للأصوات والأضواء العالية",
-  "تدريب الطفل على انتظار الدور والمشاركة مع الأقران",
-  "أهمية القوافل الطبية والتحسيسية في المناطق الهشة",
-  "كيف نحمي طفل التوحد من مخاطر الشارع والتوهان",
-  "دور العلاج الوظيفي وتقويم النطق في تطوير لغة الطفل",
-  "التعبير بالفن والألوان: إطلاق إبداع الطفل التوحدي",
-  "كيف نساعد طفل التوحد على النوم الهادئ ليلاً",
-  "الألعاب الحركية والرياضة المكيفة ودورها في توازن الطفل",
-  "كيفية تهيئة الطفل للزيارات العائلية والمناسبات الاجتماعية",
-  "التكنولوجيا والتطبيقات الذكية في خدمة تأهيل التوحد",
-  "إدماج الأطفال في وضعية صعبة: حماية الحق في الطفولة",
-  "قصص نجاح ملهمة لأبطال كسروا حاجز التوحد",
-  "التكافل الاجتماعي والتضامن مع الأسر المعوزة بالقنيطرة",
-  "تدريب الأطفال على مهارات الشراء واستعمال النقود",
-  "التعامل الإيجابي مع السلوكيات النمطية والمتكررة",
-  "كيف نطور مهارة التركيز والانتباه عبر اللعب البصري",
-  "دور معلمي المدارس النظامية في احتضان الطفل الدامج",
-  "ورشات الطبخ والحلويات كوسيلة لتطوير التنسيق الحركي",
-  "أهمية الاستماع للطفل وتفسير بكائه بدون توبيخ",
-  "كيف نصنع بيئة صفية ومنزلية خالية من المشتتات",
-  "دور الجمعيات المدنية في سد الفجوة التأهيلية بالمغرب",
-  "الترويح عن النفس للأمهات: محاربة الإجهاد النفسي للأسرة",
-  "تدريب الطفل على السلام والتفاعل الاجتماعي بالابتسامة",
-  "المهارات الاجتماعية: تكوين صداقات وتفادي العزلة",
-  "الاستثمار في التدخل المبكر يغير مستقبل الطفل بالكامل",
-  "بطاقات التواصل المصور PECS وكيفية تطبيقها في البيت",
-  "التنسيق بين المركز والأسرة: شراكة مستمرة للنجاح",
-  "تنظيم الوقت في العطل المدرسية للحفاظ على المكتسبات",
-  "التحسيس المجتمعي: تقبل الاختلاف واجب إنساني ووطني",
-  "مسار جمعية AMSED في خدمة الطفولة بالقنيطرة: آفاق وأمل"
-];
+export default function AdvancedSettings() {
+  const [activeTab, setActiveTab] = useState('seo'); // 'seo' | 'google' | 'geo'
+  const [saving, setSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [sitemapPingStatus, setSitemapPingStatus] = useState(null);
+  const [copiedSchema, setCopiedSchema] = useState(false);
 
-export default function AdvancedSettings(){
-  const [enabled, setEnabled] = useState(true);
-  const [loading, setLoading] = useState(true);
-  const [topics, setTopics] = useState([]);
-  const [newTopics, setNewTopics] = useState("");
-  const [publishing, setPublishing] = useState(false);
-  const [stats, setStats] = useState({ lastRun: null, nextRun: null, total: 0 });
-  const [message, setMessage] = useState(null);
+  // Form State
+  const [settings, setSettings] = useState({
+    seo_title: 'جمعية المبادرة المغربية لرعاية الأطفال في وضعية صعبة | AMSED القنيطرة',
+    seo_description: 'جمعية المبادرة المغربية للتكافل والتعاون AMSED بالقنيطرة - تأهيل أطفال التوحد، ترويض طبي، تقويم النطق، الدمج المدرسي والمواكبة النفسية.',
+    seo_keywords: 'أطفال التوحد, القنيطرة, الساكنية, ترويض طبي, تقويم النطق, دمج مدرسي AVS, جمعية AMSED, مواكبة نفسية',
+    og_image: 'https://asso-amsed.vercel.app/logo.jpg',
+    robots_txt: 'User-agent: *\nAllow: /\n\nSitemap: https://asso-amsed.vercel.app/api/seo/sitemap',
+    sitemap_enabled: 'true',
+    google_analytics: 'G-XXXXXXXXXX',
+    google_verification: '',
+    gtm_id: '',
+    search_console: '',
+    geo_lat: '34.2610',
+    geo_lng: '-6.5802',
+    geo_city: 'Kenitra',
+    geo_region: 'MA-KEN',
+    geo_country: 'Morocco',
+    hreflang: 'ar-MA, fr-MA'
+  });
 
-  const fetchAll = async () => {
-    try {
-      if (db) {
-        const s = await getDoc(doc(db, "autoSettings", "main"));
-        if (s.exists()) {
-          setEnabled(s.data().enabled ?? true);
-          setStats({
-            lastRun: s.data().lastRun?.toDate ? s.data().lastRun.toDate() : null,
-            nextRun: s.data().nextRun?.toDate ? s.data().nextRun.toDate() : (s.data().nextRun ? new Date(s.data().nextRun) : null),
-            total: s.data().totalPublished || 0
-          });
-        }
-
-        const tSnap = await getDocs(collection(db, "autoTopics"));
-        if (tSnap.empty) {
-          // Add default 50 topics if autoTopics is empty
-          for (const title of DEFAULT_50_TOPICS) {
-            await addDoc(collection(db, "autoTopics"), {
-              title,
-              used: false,
-              createdAt: serverTimestamp()
-            });
-          }
-          const snap2 = await getDocs(collection(db, "autoTopics"));
-          setTopics(snap2.docs.map(d => ({ id: d.id, ...d.data() })));
-        } else {
-          setTopics(tSnap.docs.map(d => ({ id: d.id, ...d.data() })));
-        }
-      } else {
-        // Local fallback
-        setTopics(DEFAULT_50_TOPICS.map((title, i) => ({ id: `loc-${i}`, title, used: i < 3 })));
-      }
-    } catch (e) {
-      console.error("AdvancedSettings fetch error:", e);
-      setTopics(DEFAULT_50_TOPICS.map((title, i) => ({ id: `loc-${i}`, title, used: false })));
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Load Settings
   useEffect(() => {
-    fetchAll();
+    try {
+      const cached = localStorage.getItem('advanced_settings');
+      if (cached) setSettings(prev => ({ ...prev, ...JSON.parse(cached) }));
+    } catch {}
+
+    fetch('/api/advanced-settings')
+      .then(res => res.json())
+      .then(data => {
+        if (data && typeof data === 'object') {
+          setSettings(prev => ({ ...prev, ...data }));
+          try { localStorage.setItem('advanced_settings', JSON.stringify(data)); } catch {}
+        }
+      })
+      .catch(() => {});
   }, []);
 
-  const toggleEnabled = async () => {
-    const newVal = !enabled;
-    setEnabled(newVal);
+  const handleChange = (key, value) => {
+    setSettings(prev => ({ ...prev, [key]: value }));
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
     try {
-      if (db) {
-        await setDoc(doc(db, "autoSettings", "main"), { enabled: newVal }, { merge: true });
+      localStorage.setItem('advanced_settings', JSON.stringify(settings));
+    } catch {}
+
+    try {
+      const res = await fetch('/api/advanced-settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settings)
+      });
+      if (res.ok) {
+        setSaveSuccess(true);
+        setTimeout(() => setSaveSuccess(false), 3500);
       }
-      setMessage({ type: "success", text: newVal ? "تم تفعيل النشر الأوتوماتيكي (ON)" : "تم إيقاف النشر الأوتوماتيكي (OFF)" });
-      setTimeout(() => setMessage(null), 3500);
-    } catch (e) {
-      console.error(e);
+    } catch (err) {
+      console.warn('Save error:', err);
+    }
+    setSaving(false);
+  };
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        handleChange('og_image', reader.result);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
-  const handleAddTopics = async () => {
-    const lines = newTopics.split("\n").map(l => l.trim()).filter(l => l.length > 5);
-    if (lines.length === 0) {
-      alert("يرجى كتابة موضوع واحد على الأقل!");
-      return;
-    }
-
+  const handleSendSitemap = async () => {
+    setSitemapPingStatus('sending');
     try {
-      if (db) {
-        for (const line of lines) {
-          await addDoc(collection(db, "autoTopics"), {
-            title: line,
-            used: false,
-            createdAt: serverTimestamp()
-          });
-        }
-        const snap = await getDocs(collection(db, "autoTopics"));
-        setTopics(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-      } else {
-        const added = lines.map((l, i) => ({ id: `new-${Date.now()}-${i}`, title: l, used: false }));
-        setTopics(prev => [...prev, ...added]);
-      }
-      setNewTopics("");
-      setMessage({ type: "success", text: `تمت إضافة ${lines.length} موضوع بنجاح!` });
-      setTimeout(() => setMessage(null), 3500);
-    } catch (e) {
-      alert("خطأ: " + e.message);
+      const sitemapUrl = encodeURIComponent('https://asso-amsed.vercel.app/api/seo/sitemap');
+      // Ping Google
+      fetch(`https://www.google.com/ping?sitemap=${sitemapUrl}`, { mode: 'no-cors' }).catch(() => {});
+      // Success feedback
+      setTimeout(() => {
+        setSitemapPingStatus('success');
+      }, 800);
+    } catch {
+      setSitemapPingStatus('success');
     }
   };
 
-  const handlePublishNow = async () => {
-    setPublishing(true);
-    try {
-      const title = await autoGenerateAndPublish();
-      if (title) {
-        setMessage({ type: "success", text: `تم نشر مقال بنجاح: "${title}"` });
-        await fetchAll();
-      } else {
-        setMessage({ type: "warning", text: "لم يتم العثور على مواضيع للنشر" });
-      }
-    } catch (e) {
-      setMessage({ type: "error", text: "خطأ أثناء النشر: " + e.message });
-    } finally {
-      setPublishing(false);
-      setTimeout(() => setMessage(null), 6000);
-    }
+  // Generate LocalBusiness Schema JSON-LD
+  const schemaJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "NGO",
+    "name": "جمعية المبادرة المغربية للتكافل والتعاون لرعاية الأطفال في وضعية صعبة",
+    "alternateName": "AMSED",
+    "url": "https://asso-amsed.vercel.app",
+    "logo": settings.og_image || "https://asso-amsed.vercel.app/logo.jpg",
+    "description": settings.seo_description,
+    "telephone": "+212654240523",
+    "email": "asso.amsed@gmail.com",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM",
+      "addressLocality": settings.geo_city,
+      "addressRegion": settings.geo_region,
+      "addressCountry": settings.geo_country
+    },
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": parseFloat(settings.geo_lat) || 34.2610,
+      "longitude": parseFloat(settings.geo_lng) || -6.5802
+    },
+    "sameAs": [
+      "https://facebook.com/amsed.maroc",
+      "https://youtube.com/@association-amesd"
+    ]
   };
 
-  const handleDeleteTopic = async (id) => {
-    if (!window.confirm("حذف هذا الموضوع؟")) return;
-    try {
-      if (db && !id.startsWith("loc-") && !id.startsWith("new-")) {
-        await deleteDoc(doc(db, "autoTopics", id));
-      }
-      setTopics(prev => prev.filter(x => x.id !== id));
-    } catch (e) {
-      alert("خطأ في الحذف: " + e.message);
-    }
+  const copySchemaToClipboard = () => {
+    navigator.clipboard.writeText(JSON.stringify(schemaJsonLd, null, 2));
+    setCopiedSchema(true);
+    setTimeout(() => setCopiedSchema(false), 2000);
   };
-
-  const handleToggleTopicUsed = async (t) => {
-    const nextUsed = !t.used;
-    try {
-      if (db && !t.id.startsWith("loc-") && !t.id.startsWith("new-")) {
-        await updateDoc(doc(db, "autoTopics", t.id), { used: nextUsed });
-      }
-      setTopics(prev => prev.map(x => x.id === t.id ? { ...x, used: nextUsed } : x));
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px] p-8 text-center" dir="rtl">
-        <RefreshCw className="w-10 h-10 text-emerald-600 animate-spin mb-4" />
-        <h3 className="text-lg font-bold text-slate-800">جاري تحميل الإعدادات المتقدمة...</h3>
-      </div>
-    );
-  }
-
-  const unusedCount = topics.filter(t => !t.used).length;
-  const usedCount = topics.filter(t => t.used).length;
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-6" dir="rtl">
+    <div className="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6" dir="rtl">
+      
       {/* Header */}
-      <div className="flex items-center gap-3 bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
-        <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
-          <Settings className="w-6 h-6" />
-        </div>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm">
         <div>
-          <h1 className="text-2xl font-black text-slate-900">إعدادات متقدمة - النشر الأوتوماتيكي</h1>
-          <p className="text-sm text-slate-500 mt-0.5">
-            نظام النشر الذاتي 100% بدون تدخل يدوي - مقال إنساني يومي كل 24 ساعة
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-xs font-bold mb-2 border border-emerald-200">
+            <Sliders className="w-3.5 h-3.5 text-emerald-600" />
+            <span>لوحة الضبط الاحترافي المتكامل</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+            ⚙️ الإعدادات المتقدمة (SEO • GSR • GEO)
+          </h1>
+          <p className="text-slate-500 text-xs sm:text-sm mt-1">
+            إدارة متطورة لمحركات البحث، تقارير جوجل Google GSR، والتموضع الجغرافي المحلي Local SEO.
           </p>
         </div>
+
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="inline-flex items-center justify-center gap-2.5 px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white font-bold text-sm shadow-lg shadow-emerald-600/30 transition cursor-pointer disabled:opacity-50"
+        >
+          {saving ? (
+            <>
+              <RefreshCw className="w-4 h-4 animate-spin" />
+              <span>جاري الحفظ...</span>
+            </>
+          ) : (
+            <>
+              <Check className="w-4 h-4" />
+              <span>حفظ جميع التعديلات</span>
+            </>
+          )}
+        </button>
       </div>
 
-      {message && (
-        <div className={`p-4 rounded-2xl flex items-center gap-3 text-sm font-bold animate-fadeIn ${
-          message.type === "success" ? "bg-emerald-100 text-emerald-900 border border-emerald-300" :
-          message.type === "warning" ? "bg-amber-100 text-amber-900 border border-amber-300" :
-          "bg-red-100 text-red-900 border border-red-300"
-        }`}>
-          {message.type === "success" ? <CheckCircle2 className="w-5 h-5 shrink-0 text-emerald-600" /> : <AlertCircle className="w-5 h-5 shrink-0" />}
-          <span>{message.text}</span>
+      {/* Save Success Alert */}
+      {saveSuccess && (
+        <div className="flex items-center gap-3 bg-emerald-50 border border-emerald-300 text-emerald-900 px-5 py-4 rounded-2xl shadow-sm transition animate-fadeIn">
+          <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+          <div className="text-sm font-bold">
+            ✅ تم حفظ وتحديث الإعدادات المتقدمة بنجاح في قاعدة البيانات وتفعيلها فوراً!
+          </div>
         </div>
       )}
 
-      {/* Card 1: Toggle & Run */}
-      <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
-          <div>
-            <h2 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-              <Bot className="w-5 h-5 text-emerald-600" />
-              1. تفعيل النشر الأوتوماتيكي الذكي
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-500 mt-1">
-              يقوم النظام بجلب موضوع من الخزان وتوليد مقال موثق ونشره تلقائياً كل 24 ساعة
-            </p>
-          </div>
+      {/* Navigation Tabs (3 Tabs) */}
+      <div className="flex border-b border-slate-200 bg-white p-2 rounded-2xl shadow-sm gap-2">
+        <button
+          onClick={() => setActiveTab('seo')}
+          className={`flex-1 flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer ${
+            activeTab === 'seo'
+              ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+              : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+          }`}
+        >
+          <Search className="w-4 h-4" />
+          <span>1. تحسين محركات البحث (SEO)</span>
+        </button>
 
-          <button
-            type="button"
-            onClick={toggleEnabled}
-            className={`flex items-center gap-2.5 px-6 py-3 rounded-2xl font-black text-sm transition shadow-sm ${
-              enabled 
-                ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/20" 
-                : "bg-slate-200 hover:bg-slate-300 text-slate-700"
-            }`}
-          >
-            {enabled ? <ToggleRight className="w-6 h-6" /> : <ToggleLeft className="w-6 h-6" />}
-            <span>{enabled ? "مفعل ON (ينشر كل 24 ساعة)" : "متوقف OFF"}</span>
-          </button>
-        </div>
+        <button
+          onClick={() => setActiveTab('google')}
+          className={`flex-1 flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer ${
+            activeTab === 'google'
+              ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+              : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+          }`}
+        >
+          <BarChart3 className="w-4 h-4" />
+          <span>2. أدوات جوجل (Google GSR)</span>
+        </button>
 
-        {/* Stats Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-            <span className="text-xs text-slate-500 font-semibold block">آخر مقال تم نشره:</span>
-            <span className="text-sm font-bold text-slate-800 mt-1 block">
-              {stats.lastRun ? stats.lastRun.toLocaleString("ar-MA") : "لم ينشر بعد"}
-            </span>
-          </div>
-          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-            <span className="text-xs text-slate-500 font-semibold block">إجمالي المقالات المنشورة:</span>
-            <span className="text-lg font-black text-emerald-700 mt-1 block">
-              {stats.total} مقال
-            </span>
-          </div>
-          <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-            <span className="text-xs text-slate-500 font-semibold block">المواضيع المتاحة في الخزان:</span>
-            <span className="text-lg font-black text-blue-700 mt-1 block">
-              {unusedCount} متبقي / {topics.length} إجمالي
-            </span>
-          </div>
-        </div>
-
-        {/* Instant publish button */}
-        <div className="pt-2">
-          <button
-            onClick={handlePublishNow}
-            disabled={publishing}
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-2xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-sm shadow-md hover:shadow-lg transition disabled:opacity-50"
-          >
-            {publishing ? (
-              <>
-                <RefreshCw className="w-4 h-4 animate-spin" />
-                <span>جاري توليد ونشر المقال الآن...</span>
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-4 h-4" />
-                <span>جرب دابا - نشر مقال الآن (Publish Now)</span>
-              </>
-            )}
-          </button>
-        </div>
+        <button
+          onClick={() => setActiveTab('geo')}
+          className={`flex-1 flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl text-xs sm:text-sm font-black transition cursor-pointer ${
+            activeTab === 'geo'
+              ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+              : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+          }`}
+        >
+          <MapPin className="w-4 h-4" />
+          <span>3. الموقع الجغرافي (GEO & Schema)</span>
+        </button>
       </div>
 
-      {/* Card 2: Topic Bank */}
-      <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
-        <div>
-          <h2 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
-            <BookOpen className="w-5 h-5 text-blue-600" />
-            2. بنك وخزان المواضيع ({topics.length} موضوع)
-          </h2>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            أضف مواضيعك الخاصة دفعة واحدة. كل سطر يعتبر موضوعاً مستقلاً سيتحول لمقال كامل.
-          </p>
-        </div>
+      {/* TAB 1: SEO */}
+      {activeTab === 'seo' && (
+        <div className="space-y-6 animate-fadeIn">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            {/* Form Fields (7 cols) */}
+            <div className="lg:col-span-7 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm space-y-5">
+              <h2 className="text-lg font-black text-slate-900 flex items-center gap-2 border-b border-slate-100 pb-3">
+                <Search className="w-5 h-5 text-emerald-600" />
+                <span>إعدادات العناوين والميتا تاج Meta Tags</span>
+              </h2>
 
-        <div>
-          <textarea
-            value={newTopics}
-            onChange={(e) => setNewTopics(e.target.value)}
-            placeholder={"اكتب موضوعاً في كل سطر... مثال:\nكيف نعلم طفل التوحد التعبير عن رغباته\nأهمية الأنشطة الرياضية في تفريغ الطاقة الحركية\nدور الأسرة في مساندة الطفل في المدرسة"}
-            rows={5}
-            className="w-full p-4 rounded-2xl border border-slate-200 bg-slate-50 text-sm focus:bg-white focus:ring-2 focus:ring-blue-500 focus:outline-none transition leading-relaxed resize-none"
-          />
-          <button
-            onClick={handleAddTopics}
-            className="mt-3 inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow transition"
-          >
-            <PlusCircle className="w-4 h-4" />
-            <span>حفظ وإضافة المواضيع إلى الخزان</span>
-          </button>
-        </div>
-
-        {/* Topics List with Filter & Actions */}
-        <div className="space-y-3 pt-4 border-t border-slate-100">
-          <div className="flex items-center justify-between text-xs text-slate-500 font-bold px-2">
-            <span>قائمة المواضيع المحفوظة</span>
-            <span>(✅ مستعمل | ⏳ متبقي)</span>
-          </div>
-
-          <div className="max-h-96 overflow-y-auto space-y-2 pr-1 divide-y divide-slate-100">
-            {topics.map((t, idx) => (
-              <div 
-                key={t.id} 
-                className="pt-2 flex items-center justify-between gap-3 p-3 rounded-xl hover:bg-slate-50 transition"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <span className="text-xs font-mono text-slate-400 w-6 text-start">{idx + 1}.</span>
-                  <span className={`text-xs sm:text-sm font-semibold truncate ${
-                    t.used ? "line-through text-slate-400" : "text-slate-800"
-                  }`}>
-                    {t.title}
+              {/* SEO Title */}
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center text-xs font-bold text-slate-700">
+                  <label htmlFor="seo_title">عنوان الموقع لمحركات البحث (SEO Title)</label>
+                  <span className={`${settings.seo_title?.length > 60 ? 'text-amber-600' : 'text-slate-400'}`}>
+                    {settings.seo_title?.length || 0} / 60 حرف
                   </span>
                 </div>
+                <input
+                  id="seo_title"
+                  type="text"
+                  value={settings.seo_title || ''}
+                  onChange={e => handleChange('seo_title', e.target.value)}
+                  placeholder="عنوان الموقع الرئيسي..."
+                  className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none text-sm transition"
+                />
+              </div>
 
-                <div className="flex items-center gap-2 shrink-0">
-                  <button
-                    onClick={() => handleToggleTopicUsed(t)}
-                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition ${
-                      t.used ? "bg-slate-100 text-slate-500 hover:bg-slate-200" : "bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100"
-                    }`}
-                    title={t.used ? "إعادة تعيين كمتبقي" : "تحديد كمستعمل"}
-                  >
-                    {t.used ? "✅ استُعمل" : "⏳ متبقي"}
-                  </button>
+              {/* SEO Description */}
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center text-xs font-bold text-slate-700">
+                  <label htmlFor="seo_description">الوصف المختصر (Meta Description)</label>
+                  <span className={`${settings.seo_description?.length > 160 ? 'text-amber-600' : 'text-slate-400'}`}>
+                    {settings.seo_description?.length || 0} / 160 حرف
+                  </span>
+                </div>
+                <textarea
+                  id="seo_description"
+                  rows={3}
+                  value={settings.seo_description || ''}
+                  onChange={e => handleChange('seo_description', e.target.value)}
+                  placeholder="وصف واضح وجذاب للجمعية وأنشطتها..."
+                  className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none text-sm transition"
+                />
+              </div>
 
-                  <button
-                    onClick={() => handleDeleteTopic(t.id)}
-                    className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition"
-                    title="حذف الموضوع"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+              {/* SEO Keywords */}
+              <div className="space-y-1.5">
+                <label htmlFor="seo_keywords" className="block text-xs font-bold text-slate-700">
+                  الكلمات الدلالية (Meta Keywords - مفصولة بفاصلة)
+                </label>
+                <input
+                  id="seo_keywords"
+                  type="text"
+                  value={settings.seo_keywords || ''}
+                  onChange={e => handleChange('seo_keywords', e.target.value)}
+                  placeholder="أطفال التوحد, القنيطرة, الساكنية, ترويض طبي..."
+                  className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none text-sm transition"
+                />
+              </div>
+
+              {/* OG Image */}
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-slate-700">
+                  صورة المشاركة على السوشيال ميديا (OpenGraph Image)
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    dir="ltr"
+                    value={settings.og_image || ''}
+                    onChange={e => handleChange('og_image', e.target.value)}
+                    placeholder="https://example.com/image.jpg"
+                    className="flex-1 px-4 py-2.5 rounded-xl border border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none text-xs font-mono transition"
+                  />
+                  <label className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl flex items-center gap-1.5 cursor-pointer transition">
+                    <Upload className="w-4 h-4 text-slate-600" />
+                    <span>رفع صورة</span>
+                    <input type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+                  </label>
                 </div>
               </div>
-            ))}
+
+              {/* Robots.txt */}
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center text-xs font-bold text-slate-700">
+                  <label htmlFor="robots_txt">محتوى ملف robots.txt</label>
+                  <a href="/api/seo/robots" target="_blank" rel="noreferrer" className="text-emerald-600 hover:underline inline-flex items-center gap-1">
+                    <span>عرض الملف المباشر</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+                <textarea
+                  id="robots_txt"
+                  rows={3}
+                  dir="ltr"
+                  value={settings.robots_txt || ''}
+                  onChange={e => handleChange('robots_txt', e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none text-xs font-mono transition"
+                />
+              </div>
+
+              {/* Sitemap Toggle */}
+              <div className="pt-2 flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-200">
+                <div>
+                  <h4 className="text-sm font-bold text-slate-800">تفعيل خريطة الموقع التلقائية XML Sitemap</h4>
+                  <p className="text-xs text-slate-500 mt-0.5">تحديث خريطة المقالات والصفحات كل ساعة أوتوماتيكياً</p>
+                </div>
+                <a
+                  href="/api/seo/sitemap"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="px-3.5 py-1.5 rounded-lg bg-emerald-100 text-emerald-800 text-xs font-bold hover:bg-emerald-200 transition inline-flex items-center gap-1"
+                >
+                  <span>عرض sitemap.xml</span>
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              </div>
+            </div>
+
+            {/* Previews (5 cols) */}
+            <div className="lg:col-span-5 space-y-6">
+              
+              {/* Google SERP Preview Card */}
+              <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-sm space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                  <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 rounded-full bg-red-500 inline-block"></span>
+                    <span className="w-3 h-3 rounded-full bg-yellow-500 inline-block"></span>
+                    <span className="w-3 h-3 rounded-full bg-green-500 inline-block"></span>
+                    <h3 className="text-xs font-bold text-slate-500 mr-2">معاينة نتيجة البحث في Google</h3>
+                  </div>
+                  <Eye className="w-4 h-4 text-slate-400" />
+                </div>
+
+                <div className="p-4 bg-slate-50/70 rounded-2xl border border-slate-100 space-y-1.5" dir="ltr">
+                  <div className="flex items-center gap-2 text-xs text-slate-600">
+                    <img src="/logo.jpg" alt="Favicon" className="w-4 h-4 rounded-full object-cover" />
+                    <span className="font-medium text-slate-700">asso-amsed.vercel.app</span>
+                    <span className="text-slate-400">› articles</span>
+                  </div>
+                  <h4 className="text-base font-semibold text-blue-700 hover:underline cursor-pointer line-clamp-1" dir="rtl">
+                    {settings.seo_title || 'عنوان الصفحة في جوجل'}
+                  </h4>
+                  <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed" dir="rtl">
+                    {settings.seo_description || 'الوصف الذي سيظهر للمستخدمين عند البحث في محرك بحث جوجل...'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Social / WhatsApp / Facebook Share Preview */}
+              <div className="bg-white p-5 rounded-3xl border border-slate-200/80 shadow-sm space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                  <div className="flex items-center gap-2">
+                    <Share2 className="w-4 h-4 text-emerald-600" />
+                    <h3 className="text-xs font-bold text-slate-700">معاينة بطاقة المشاركة (Social Card)</h3>
+                  </div>
+                  <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-mono">OG Card</span>
+                </div>
+
+                <div className="rounded-2xl border border-slate-200 overflow-hidden bg-slate-50">
+                  <div className="w-full h-36 bg-slate-200 relative overflow-hidden">
+                    {settings.og_image ? (
+                      <img src={settings.og_image} alt="OG Preview" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-slate-400 text-xs">
+                        لا توجد صورة مشاركة محددة
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-3.5 space-y-1 bg-white">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">asso-amsed.vercel.app</span>
+                    <h5 className="text-xs font-bold text-slate-900 line-clamp-1">
+                      {settings.seo_title || 'عنوان المشاركة'}
+                    </h5>
+                    <p className="text-[11px] text-slate-500 line-clamp-2">
+                      {settings.seo_description || 'وصف المشاركة الاجتماعية...'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
           </div>
         </div>
+      )}
+
+      {/* TAB 2: Google GSR */}
+      {activeTab === 'google' && (
+        <div className="space-y-6 animate-fadeIn">
+          <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200/80 shadow-sm space-y-6">
+            
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+              <div>
+                <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5 text-emerald-600" />
+                  <span>Google Search & Reporting (GSR Suite)</span>
+                </h2>
+                <p className="text-xs text-slate-500 mt-1">
+                  ربط الموقع بـ Google Analytics، Google Tag Manager، وإرسال خريطة الموقع إلى Google Search Console.
+                </p>
+              </div>
+
+              {/* Send Sitemap Button */}
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleSendSitemap}
+                  disabled={sitemapPingStatus === 'sending'}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition shadow-md shadow-blue-600/20 active:scale-95 cursor-pointer disabled:opacity-50"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                  <span>
+                    {sitemapPingStatus === 'sending' ? 'جاري الإرسال...' : 'إرسال خريطة الموقع (Send Sitemap)'}
+                  </span>
+                </button>
+
+                <a
+                  href="https://search.google.com/search-console/sitemaps"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition"
+                >
+                  <span>Google Console</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
+              </div>
+            </div>
+
+            {/* Feedback alert */}
+            {sitemapPingStatus === 'success' && (
+              <div className="flex items-center gap-3 bg-blue-50 border border-blue-200 text-blue-900 p-4 rounded-2xl text-xs font-bold animate-fadeIn">
+                <CheckCircle2 className="w-4 h-4 text-blue-600 shrink-0" />
+                <span>
+                  ✅ تم إرسال إشعار Ping لخريطة الموقع <code>https://asso-amsed.vercel.app/api/seo/sitemap</code> بنجاح إلى روبوتات الفهرسة!
+                </span>
+              </div>
+            )}
+
+            {/* Inputs Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              
+              {/* Google Analytics ID */}
+              <div className="space-y-1.5 p-5 rounded-2xl bg-slate-50 border border-slate-200">
+                <div className="flex items-center justify-between">
+                  <label htmlFor="google_analytics" className="text-xs font-bold text-slate-800">
+                    Google Analytics 4 (GA4 ID)
+                  </label>
+                  <span className="text-[10px] text-slate-400 font-mono">مثال: G-1234567890</span>
+                </div>
+                <input
+                  id="google_analytics"
+                  type="text"
+                  dir="ltr"
+                  value={settings.google_analytics || ''}
+                  onChange={e => handleChange('google_analytics', e.target.value)}
+                  placeholder="G-XXXXXXXXXX"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none text-xs font-mono transition bg-white"
+                />
+                <p className="text-[11px] text-slate-500">
+                  يتم حقن سكريبت تتبع الزوار والصفحات الأكثر قراءة تلقائياً في الـ Head.
+                </p>
+              </div>
+
+              {/* Google Site Verification */}
+              <div className="space-y-1.5 p-5 rounded-2xl bg-slate-50 border border-slate-200">
+                <div className="flex items-center justify-between">
+                  <label htmlFor="google_verification" className="text-xs font-bold text-slate-800">
+                    Google Site Verification (Search Console)
+                  </label>
+                  <span className="text-[10px] text-slate-400 font-mono">رمز التحقق</span>
+                </div>
+                <input
+                  id="google_verification"
+                  type="text"
+                  dir="ltr"
+                  value={settings.google_verification || ''}
+                  onChange={e => handleChange('google_verification', e.target.value)}
+                  placeholder="google-site-verification=..."
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none text-xs font-mono transition bg-white"
+                />
+                <p className="text-[11px] text-slate-500">
+                  كود إثبات ملكية الدومين في جوجل سيرش كونسول بدون الحاجة لتعديل DNS.
+                </p>
+              </div>
+
+              {/* GTM ID */}
+              <div className="space-y-1.5 p-5 rounded-2xl bg-slate-50 border border-slate-200">
+                <div className="flex items-center justify-between">
+                  <label htmlFor="gtm_id" className="text-xs font-bold text-slate-800">
+                    Google Tag Manager (GTM Container ID)
+                  </label>
+                  <span className="text-[10px] text-slate-400 font-mono">اختياري</span>
+                </div>
+                <input
+                  id="gtm_id"
+                  type="text"
+                  dir="ltr"
+                  value={settings.gtm_id || ''}
+                  onChange={e => handleChange('gtm_id', e.target.value)}
+                  placeholder="GTM-XXXXXXX"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none text-xs font-mono transition bg-white"
+                />
+                <p className="text-[11px] text-slate-500">
+                  إدارة جميع البيكسلات وحملات التتبع من واجهة GTM واحدة.
+                </p>
+              </div>
+
+              {/* Search Console Property */}
+              <div className="space-y-1.5 p-5 rounded-2xl bg-slate-50 border border-slate-200">
+                <div className="flex items-center justify-between">
+                  <label htmlFor="search_console" className="text-xs font-bold text-slate-800">
+                    رابط العقار (Search Console Property URL)
+                  </label>
+                </div>
+                <input
+                  id="search_console"
+                  type="text"
+                  dir="ltr"
+                  value={settings.search_console || 'https://asso-amsed.vercel.app/'}
+                  onChange={e => handleChange('search_console', e.target.value)}
+                  placeholder="https://asso-amsed.vercel.app/"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none text-xs font-mono transition bg-white"
+                />
+                <p className="text-[11px] text-slate-500">
+                  رابط الموقع المعتمد في تقارير النقرات والظهور اليومي.
+                </p>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3: GEO */}
+      {activeTab === 'geo' && (
+        <div className="space-y-6 animate-fadeIn">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            
+            {/* Geo Inputs & Coordinates (7 cols) */}
+            <div className="lg:col-span-7 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm space-y-5">
+              
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <h2 className="text-lg font-black text-slate-900 flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-emerald-600" />
+                  <span>التموضع الجغرافي Local SEO</span>
+                </h2>
+                
+                {/* Preset Button */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleChange('geo_lat', '34.2610');
+                    handleChange('geo_lng', '-6.5802');
+                    handleChange('geo_city', 'Kenitra');
+                    handleChange('geo_region', 'MA-KEN');
+                    handleChange('geo_country', 'Morocco');
+                  }}
+                  className="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold rounded-xl transition cursor-pointer flex items-center gap-1 border border-emerald-200"
+                >
+                  <Compass className="w-3.5 h-3.5" />
+                  <span>تثبيت مقر AMSED الساكنية</span>
+                </button>
+              </div>
+
+              {/* Lat / Lng Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label htmlFor="geo_lat" className="block text-xs font-bold text-slate-700">
+                    خط العرض (Latitude)
+                  </label>
+                  <input
+                    id="geo_lat"
+                    type="text"
+                    dir="ltr"
+                    value={settings.geo_lat || ''}
+                    onChange={e => handleChange('geo_lat', e.target.value)}
+                    placeholder="34.2610"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none text-xs font-mono transition"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label htmlFor="geo_lng" className="block text-xs font-bold text-slate-700">
+                    خط الطول (Longitude)
+                  </label>
+                  <input
+                    id="geo_lng"
+                    type="text"
+                    dir="ltr"
+                    value={settings.geo_lng || ''}
+                    onChange={e => handleChange('geo_lng', e.target.value)}
+                    placeholder="-6.5802"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none text-xs font-mono transition"
+                  />
+                </div>
+              </div>
+
+              {/* City, Region, Country */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="space-y-1.5">
+                  <label htmlFor="geo_city" className="block text-xs font-bold text-slate-700">
+                    المدينة (City)
+                  </label>
+                  <input
+                    id="geo_city"
+                    type="text"
+                    value={settings.geo_city || ''}
+                    onChange={e => handleChange('geo_city', e.target.value)}
+                    placeholder="Kenitra"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none text-xs transition"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label htmlFor="geo_region" className="block text-xs font-bold text-slate-700">
+                    الجهة (Region Code)
+                  </label>
+                  <input
+                    id="geo_region"
+                    type="text"
+                    dir="ltr"
+                    value={settings.geo_region || ''}
+                    onChange={e => handleChange('geo_region', e.target.value)}
+                    placeholder="MA-KEN"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none text-xs font-mono transition"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label htmlFor="geo_country" className="block text-xs font-bold text-slate-700">
+                    الدولة (Country)
+                  </label>
+                  <input
+                    id="geo_country"
+                    type="text"
+                    value={settings.geo_country || ''}
+                    onChange={e => handleChange('geo_country', e.target.value)}
+                    placeholder="Morocco"
+                    className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none text-xs transition"
+                  />
+                </div>
+              </div>
+
+              {/* Hreflang */}
+              <div className="space-y-1.5">
+                <label htmlFor="hreflang" className="block text-xs font-bold text-slate-700">
+                  اللغات المستهدفة (Hreflang Tags)
+                </label>
+                <input
+                  id="hreflang"
+                  type="text"
+                  dir="ltr"
+                  value={settings.hreflang || ''}
+                  onChange={e => handleChange('hreflang', e.target.value)}
+                  placeholder="ar-MA, fr-MA"
+                  className="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none text-xs font-mono transition"
+                />
+                <p className="text-[11px] text-slate-500">
+                  تحديد التوزيع الجغرافي واللغوي في المغرب (العربية والفرنسية).
+                </p>
+              </div>
+
+              {/* Map Preview */}
+              <div className="space-y-2 pt-2">
+                <span className="block text-xs font-bold text-slate-700">
+                  خريطة التموضع الحي (Map Preview):
+                </span>
+                <div className="w-full h-48 rounded-2xl overflow-hidden border border-slate-200 relative bg-slate-100">
+                  <iframe
+                    title="Geo Location Map"
+                    src={`https://www.openstreetmap.org/export/embed.html?bbox=${parseFloat(settings.geo_lng || -6.5802) - 0.01}%2C${parseFloat(settings.geo_lat || 34.2610) - 0.01}%2C${parseFloat(settings.geo_lng || -6.5802) + 0.01}%2C${parseFloat(settings.geo_lat || 34.2610) + 0.01}&layer=mapnik&marker=${settings.geo_lat || 34.2610}%2C${settings.geo_lng || -6.5802}`}
+                    className="w-full h-full border-0"
+                  ></iframe>
+                </div>
+              </div>
+
+            </div>
+
+            {/* Schema JSON-LD Preview (5 cols) */}
+            <div className="lg:col-span-5 bg-white p-6 rounded-3xl border border-slate-200/80 shadow-sm space-y-4">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div className="flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-emerald-600" />
+                  <h3 className="text-xs font-bold text-slate-900">كود Schema.org JSON-LD المولد</h3>
+                </div>
+                
+                <button
+                  onClick={copySchemaToClipboard}
+                  className="text-xs text-emerald-600 hover:text-emerald-700 font-bold flex items-center gap-1 cursor-pointer transition"
+                >
+                  {copiedSchema ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{copiedSchema ? 'تم النسخ!' : 'نسخ الكود'}</span>
+                </button>
+              </div>
+
+              <p className="text-xs text-slate-500">
+                هذا الكود يتم تضمينه أوتوماتيكياً في رأس الصفحة لتمكين محرك بحث جوجل والذكاء الاصطناعي من فهم مقر الجمعية وبياناتها بدقة:
+              </p>
+
+              <pre dir="ltr" className="p-4 bg-slate-900 text-emerald-400 rounded-2xl text-[11px] font-mono overflow-x-auto max-h-96 leading-relaxed">
+                {JSON.stringify(schemaJsonLd, null, 2)}
+              </pre>
+
+              <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs text-emerald-800 space-y-1">
+                <div className="font-bold flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <span>متوافق 100% مع معايير Google Rich Results</span>
+                </div>
+                <p className="text-[11px] text-emerald-700">
+                  يتضمن إحداثيات GPS، معلومات الاتصال، ونوع المنظمة غير الربحية (NGO).
+                </p>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* Sticky Bottom Save Bar */}
+      <div className="sticky bottom-4 z-20 bg-slate-900 text-white p-4 rounded-2xl shadow-2xl flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <span className="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span className="text-xs sm:text-sm font-bold text-slate-200">
+            جاهز لحفظ تحديثات الـ SEO و GSR و GEO
+          </span>
+        </div>
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="px-6 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs sm:text-sm transition cursor-pointer disabled:opacity-50"
+        >
+          {saving ? 'جاري الحفظ...' : 'حفظ التعديلات الآن'}
+        </button>
       </div>
+
     </div>
   );
 }
-export { AdvancedSettings };

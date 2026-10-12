@@ -42,10 +42,12 @@ import { LogoAdmin } from './admin/pages/LogoAdmin';
 import { FirebaseSettingsAdmin } from './admin/pages/FirebaseSettingsAdmin';
 import { ServicesAdmin } from './admin/pages/ServicesAdmin';
 import { SettingsPage } from './admin/pages/SettingsPage';
+import HeadSeo from './components/HeadSeo';
 
 export default function App() {
   return (
     <BrowserRouter>
+      <HeadSeo />
       <LanguageProvider>
         <DataProvider>
           <CmsProvider>
