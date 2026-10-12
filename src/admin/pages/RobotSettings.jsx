@@ -3,67 +3,105 @@ import { db } from '../../firebase.js';
 import { collection, getDocs, doc, setDoc, updateDoc, addDoc } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
 
+const DEFAULT_ROBOTS = [
+  { id: 'boss', name_ar: '👔 المدير العام - الشاف (قابل للتعديل)', name: 'Boss Manager', enabled: true, cron_time: '*/30 * * * *', prompt_template: 'انت هو المدير العام ديال AMSED. مهمتك:\n1. تراقب كاع الروبوتات كل 30 دقيقة\n2. الا لقيتي شي روبوت status=error عاود تشعلو، الا فشل 3 مرات صيفط تنبيه\n3. تنسق السلسلة: الماستر يكتب مقال -> تعطيه لروبوت الصور يدير ALT -> تعطيه لروبوت الربط يدير لينكات -> تعطيه لروبوت فايسبوك ينشر\n4. تكتب تقرير كل نهار شنو درتي\n5. تقدر تعدل عليا من صفحة الاعدادات', last_run: null, status: 'idle', retry_count: 0, config: {}, is_boss: true },
+  { id: 'master', name_ar: '🤖 الماستر - كاتب المقالات', enabled: true, cron_time: '09:00', prompt_template: 'كتب مقال 800 كلمة عن التنمية المستدامة في المغرب، بأسلوب صحفي مغربي بسيط مع لمسة دارجة خفيفة، واذكر جمعية أمسي AMSED الدار البيضاء. Output JSON {title, slug, excerpt, content, keywords}', last_run: null, status: 'idle' },
+  { id: 'image_alt', name_ar: '🖼️ روبوت وصف الصور ALT', enabled: true, cron_time: '09:02', prompt_template: 'كتب ALT بالعربية فيه كلمة جمعية امسد الدار البيضاء', last_run: null, status: 'idle' },
+  { id: 'seo_linking', name_ar: '🔗 روبوت الربط الداخلي', enabled: true, cron_time: '09:05', prompt_template: 'اختار 3 مقالات مشابهة وربطهم داخليا', last_run: null, status: 'idle' },
+  { id: 'seo_schema', name_ar: '⭐ روبوت النجوم 4.8 Schema', enabled: true, cron_time: '09:06', prompt_template: 'ضيف schema aggregateRating 4.8 و FAQ', last_run: null, status: 'idle' },
+  { id: 'seo_refresher', name_ar: '♻️ روبوت تحديث القديم (كل جمعة)', enabled: true, cron_time: 'Friday 09:10', prompt_template: 'كل جمعة جدد مقال قديم بفقرة 2026', last_run: null, status: 'idle' },
+  { id: 'facebook', name_ar: '📘 روبوت فايسبوك', enabled: true, cron_time: '09:15', prompt_template: 'نشر فيسبوك', last_run: null, status: 'idle', config: { token: '', pageId: '' } },
+  { id: 'instagram', name_ar: '📸 روبوت انستغرام (باقي ما واجدش)', enabled: false, cron_time: '09:16', prompt_template: 'IG - باقي ما واجدش', last_run: null, status: 'idle', config: { token: '' } },
+];
+
 export default function RobotSettings() {
-  const [robots, setRobots] = useState([]);
+  const [robots, setRobots] = useState(() => {
+    try {
+      const saved = localStorage.getItem('amsed_robot_settings');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return DEFAULT_ROBOTS;
+  });
   const [saving, setSaving] = useState(false);
+  const [seeding, setSeeding] = useState(false);
   const [bossLogs, setBossLogs] = useState([]);
   const nav = useNavigate();
+
+  const seedIfEmpty = async () => {
+    console.log('Fetching robots...');
+    setSeeding(true);
+    try {
+      if (db) {
+        const snap = await getDocs(collection(db, 'robot_settings'));
+        console.log('Found docs:', snap.size);
+        if (snap.empty) {
+          console.log('Seeding 8 robots...');
+          for (const r of DEFAULT_ROBOTS) {
+            try {
+              await setDoc(doc(db, 'robot_settings', r.id), r);
+              console.log('Seeded:', r.id);
+            } catch (e) {
+              console.error('Failed to seed:', r.id, e);
+            }
+          }
+          setRobots(DEFAULT_ROBOTS);
+          localStorage.setItem('amsed_robot_settings', JSON.stringify(DEFAULT_ROBOTS));
+        } else {
+          let data = snap.docs.map(d => d.data());
+          console.log('Loaded from Firestore:', data.length, 'robots');
+          if (!data.find(x => x.id === 'boss')) {
+            console.log('Boss document missing, seeding boss...');
+            await setDoc(doc(db, 'robot_settings', 'boss'), DEFAULT_ROBOTS[0]).catch(e => console.error('Boss seed error:', e));
+            data = [DEFAULT_ROBOTS[0], ...data];
+          }
+          for (const def of DEFAULT_ROBOTS) {
+            if (!data.find(x => x.id === def.id)) {
+              data.push(def);
+            }
+          }
+          const sorted = [
+            data.find(x => x.id === 'boss') || DEFAULT_ROBOTS[0],
+            ...data.filter(x => x.id !== 'boss')
+          ];
+          setRobots(sorted);
+          localStorage.setItem('amsed_robot_settings', JSON.stringify(sorted));
+        }
+
+        try {
+          const logsSnap = await getDocs(collection(db, 'boss_logs'));
+          setBossLogs(logsSnap.docs.map(d => d.data()).slice(-10).reverse());
+        } catch (le) {
+          console.warn('boss_logs fetch warning:', le);
+        }
+      } else {
+        console.warn('Firebase db is null, using defaults');
+        setRobots(DEFAULT_ROBOTS);
+      }
+    } catch (err) {
+      console.error('Error fetching/seeding robot_settings:', err);
+      const saved = localStorage.getItem('amsed_robot_settings');
+      if (saved) {
+        try { setRobots(JSON.parse(saved)); } catch { setRobots(DEFAULT_ROBOTS); }
+      } else {
+        setRobots(DEFAULT_ROBOTS);
+      }
+    } finally {
+      setSeeding(false);
+    }
+  };
 
   useEffect(() => {
     if (localStorage.getItem('amsed_auth') !== 'true') {
       nav('/am-ctrl-9k2l8x-2026-secure-panel-77/login');
       return;
     }
-
-    (async () => {
-      const defaults = [
-        { id: 'boss', name_ar: '👔 المدير العام - الشاف (قابل للتعديل)', name: 'Boss Manager', enabled: true, cron_time: '*/30 * * * *', prompt_template: 'انت هو المدير العام ديال AMSED. مهمتك:\n1. تراقب كاع الروبوتات كل 30 دقيقة\n2. الا لقيتي شي روبوت status=error عاود تشعلو، الا فشل 3 مرات صيفط تنبيه\n3. تنسق السلسلة: الماستر يكتب مقال -> تعطيه لروبوت الصور يدير ALT -> تعطيه لروبوت الربط يدير لينكات -> تعطيه لروبوت فايسبوك ينشر\n4. تكتب تقرير كل نهار شنو درتي\n5. تقدر تعدل عليا من صفحة الاعدادات', last_run: null, status: 'idle', retry_count: 0, config: {}, is_boss: true },
-        { id: 'master', name_ar: '🤖 الماستر - كاتب المقالات', enabled: true, cron_time: '09:00', prompt_template: 'كتب مقال 800 كلمة عن التنمية المستدامة في المغرب، بأسلوب صحفي مغربي بسيط مع لمسة دارجة خفيفة، واذكر جمعية أمسي AMSED الدار البيضاء. Output JSON {title, slug, excerpt, content, keywords}', last_run: null, status: 'idle' },
-        { id: 'image_alt', name_ar: '🖼️ روبوت وصف الصور ALT', enabled: true, cron_time: '09:02', prompt_template: 'كتب ALT بالعربية فيه كلمة جمعية امسد الدار البيضاء', last_run: null, status: 'idle' },
-        { id: 'seo_linking', name_ar: '🔗 روبوت الربط الداخلي', enabled: true, cron_time: '09:05', prompt_template: 'اختار 3 مقالات مشابهة وربطهم داخليا', last_run: null, status: 'idle' },
-        { id: 'seo_schema', name_ar: '⭐ روبوت النجوم 4.8 Schema', enabled: true, cron_time: '09:06', prompt_template: 'ضيف schema aggregateRating 4.8 و FAQ', last_run: null, status: 'idle' },
-        { id: 'seo_refresher', name_ar: '♻️ روبوت تحديث القديم (كل جمعة)', enabled: true, cron_time: 'Friday 09:10', prompt_template: 'كل جمعة جدد مقال قديم بفقرة 2026', last_run: null, status: 'idle' },
-        { id: 'facebook', name_ar: '📘 روبوت فايسبوك', enabled: true, cron_time: '09:15', prompt_template: 'نشر فيسبوك', last_run: null, status: 'idle', config: { token: '', pageId: '' } },
-        { id: 'instagram', name_ar: '📸 روبوت انستغرام (باقي ما واجدش)', enabled: false, cron_time: '09:16', prompt_template: 'IG - باقي ما واجدش', last_run: null, status: 'idle', config: { token: '' } },
-      ];
-
-      try {
-        if (db) {
-          const snap = await getDocs(collection(db, 'robot_settings'));
-          if (snap.empty) {
-            for (let r of defaults) {
-              await setDoc(doc(db, 'robot_settings', r.id), r);
-            }
-            setRobots(defaults);
-          } else {
-            let data = snap.docs.map(d => d.data());
-            if (!data.find(x => x.id === 'boss')) {
-              await setDoc(doc(db, 'robot_settings', 'boss'), defaults[0]);
-              data = [defaults[0], ...data];
-            }
-            // Sort to ensure boss is first, then rest
-            const sorted = [
-              data.find(x => x.id === 'boss') || defaults[0],
-              ...data.filter(x => x.id !== 'boss')
-            ];
-            setRobots(sorted);
-          }
-
-          const logsSnap = await getDocs(collection(db, 'boss_logs'));
-          setBossLogs(logsSnap.docs.map(d => d.data()).slice(-10).reverse());
-        } else {
-          setRobots(defaults);
-        }
-      } catch (err) {
-        console.warn('Firebase robot_settings fetch fallback:', err);
-        const saved = localStorage.getItem('amsed_robot_settings');
-        if (saved) {
-          try { setRobots(JSON.parse(saved)); return; } catch {}
-        }
-        setRobots(defaults);
-      }
-    })();
+    console.log('Fetching robots on mount...');
+    seedIfEmpty();
   }, [nav]);
+
 
   const saveAll = async () => {
     setSaving(true);
@@ -172,13 +210,35 @@ export default function RobotSettings() {
             إدارة مركزية لجميع الروبوتات الـ 7 تحت قيادة المدير العام (الشاف)
           </p>
         </div>
-        <button
-          onClick={logout}
-          className="bg-red-500 hover:bg-red-600 text-white font-bold px-5 py-2.5 rounded-xl transition cursor-pointer text-sm"
-        >
-          تسجيل الخروج 🚪
-        </button>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={seedIfEmpty}
+            disabled={seeding}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-2.5 rounded-xl transition cursor-pointer text-sm disabled:opacity-50 shadow-sm"
+          >
+            {seeding ? 'جاري التهيئة...' : '🔄 تهيئة / مزامنة الروبوتات الـ 8'}
+          </button>
+          <button
+            onClick={logout}
+            className="bg-red-500 hover:bg-red-600 text-white font-bold px-5 py-2.5 rounded-xl transition cursor-pointer text-sm"
+          >
+            تسجيل الخروج 🚪
+          </button>
+        </div>
       </div>
+
+      {robots.length === 0 && (
+        <div className="text-center my-6 p-8 bg-white border border-slate-200 rounded-2xl shadow-sm">
+          <p className="text-slate-600 font-bold mb-3">لم يتم العثور على أي روبوتات حالياً</p>
+          <button
+            onClick={seedIfEmpty}
+            disabled={seeding}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-xl shadow-lg cursor-pointer transition disabled:opacity-50"
+          >
+            {seeding ? 'جاري الإنشاء...' : '🔄 إعادة إنشاء الروبوتات الـ 8'}
+          </button>
+        </div>
+      )}
 
       {boss && (
         <div className="border-2 border-yellow-500 rounded-3xl p-6 bg-gradient-to-r from-yellow-50 via-amber-50 to-orange-50 shadow-lg mb-8">

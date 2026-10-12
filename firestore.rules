@@ -33,6 +33,14 @@ service cloud.firestore {
       allow update, delete: if request.auth != null;
     }
 
+    match /robot_settings/{robotId} {
+      allow read, write: if true;
+    }
+
+    match /boss_logs/{logId} {
+      allow read, write: if true;
+    }
+
     // 3. Default Rule for all other collections:
     // Allow read: true, Allow write: if auth != null
     match /{document=**} {
