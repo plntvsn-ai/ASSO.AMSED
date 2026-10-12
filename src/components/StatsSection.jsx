@@ -39,27 +39,27 @@ export default function StatsSection() {
   ];
 
   return (
-    <section className="py-8 bg-slate-900 text-white border-y border-slate-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 text-center">
+    <div className="py-5 px-4 bg-slate-900/90 backdrop-blur text-white rounded-2xl border border-slate-800 shadow-xl">
+      <div className="max-w-7xl mx-auto">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 text-center">
           {items.map((it, idx) => {
             const Icon = it.icon;
             return (
               <div 
                 key={idx} 
-                className={`p-5 rounded-2xl border ${it.color} shadow-lg transition hover:scale-105`}
+                className={`p-3.5 sm:p-4 rounded-xl border ${it.color} shadow transition hover:scale-105`}
               >
-                <div className="w-10 h-10 rounded-xl bg-slate-900/80 mx-auto flex items-center justify-center mb-2 shadow">
-                  <Icon className="w-5 h-5" />
+                <div className="w-8 h-8 rounded-lg bg-slate-900/80 mx-auto flex items-center justify-center mb-1.5 shadow">
+                  <Icon className="w-4 h-4" />
                 </div>
-                <div className="text-2xl sm:text-3xl font-black mb-1">{it.val}</div>
-                <div className="text-xs sm:text-sm text-slate-300 font-semibold">{it.label}</div>
+                <div className="text-xl sm:text-2xl font-black mb-0.5">{it.val}</div>
+                <div className="text-[11px] sm:text-xs text-slate-300 font-medium leading-tight">{it.label}</div>
               </div>
             );
           })}
         </div>
       </div>
-    </section>
+    </div>
   );
 }
 export { StatsSection };

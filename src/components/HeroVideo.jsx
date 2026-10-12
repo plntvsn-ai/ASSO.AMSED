@@ -2,8 +2,8 @@ import React from 'react';
 
 export default function HeroVideo() {
   return (
-    <section className="bg-[#0a4a3a] text-white pt-8 pb-14 sm:pt-10 sm:pb-16 border-b border-emerald-900 text-center">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 flex flex-col items-center">
+    <div className="text-white pt-2 pb-6 text-center">
+      <div className="max-w-4xl mx-auto px-2 sm:px-4 flex flex-col items-center">
         
         {/* 1. اسم الجمعية في الأعلى */}
         <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tight leading-tight mb-2">
@@ -62,6 +62,6 @@ export default function HeroVideo() {
         </div>
 
       </div>
-    </section>
+    </div>
   );
 }
