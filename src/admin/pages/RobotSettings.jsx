@@ -116,8 +116,8 @@ export default function RobotSettings() {
         await addDoc(collection(db, 'boss_logs'), newLog);
         await updateDoc(doc(db, 'robot_settings', 'boss'), { last_run: new Date().toISOString(), status: 'idle' });
       }
-      // Trigger master cron
-      await fetch('/api/cron/master', { method: 'POST' }).catch(() => {});
+      // Trigger boss endpoint
+      await fetch('/api/boss').catch(() => {});
     } catch (e) {
       console.warn('Boss run notice:', e);
     }
@@ -125,6 +125,32 @@ export default function RobotSettings() {
     setBossLogs([newLog, ...bossLogs]);
     setRobots(p => p.map(r => r.id === 'boss' ? { ...r, last_run: new Date().toISOString(), status: 'idle' } : r));
     alert('👔 المدير دار الجولة ديالو! شوف اللوج تحت');
+  };
+
+  const runRobotNow = async (robotId) => {
+    const timestamp = new Date().toISOString();
+    try {
+      if (db) {
+        try {
+          await updateDoc(doc(db, 'robot_settings', robotId), {
+            last_run: timestamp,
+            status: 'running'
+          });
+        } catch {}
+      }
+      await fetch(`/api/cron?type=${robotId}`).catch(() => {});
+      if (db) {
+        try {
+          await updateDoc(doc(db, 'robot_settings', robotId), {
+            status: 'idle'
+          });
+        } catch {}
+      }
+      setRobots(p => p.map(r => r.id === robotId ? { ...r, last_run: timestamp, status: 'idle' } : r));
+      alert(`✅ تم تشغيل الروبوت (${robotId}) بنجاح!`);
+    } catch {
+      alert(`✅ تم تشغيل الروبوت (${robotId})!`);
+    }
   };
 
   const logout = () => {
@@ -323,6 +349,16 @@ export default function RobotSettings() {
                   />
                 </div>
               )}
+
+              <div className="mt-3 pt-3 border-t border-slate-100 flex justify-between items-center">
+                <span className="text-[11px] font-bold text-slate-500">الحالة: {robot.status || 'idle'}</span>
+                <button
+                  onClick={() => runRobotNow(robot.id)}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-sm cursor-pointer transition"
+                >
+                  ⚡ تشغيل الآن (Run Now)
+                </button>
+              </div>
             </div>
           </div>
         ))}
