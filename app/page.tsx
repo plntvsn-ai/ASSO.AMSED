@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: 'AMSED | جمعية المبادرة المغربية - القنيطرة',
-  description: 'جمعية المبادرة المغربية لرعاية الأطفال في وضعية صعبة - SAKNIA 30 LOT EL HIZAM N° D Kénitra',
+  description: 'جمعية المبادرة المغربية لرعاية الأطفال في وضعية صعبة - SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM KENITRA',
 }
 
 export default function Home() {
@@ -23,7 +23,7 @@ export default function Home() {
         <h1 style={{fontSize:'22px', margin:0}}>جمعية المبادرة المغربية للتكافل والتعاون لرعاية الأطفال في وضعية صعبة</h1>
         <h2 style={{fontSize:'15px', fontWeight:400, opacity:0.9, margin:'8px 0'}}>AMSED</h2>
         <div style={{background:'rgba(255,255,255,0.15)', display:'inline-block', padding:'5px 15px', borderRadius:'20px', fontSize:'12px', marginTop:'10px'}}>
-          الإيداع القانوني: 376.58.1 | SAKNIA 30 LOT EL HIZAM N° D Kénitra
+          SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM KENITRA
         </div>
         <div style={{marginTop:'20px'}}>
           <img src="/logo-amsed.png" alt="AMSED" style={{height:'90px', background:'white', borderRadius:'15px', padding:'8px'}} />
@@ -99,7 +99,7 @@ export default function Home() {
 
       <footer style={{background:'#0a4a3a', color:'white', padding:'25px 15px', fontSize:'13px'}}>
         <div style={{maxWidth:'1200px', margin:'0 auto', display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(200px, 1fr))', gap:'20px', alignItems:'center'}}>
-          <div>SAKNIA 30 LOT EL HIZAM N° D 376.58.1 Kénitra</div>
+          <div>SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM KENITRA</div>
           <div style={{textAlign:'center', fontWeight:'bold'}}>© AMSED</div>
           <div dir="ltr" style={{textAlign:'left', unicodeBidi:'isolate', fontFamily:'monospace'}}>06 54 24 05 23</div>
         </div>

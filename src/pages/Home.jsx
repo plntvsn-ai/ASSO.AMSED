@@ -29,8 +29,8 @@ export default function Home() {
     return {
       show_donation: false,
       show_bank: false,
-      address_ar: '',
-      phone: ''
+      address_ar: 'SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM KENITRA',
+      phone: '06 54 24 05 23'
     };
   });
 
@@ -78,9 +78,9 @@ export default function Home() {
     })();
   }, []);
 
-  const phoneForCall = settings?.phone || cmsData?.contact?.phone1 || '06 23 05 24 54 06';
+  const phoneForCall = settings?.phone || cmsData?.contact?.phone1 || '06 54 24 05 23';
   const rawPhone = phoneForCall.replace(/\D/g, '');
-  const intlPhone = rawPhone.startsWith('0') ? '212' + rawPhone.substring(1) : (rawPhone || '212623052454');
+  const intlPhone = rawPhone.startsWith('0') ? '212' + rawPhone.substring(1) : (rawPhone || '212654240523');
   const whatsappUrl = `https://wa.me/${intlPhone}`;
 
   return (
@@ -135,7 +135,7 @@ export default function Home() {
 
       {/* 13. Exact LTR Footer Strip */}
       <footer dir="ltr" style={{ unicodeBidi: 'isolate' }} className="bg-slate-950 text-slate-400 text-xs py-3 text-center border-t border-slate-900 font-mono">
-        {settings.address_ar} | {settings.phone}
+        {settings?.address_ar || 'SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM KENITRA'} | {settings?.phone || '06 54 24 05 23'}
       </footer>
 
       {/* Floating Action Buttons */}

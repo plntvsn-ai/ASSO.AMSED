@@ -9,8 +9,8 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 function localApiPlugin() {
   let devSettings = {
     id: 1,
-    address_ar: "SAKNIA 30 LOT EL HIZAM N° D 376.58.1 Kénitra",
-    phone: "06 23 05 24 54 06",
+    address_ar: "SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM KENITRA",
+    phone: "06 54 24 05 23",
     show_donation: false,
     show_bank: false,
     association_name: "جمعية المبادرة المغربية للتكافل والتعاون لرعاية الأطفال في وضعية صعبة",

@@ -14,7 +14,7 @@ function makeArticle(topic) {
   return {
     ar: `# ${topic}
 
-في مركز AMSED بالساكنية القنيطرة (SAKNIA 30 LOT EL HIZAM N° D 376.58.1) نستقبل يوميا أمهات...
+في مركز AMSED بالساكنية القنيطرة (SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM KENITRA) نستقبل يوميا أمهات...
 
 ## ما هو ${topic}؟
 

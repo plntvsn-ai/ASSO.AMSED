@@ -14,9 +14,9 @@ export default function HeroVideo() {
           AMSED - Association Marocaine d'Entraide et de Solidarité
         </h2>
 
-        {/* شارة الإيداع القانوني والعنوان */}
+        {/* شارة العنوان */}
         <div className="inline-block bg-white/15 backdrop-blur-sm text-emerald-100 text-xs px-4 py-1.5 rounded-full mb-5 border border-white/20">
-          الإيداع القانوني: 376.58.1 | SAKNIA 30 LOT EL HIZAM N° D Kénitra
+          SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM KENITRA
         </div>
 
         {/* الشعار الرسمي - صورة واحدة فقط واضحة ودائرية بلا شفافية وبلا overlapping */}

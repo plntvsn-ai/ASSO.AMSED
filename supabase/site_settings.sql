@@ -4,10 +4,10 @@
 
 create table if not exists site_settings (
   id int primary key default 1,
-  address_ar text default 'SAKNIA 30 LOT EL HIZAM N° D 376.58.1 Kénitra',
-  address_fr text default 'SAKNIA 30 LOT EL HIZAM N° D 376.58.1 Kénitra',
-  address_en text default 'SAKNIA 30 LOT EL HIZAM N° D 376.58.1 Kenitra',
-  phone text default '06 23 05 24 54 06',
+  address_ar text default 'SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM KENITRA',
+  address_fr text default 'SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM KENITRA',
+  address_en text default 'SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM KENITRA',
+  phone text default '06 54 24 05 23',
   show_donation boolean default false,
   show_bank boolean default false,
   updated_at timestamp with time zone default now()

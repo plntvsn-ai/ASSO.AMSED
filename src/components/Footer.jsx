@@ -136,26 +136,18 @@ export const Footer = ({ siteSettings: propSettings }) => {
             <div className="space-y-3 text-xs sm:text-sm text-slate-400">
               <div className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                <span>{siteSettings?.address_ar || contact.address}</span>
+                <span>{siteSettings?.address_ar || "SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM KENITRA"}</span>
               </div>
               <div className="flex items-center gap-2.5">
                 <Phone className="w-4 h-4 text-emerald-400 shrink-0" />
-                <a href={`tel:${siteSettings?.phone || contact.phone1}`} className="hover:text-white transition font-mono inline-block" dir="ltr" style={{ unicodeBidi: 'isolate' }}>
-                  {siteSettings?.phone || contact.phone1}
+                <a href={`tel:${siteSettings?.phone || contact.phone1 || "06 54 24 05 23"}`} className="hover:text-white transition font-mono inline-block" dir="ltr" style={{ unicodeBidi: 'isolate' }}>
+                  {siteSettings?.phone || contact.phone1 || "06 54 24 05 23"}
                 </a>
-                {contact.phone2 && (
-                  <>
-                    <span>/</span>
-                    <a href={`tel:${contact.phone2}`} className="hover:text-white transition font-mono inline-block" dir="ltr" style={{ unicodeBidi: 'isolate' }}>
-                      {contact.phone2}
-                    </a>
-                  </>
-                )}
               </div>
               <div className="flex items-center gap-2.5">
                 <Mail className="w-4 h-4 text-emerald-400 shrink-0" />
-                <a href={`mailto:${contact.email}`} className="hover:text-white transition font-mono">
-                  {contact.email}
+                <a href={`mailto:${contact.email || "asso.amsed@gmail.com"}`} className="hover:text-white transition font-mono">
+                  {contact.email || "asso.amsed@gmail.com"}
                 </a>
               </div>
             </div>
@@ -166,13 +158,13 @@ export const Footer = ({ siteSettings: propSettings }) => {
         {/* Bottom bar - 3 columns */}
         <div className="pt-8 grid md:grid-cols-3 gap-6 text-sm text-slate-400 items-center">
           <div>
-            {siteSettings?.address_ar || "SAKNIA 30 LOT EL HIZAM N° D 376.58.1 Kénitra"}
+            {siteSettings?.address_ar || "SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM KENITRA"}
           </div>
           <div className="text-center font-bold text-white">
             © AMSED
           </div>
           <div dir="ltr" className="text-left font-mono font-bold text-emerald-400" style={{ unicodeBidi: 'isolate' }}>
-            {siteSettings?.phone || "06 23 05 24 54 06"}
+            {siteSettings?.phone || "06 54 24 05 23"}
           </div>
         </div>
 
