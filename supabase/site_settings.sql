@@ -1,38 +1,43 @@
 -- ========================================================
--- جدول إعدادات الموقع site_settings في Supabase
+-- جدول إعدادات الموقع site_settings في Supabase (Key - Value)
 -- ========================================================
 
 create table if not exists site_settings (
-  id int primary key default 1,
-  address_ar text default 'SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM KENITRA',
-  address_fr text default 'SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM KENITRA',
-  address_en text default 'SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM KENITRA',
-  phone text default '06 54 24 05 23',
-  show_donation boolean default false,
-  show_bank boolean default false,
+  key text primary key,
+  value text,
   updated_at timestamp with time zone default now()
 );
-
--- إدراج السجل الأساسي رقم 1 (id=1)
-insert into site_settings (id) 
-values (1)
-on conflict (id) do nothing;
 
 -- تفعيل Row Level Security (RLS)
 alter table site_settings enable row level security;
 
--- سياسة القراءة للعموم (الموقع يقرأ الإعدادات مباشرة وبدون قيود)
-drop policy if exists "public read" on site_settings;
-create policy "public read" on site_settings 
+-- سياسة القراءة للعموم
+drop policy if exists "public read site_settings" on site_settings;
+create policy "public read site_settings" on site_settings 
   for select 
   using (true);
 
--- سياسة التعديل والكتابة (للحفظ من لوحة التحكم / API)
-drop policy if exists "admin write" on site_settings;
-create policy "admin write" on site_settings 
+-- سياسة التعديل والكتابة
+drop policy if exists "admin write site_settings" on site_settings;
+create policy "admin write site_settings" on site_settings 
   for all 
   using (true)
   with check (true);
+
+-- إدراج القيم الأساسية (Upsert)
+insert into site_settings (key, value) values
+  ('site_title', 'جمعية المبادرة المغربية للتكافل والتعاون لرعاية الأطفال في وضعية صعبة'),
+  ('site_description', 'جمعية AMSED بالقنيطرة - تأهيل أطفال التوحد، ترويض طبي، تقويم النطق، الدعم المدرسي AVS، ورشات مهنية، ومواكبة نفسية.'),
+  ('phone1', '06 54 24 05 23'),
+  ('phone2', ''),
+  ('address', 'SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM KENITRA'),
+  ('email', 'asso.amsed@gmail.com'),
+  ('city', 'Kenitra'),
+  ('lat', '34.2610'),
+  ('lng', '-6.5802'),
+  ('show_donation', 'false'),
+  ('show_bank', 'false')
+on conflict (key) do nothing;
 
 -- ========================================================
 -- جدول خزان المواضيع topics_bank
@@ -62,7 +67,8 @@ insert into topics_bank (title) values
 ('التدخل المبكر وأثره على تطور لغة وتواصل الطفل'),
 ('التغذية الصحية وعلاقتها براحة طفل التوحد'),
 ('كيفية التعامل مع الحساسية الحسية والسمعية المفرطة'),
-('دور الأسرة والدعم النفسي للأمهات والآباء');
+('دور الأسرة والدعم النفسي للأمهات والآباء')
+on conflict do nothing;
 
 -- ========================================================
 -- جدول المقالات articles

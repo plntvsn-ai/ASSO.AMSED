@@ -1,7 +1,7 @@
 import React from 'react'
 import { supabase } from '@/lib/supabase'
 
-export const defaultAdvancedSettings: Record<string, string> = {
+export const defaultSettings: Record<string, string> = {
   seo_title: 'جمعية المبادرة المغربية لرعاية الأطفال في وضعية صعبة | AMSED القنيطرة',
   seo_description: 'جمعية المبادرة المغربية للتكافل والتعاون AMSED بالقنيطرة - تأهيل أطفال التوحد، ترويض طبي، تقويم النطق، الدمج المدرسي والمواكبة النفسية.',
   seo_keywords: 'أطفال التوحد, القنيطرة, الساكنية, ترويض طبي, تقويم النطق, دمج مدرسي AVS, جمعية AMSED, مواكبة نفسية',
@@ -17,23 +17,52 @@ export const defaultAdvancedSettings: Record<string, string> = {
   geo_city: 'Kenitra',
   geo_region: 'MA-KEN',
   geo_country: 'Morocco',
-  hreflang: 'ar-MA, fr-MA'
+  hreflang: 'ar-MA, fr-MA',
+  phone1: '06 54 24 05 23',
+  address: 'SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM KENITRA'
 }
 
-async function getAdvancedSettings(): Promise<Record<string, string>> {
+async function getMergedSettings(): Promise<Record<string, any>> {
+  let combined: Record<string, any> = { ...defaultSettings }
+
+  // 1. Fetch from site_settings (key-value or row)
   try {
-    const { data, error } = await supabase.from('advanced_settings').select('*')
-    if (!error && data && data.length > 0) {
-      const merged = { ...defaultAdvancedSettings }
-      data.forEach((row: { key: string; value: string }) => {
-        if (row.key) merged[row.key] = row.value ?? ''
-      })
-      return merged
+    const { data: siteData } = await supabase.from('site_settings').select('*')
+    if (siteData && siteData.length > 0) {
+      if (siteData[0].key !== undefined) {
+        siteData.forEach((row: { key: string; value: string }) => {
+          if (row.key) combined[row.key] = row.value
+        })
+      } else if (siteData[0].id !== undefined) {
+        combined = { ...combined, ...siteData[0] }
+      }
     }
   } catch (err) {
-    console.warn('Failed to load advanced_settings in layout:', err)
+    console.warn('site_settings load notice in layout:', err)
   }
-  return defaultAdvancedSettings
+
+  // 2. Fetch from advanced_settings
+  try {
+    const { data: advData } = await supabase.from('advanced_settings').select('*')
+    if (advData && advData.length > 0) {
+      advData.forEach((row: { key: string; value: string }) => {
+        if (row.key) combined[row.key] = row.value ?? ''
+      })
+    }
+  } catch (err) {
+    console.warn('advanced_settings load notice in layout:', err)
+  }
+
+  // Normalize
+  combined.seo_title = combined.seo_title || combined.site_title || defaultSettings.seo_title
+  combined.seo_description = combined.seo_description || combined.site_description || defaultSettings.seo_description
+  combined.geo_lat = combined.geo_lat || combined.lat || '34.2610'
+  combined.geo_lng = combined.geo_lng || combined.lng || '-6.5802'
+  combined.geo_city = combined.geo_city || combined.city || 'Kenitra'
+  combined.phone = combined.phone1 || combined.phone || '06 54 24 05 23'
+  combined.address = combined.address || combined.address_ar || 'SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM KENITRA'
+
+  return combined
 }
 
 export default async function RootLayout({
@@ -41,24 +70,24 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode
 }) {
-  const settings = await getAdvancedSettings()
+  const settings = await getMergedSettings()
 
   const schemaJsonLd = {
     "@context": "https://schema.org",
     "@type": "NGO",
-    "name": "جمعية المبادرة المغربية للتكافل والتعاون لرعاية الأطفال في وضعية صعبة",
+    "name": settings.site_title || "جمعية المبادرة المغربية للتكافل والتعاون لرعاية الأطفال في وضعية صعبة",
     "alternateName": "AMSED",
     "url": "https://asso-amsed.vercel.app",
     "logo": settings.og_image || "https://asso-amsed.vercel.app/logo.jpg",
     "description": settings.seo_description,
     "telephone": "+212654240523",
-    "email": "asso.amsed@gmail.com",
+    "email": settings.email || "asso.amsed@gmail.com",
     "address": {
       "@type": "PostalAddress",
-      "streetAddress": "SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM",
+      "streetAddress": settings.address || "SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM",
       "addressLocality": settings.geo_city,
-      "addressRegion": settings.geo_region,
-      "addressCountry": settings.geo_country
+      "addressRegion": settings.geo_region || "MA-KEN",
+      "addressCountry": settings.geo_country || "Morocco"
     },
     "geo": {
       "@type": "GeoCoordinates",
@@ -77,7 +106,7 @@ export default async function RootLayout({
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         
-        {/* Basic SEO */}
+        {/* Dynamic Title and Meta */}
         <title>{settings.seo_title}</title>
         <meta name="description" content={settings.seo_description} />
         {settings.seo_keywords && <meta name="keywords" content={settings.seo_keywords} />}
@@ -99,7 +128,7 @@ export default async function RootLayout({
         {/* GEO Tags for Local SEO */}
         <meta name="geo.position" content={`${settings.geo_lat};${settings.geo_lng}`} />
         <meta name="geo.placename" content={settings.geo_city} />
-        <meta name="geo.region" content={settings.geo_region} />
+        <meta name="geo.region" content={settings.geo_region || "MA-KEN"} />
         <meta name="ICBM" content={`${settings.geo_lat}, ${settings.geo_lng}`} />
 
         {/* Google Site Verification */}
