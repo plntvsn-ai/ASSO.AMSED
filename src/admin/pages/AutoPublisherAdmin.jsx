@@ -69,16 +69,28 @@ export const AutoPublisherAdmin = () => {
   };
 
   // Immediate manual trigger (Test run)
-  const handleManualPublish = async () => {
+  const handleTestRun = async () => {
     setIsPublishingNow(true);
     setPublishResult(null);
     try {
-      const res = await triggerAutoPublish();
-      setPublishResult(res);
-    } catch (err) {
+      // كنعيطو على نفس الـ API اللي كيخدم بيه الكرون
+      const res = await fetch('/api/autonomous-publish', { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        alert(`✅ تنشر: ${data.ar || data.published}`);
+        window.location.reload();
+      } else {
+        alert(`❌ خطأ: ${data.error}`);
+        setPublishResult({
+          success: false,
+          message: data.error
+        });
+      }
+    } catch (e) {
+      alert('❌ فشل الاتصال - شوف Vercel Logs');
       setPublishResult({
         success: false,
-        message: "حدث خطأ أثناء محاولة التوليد: " + err.message
+        message: 'فشل الاتصال - شوف Vercel Logs'
       });
     } finally {
       setIsPublishingNow(false);
@@ -220,21 +232,11 @@ export const AutoPublisherAdmin = () => {
             </p>
 
             <button
-              onClick={handleManualPublish}
-              disabled={isPublishingNow || topics.length === 0}
+              onClick={handleTestRun}
+              disabled={isPublishingNow}
               className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3.5 rounded-2xl shadow-lg transition transform hover:-translate-y-0.5 disabled:opacity-50 cursor-pointer"
             >
-              {isPublishingNow ? (
-                <>
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span>جارٍ التوليد عبر ويكيبيديا ونشر المقال...</span>
-                </>
-              ) : (
-                <>
-                  <Play className="w-4 h-4 fill-white" />
-                  <span>توليد ونشر مقال تجريبي فوراً ⚡</span>
-                </>
-              )}
+              {isPublishingNow ? 'جاري التوليد...' : '⚡ اختبار وتوليد فوري (Test Run)'}
             </button>
 
             {publishResult && (

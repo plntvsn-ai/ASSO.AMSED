@@ -8,6 +8,25 @@ export default function SettingsPage() {
     show_bank: false
   });
   const [saved, setSaved] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleTestRun = async () => {
+    setLoading(true);
+    try {
+      // كنعيطو على نفس الـ API اللي كيخدم بيه الكرون
+      const res = await fetch('/api/autonomous-publish', { method: 'POST' });
+      const data = await res.json();
+      if (data.success) {
+        alert(`✅ تنشر: ${data.ar || data.published}`);
+        window.location.reload();
+      } else {
+        alert(`❌ خطأ: ${data.error}`);
+      }
+    } catch (e) {
+      alert('❌ فشل الاتصال - شوف Vercel Logs');
+    }
+    setLoading(false);
+  };
 
   useEffect(() => {
     try {
@@ -104,6 +123,21 @@ export default function SettingsPage() {
             ✅ تم الحفظ - الموقع تجدد تلقائيا
           </p>
         )}
+      </div>
+
+      {/* قسم اختبار وتوليد المقالات الآلي */}
+      <div className="bg-slate-900 text-white p-5 rounded-2xl border border-slate-800 shadow-sm space-y-3">
+        <h3 className="text-base font-bold text-amber-400">⚡ اختبار وتوليد فوري (Test Run)</h3>
+        <p className="text-xs text-slate-300">
+          استدعاء مسار النشر الذاتي <code>/api/autonomous-publish</code> لتجربة توليد مقال جديد بـ 3 لغات من خزان المواضيع فوراً:
+        </p>
+        <button 
+          onClick={handleTestRun} 
+          disabled={loading}
+          className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white py-3 rounded-xl font-black transition shadow cursor-pointer"
+        >
+          {loading ? 'جاري التوليد...' : '⚡ اختبار وتوليد فوري (Test Run)'}
+        </button>
       </div>
 
       <p className="text-sm text-slate-500">
