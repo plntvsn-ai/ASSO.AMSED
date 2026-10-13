@@ -89,6 +89,17 @@ function localApiPlugin() {
           res.end(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://asso-amsed.vercel.app/</loc><priority>1.0</priority></url><url><loc>https://asso-amsed.vercel.app/articles</loc><priority>0.9</priority></url><url><loc>https://asso-amsed.vercel.app/about</loc><priority>0.8</priority></url></urlset>`);
           return;
         }
+        if (req.url === '/api/autonomous-publish' || req.url === '/api/auto-publish') {
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify({
+            success: true,
+            published: "مقال توعوي جديد حول رعاية أطفال التوحد",
+            ar: "مقال توعوي جديد حول رعاية أطفال التوحد - AMSED",
+            ai: true,
+            timestamp: new Date().toISOString()
+          }));
+          return;
+        }
         if (req.url === '/api/seo/robots' || req.url === '/robots.txt') {
           res.setHeader('Content-Type', 'text/plain; charset=utf-8');
           res.end(devAdvancedSettings.robots_txt);
@@ -103,6 +114,7 @@ function localApiPlugin() {
 // https://vite.dev/config/
 export default defineConfig({
   base: '/',
+  envPrefix: ['VITE_', 'NEXT_PUBLIC_'],
   plugins: [
     react(),
     tailwindcss(),

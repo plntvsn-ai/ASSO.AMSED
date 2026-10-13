@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Settings, Phone, MapPin, Mail, Globe, CheckCircle2, Sliders, RefreshCw } from 'lucide-react';
-import { db } from '../../firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { supabase } from '@/lib/supabase';
 
 export default function SettingsPage() {
   const [s, setS] = useState({
@@ -24,7 +23,7 @@ export default function SettingsPage() {
     show_bank: false
   });
   const [saved, setSaved] = useState(false);
-  const [saving, setSaving] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleTestRun = async () => {
@@ -40,8 +39,9 @@ export default function SettingsPage() {
       }
     } catch (e) {
       alert('❌ فشل الاتصال - شوف Vercel Logs');
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -50,32 +50,31 @@ export default function SettingsPage() {
       if (cached) setS(prev => ({ ...prev, ...JSON.parse(cached) }));
     } catch {}
 
-    // Load from Firestore settings/general or siteSettings/main
+    // Load directly from Supabase site_settings table (id=1)
     (async () => {
       try {
-        if (db) {
-          const genSnap = await getDoc(doc(db, "settings", "general"));
-          if (genSnap.exists()) {
-            setS(prev => ({ ...prev, ...genSnap.data() }));
-            return;
-          }
-          const siteSnap = await getDoc(doc(db, "siteSettings", "main"));
-          if (siteSnap.exists()) {
-            setS(prev => ({ ...prev, ...siteSnap.data() }));
-            return;
-          }
-          // Seed defaults
-          const defaultGeneral = {
-            association_full_name: 'جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة',
-            association_short: 'AMSED',
-            association_full_display: 'جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED',
-            site_title: 'جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED'
-          };
-          await setDoc(doc(db, "settings", "general"), defaultGeneral, { merge: true }).catch(() => {});
-          await setDoc(doc(db, "siteSettings", "main"), defaultGeneral, { merge: true }).catch(() => {});
+        console.log('Fetching site_settings from Supabase (id=1)...');
+        const { data, error } = await supabase.from('site_settings').select('*').eq('id', 1).single();
+        if (data && !error) {
+          console.log('✅ Loaded site_settings from Supabase:', data);
+          setS(prev => ({
+            ...prev,
+            ...data,
+            association_full_name: data.association_full_name || prev.association_full_name,
+            site_title: data.site_title || prev.site_title,
+            phone: data.phone1 || data.phone || prev.phone,
+            phone1: data.phone1 || data.phone || prev.phone1,
+            phone2: data.phone2 || prev.phone2,
+            address: data.address || data.address_ar || prev.address,
+            address_ar: data.address || data.address_ar || prev.address_ar,
+            show_donation: data.show_donations !== undefined ? data.show_donations : (data.show_donation !== undefined ? data.show_donation : prev.show_donation),
+            show_bank: data.show_bank !== undefined ? data.show_bank : prev.show_bank
+          }));
+          try { localStorage.setItem('site_settings', JSON.stringify(data)); } catch {}
+          return;
         }
-      } catch (e) {
-        console.warn('Firestore settings load warning:', e);
+      } catch (err) {
+        console.warn('Supabase site_settings load notice:', err);
       }
     })();
 
@@ -84,59 +83,96 @@ export default function SettingsPage() {
       .then(data => {
         if (data && typeof data === 'object') {
           setS(prev => ({ ...prev, ...data }));
-          try { localStorage.setItem('site_settings', JSON.stringify(data)); } catch {}
         }
       })
       .catch(() => {});
   }, []);
 
-  const save = async () => {
-    setSaving(true);
+  const handleSave = async () => {
+    setIsSaving(true);
+    const updated_at = new Date().toISOString();
+
+    const association_full_name = s.association_full_name || 'جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة';
+    const site_title = s.site_title || s.association_full_display || s.association_full_name || 'جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED';
+    const address = s.address || s.address_ar || 'SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM KENITRA';
+    const phone1 = s.phone1 || s.phone || '06 54 24 05 23';
+    const phone2 = s.phone2 || '';
+    const email = s.email || 'asso.amsed@gmail.com';
+    const city = s.city || 'Kenitra';
+    const lat = s.lat || '34.2610';
+    const lng = s.lng || '-6.5802';
+    const show_donations = s.show_donation !== undefined ? s.show_donation : false;
+    const show_bank = s.show_bank !== undefined ? s.show_bank : false;
+
     const payload = {
-      ...s,
-      phone: s.phone1 || s.phone,
-      phone1: s.phone1 || s.phone,
-      address: s.address || s.address_ar,
-      address_ar: s.address || s.address_ar,
-      site_title: s.site_title || s.association_full_display || s.association_name,
-      association_full_name: s.association_full_name || 'جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة',
-      association_short: s.association_short || 'AMSED',
-      association_full_display: s.association_full_display || 'جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED'
+      association_full_name,
+      site_title,
+      address,
+      phone1,
+      phone2,
+      email,
+      city,
+      lat,
+      lng,
+      show_donations,
+      show_bank,
+      updated_at
     };
 
+    console.log('Updating Supabase site_settings id=1:', payload);
+
     try {
-      localStorage.setItem('site_settings', JSON.stringify(payload));
+      localStorage.setItem('site_settings', JSON.stringify({ ...s, ...payload }));
     } catch {}
 
-    // Save to Firestore collections
     try {
-      if (db) {
-        await setDoc(doc(db, "settings", "general"), payload, { merge: true });
-        await setDoc(doc(db, "siteSettings", "main"), payload, { merge: true });
-        await setDoc(doc(db, "settings", "cmsConfig"), {
-          association_full_name: payload.association_full_name,
-          association_short: payload.association_short,
-          association_full_display: payload.association_full_display
-        }, { merge: true });
+      // Direct Supabase update as specified
+      const { data, error } = await supabase
+        .from('site_settings')
+        .update({
+          association_full_name,
+          site_title,
+          address,
+          phone1,
+          phone2,
+          email,
+          city,
+          lat,
+          lng,
+          show_donations,
+          show_bank,
+          updated_at
+        })
+        .eq('id', 1);
+
+      if (error) {
+        console.warn('Supabase update notice, attempting upsert id=1:', error);
+        const { error: upsertErr } = await supabase
+          .from('site_settings')
+          .upsert({ id: 1, ...payload });
+
+        if (upsertErr) {
+          console.error('Supabase save error:', upsertErr);
+          alert('❌ خطأ في الحفظ في Supabase: ' + (upsertErr.message || error.message));
+        } else {
+          console.log('✅ Supabase site_settings upserted successfully id=1');
+          setSaved(true);
+          setTimeout(() => setSaved(false), 3000);
+        }
+      } else {
+        console.log('✅ Supabase site_settings updated successfully id=1');
+        setSaved(true);
+        setTimeout(() => setSaved(false), 3000);
       }
-    } catch (e) {
-      console.warn('Firestore settings save warning:', e);
+    } catch (err) {
+      console.error('Save failed:', err);
+      alert('❌ تعذر الحفظ في Supabase: ' + err.message);
+    } finally {
+      setIsSaving(false);
     }
-
-    try {
-      await fetch('/api/settings', {
-        method: 'POST',
-        body: JSON.stringify(payload),
-        headers: { 'Content-Type': 'application/json' }
-      });
-    } catch (e) {
-      console.warn('Sync notice:', e);
-    }
-
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
-    setSaving(false);
   };
+
+  const save = handleSave;
 
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6" dir="rtl">
@@ -148,7 +184,7 @@ export default function SettingsPage() {
           </p>
         </div>
         <Link
-          to="/admin/settings/advanced"
+          to="/am-ctrl-9k2l8x-2026-secure-panel-77/settings/advanced"
           className="px-4 py-2.5 bg-emerald-50 text-emerald-800 text-xs font-bold rounded-xl border border-emerald-200 hover:bg-emerald-100 transition inline-flex items-center gap-1.5"
         >
           <Sliders className="w-4 h-4 text-emerald-600" />
@@ -314,16 +350,16 @@ export default function SettingsPage() {
         </div>
 
         <button
-          onClick={save}
-          disabled={saving}
+          onClick={handleSave}
+          disabled={isSaving}
           className="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white py-3.5 rounded-xl font-black text-sm transition shadow-lg shadow-emerald-600/30 cursor-pointer disabled:opacity-50"
         >
-          {saving ? 'جاري الحفظ في Supabase...' : 'حفظ التعديلات في قاعدة البيانات'}
+          {isSaving ? 'جاري الحفظ في Supabase...' : 'حفظ التعديلات في قاعدة البيانات'}
         </button>
 
         {saved && (
           <p className="text-emerald-700 bg-emerald-50 border border-emerald-300 p-3 rounded-xl text-center font-bold text-xs animate-fadeIn">
-            ✅ تم الحفظ بنجاح في جدول site_settings وتحديث الموقع
+            ✅ تم الحفظ بنجاح في جدول site_settings في Supabase وتحديث الموقع
           </p>
         )}
       </div>
