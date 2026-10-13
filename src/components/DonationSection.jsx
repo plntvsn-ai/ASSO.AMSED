@@ -14,7 +14,12 @@ export const DonationSection = ({ showBank = false }) => {
   const association = data.association;
 
   const handleCopyRib = () => {
-    navigator.clipboard.writeText(association.rib.replace(/\s+/g, ''));
+    const cleanRib = (association.rib || '').replace(/\s+/g, '');
+    try {
+      if (navigator?.clipboard?.writeText) {
+        navigator.clipboard.writeText(cleanRib).catch(() => {});
+      }
+    } catch (e) {}
     setCopied(true);
     setTimeout(() => setCopied(false), 3000);
   };

@@ -7,13 +7,13 @@ import {
 } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 
-const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "dummy",
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "dummy.firebaseapp.com",
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "dummy",
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "dummy.appspot.com",
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "123",
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:123:web:abc"
+const defaultFirebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "",
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "",
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "",
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "",
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "",
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || ""
 };
 
 const initFirestoreDb = (targetApp) => {
@@ -32,33 +32,44 @@ const initFirestoreDb = (targetApp) => {
   }
 };
 
+export const getStoredFirebaseConfig = () => {
+  try {
+    if (typeof localStorage !== 'undefined') {
+      const saved = localStorage.getItem('amsed_firebase_config');
+      if (saved) return JSON.parse(saved);
+    }
+  } catch (e) {}
+  return defaultFirebaseConfig;
+};
+
+const activeConfig = typeof window !== 'undefined' ? getStoredFirebaseConfig() : defaultFirebaseConfig;
+const hasValidConfig = Boolean(
+  activeConfig && 
+  activeConfig.apiKey && 
+  activeConfig.apiKey !== "dummy" &&
+  activeConfig.projectId &&
+  activeConfig.projectId !== "dummy"
+);
+
 let app = null;
 let db = null;
 let storage = null;
-let isFirebaseConfigured = Boolean(
-  import.meta.env.VITE_FIREBASE_API_KEY && 
-  import.meta.env.VITE_FIREBASE_API_KEY !== "dummy"
-);
+let isFirebaseConfigured = hasValidConfig;
 
-try {
-  app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-  db = initFirestoreDb(app);
-  storage = getStorage(app);
-} catch (err) {
-  console.warn("Firebase initialization notice:", err);
-}
-
-export const getStoredFirebaseConfig = () => {
+if (hasValidConfig) {
   try {
-    const saved = localStorage.getItem('amsed_firebase_config');
-    if (saved) return JSON.parse(saved);
-  } catch (e) {}
-  return firebaseConfig;
-};
+    app = getApps().length === 0 ? initializeApp(activeConfig) : getApp();
+    db = initFirestoreDb(app);
+    storage = getStorage(app);
+  } catch (err) {
+    console.warn("Firebase initialization notice:", err);
+    isFirebaseConfigured = false;
+  }
+}
 
 export const initFirebase = (customConfig = null) => {
   const config = customConfig || getStoredFirebaseConfig();
-  if (config && config.apiKey && config.apiKey !== "dummy") {
+  if (config && config.apiKey && config.apiKey !== "dummy" && config.projectId && config.projectId !== "dummy") {
     try {
       app = getApps().length === 0 ? initializeApp(config) : getApp();
       db = initFirestoreDb(app);
@@ -73,5 +84,5 @@ export const initFirebase = (customConfig = null) => {
   return { app, db, storage, isConfigured: isFirebaseConfigured };
 };
 
-export { app, db, storage, isFirebaseConfigured, firebaseConfig };
+export { app, db, storage, isFirebaseConfigured, defaultFirebaseConfig as firebaseConfig };
 export default app;

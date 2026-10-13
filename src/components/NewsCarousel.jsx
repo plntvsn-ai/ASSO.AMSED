@@ -35,8 +35,12 @@ export default function NewsCarousel() {
 
   useEffect(() => {
     fetch('/api/news')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok || !res.headers.get('content-type')?.includes('application/json')) return null;
+        return res.json();
+      })
       .then(data => {
+        if (!data) return;
         const list = Array.isArray(data) ? data : (data?.news || []);
         if (list.length > 0) {
           setNews(list);

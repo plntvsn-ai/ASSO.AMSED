@@ -20,8 +20,12 @@ export const ArticlesPage = () => {
   useEffect(() => {
     // Google News RSS - فابور 100%
     fetch('/api/news')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok || !res.headers.get('content-type')?.includes('application/json')) return null;
+        return res.json();
+      })
       .then(data => {
+        if (!data) return;
         const list = Array.isArray(data) ? data : (data?.news || []);
         if (list.length > 0) {
           setRssArticles(list);
@@ -49,12 +53,13 @@ export const ArticlesPage = () => {
 
   const categories = [
     "الكل", 
-    "أخبار وطنية (RSS)", 
+    "التوحد والطفولة",
+    "أخبار الجمعية", 
     "التعليم والإدماج", 
     "التأهيل المهني", 
     "أنشطة وترفيه", 
     "قوافل ومبادرات", 
-    "أخبار الجمعية"
+    "أخبار وطنية (RSS)"
   ];
 
   const filtered = allCombined.filter(art => {

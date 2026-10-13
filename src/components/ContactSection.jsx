@@ -78,8 +78,8 @@ export const ContactSection = () => {
     const intl = raw.startsWith('0') ? '212' + raw.substring(1) : raw;
     const text = encodeURIComponent(
       lang === 'ar' 
-        ? 'السلام عليكم، أتواصل معكم بخصوص جمعية المبادرة المغربية للتكافل والتعاون لرعاية الأطفال في وضعية صعبة.'
-        : 'Bonjour, je vous contacte concernant l\'Association Initiative Marocaine pour la Solidarité et la Coopération.'
+        ? 'السلام عليكم، أتواصل معكم بخصوص جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED.'
+        : 'Bonjour, je vous contacte concernant l\'Association Initiative Marocaine pour la Solidarité et la Coopération - AMSED.'
     );
     return `https://wa.me/${intl}?text=${text}`;
   };

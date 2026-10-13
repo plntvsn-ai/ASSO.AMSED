@@ -274,7 +274,7 @@ export default function RobotSettings() {
   const updConfig = (id, k, v) => setRobots(p => p.map(r => r.id === id ? { ...r, config: { ...(r.config || {}), [k]: v } } : r));
 
   // REAL RUN ROBOT LOGIC (TASK 2 & 3)
-  const runRobot = async (robotId) => {
+  const runRobot = async (robotId, isSubTask = false) => {
     setRobots(prev => prev.map(r => r.id === robotId ? { ...r, status: 'running', last_error: null } : r));
     if (db) {
       await updateDoc(doc(db, 'robot_settings', robotId), { status: 'running', last_error: null }).catch(() => {});
@@ -516,7 +516,9 @@ export default function RobotSettings() {
         last_result: resultMessage
       } : r));
 
-      alert(`✅ ${robotId} خدم بنجاح وتم نشر المحتوى مباشرة!`);
+      if (!isSubTask) {
+        alert(`✅ ${robotId} خدم بنجاح وتم نشر المحتوى مباشرة!`);
+      }
     } catch (e) {
       console.error('Run robot error:', e);
       if (db) {
@@ -530,7 +532,9 @@ export default function RobotSettings() {
         status: 'error',
         last_error: e.message
       } : r));
-      alert(`❌ خطأ في ${robotId}: ${e.message}`);
+      if (!isSubTask) {
+        alert(`❌ خطأ في ${robotId}: ${e.message}`);
+      }
     }
   };
 
@@ -547,7 +551,7 @@ export default function RobotSettings() {
 
     for (let robot of activeRobots) {
       logs.push(`⚡ تشغيل ${robot.name_ar}...`);
-      await runRobot(robot.id);
+      await runRobot(robot.id, true);
       await new Promise(res => setTimeout(res, 1500));
     }
 
@@ -647,9 +651,10 @@ export default function RobotSettings() {
           onClick={async () => {
             if (confirm('واش بغيتي تشغل كاع الروبوتات دابا واحد مورا واحد؟')) {
               for (let r of robots.filter(x => x.enabled && x.id !== 'boss')) {
-                await runRobot(r.id);
+                await runRobot(r.id, true);
                 await new Promise(res => setTimeout(res, 2000));
               }
+              alert('✅ تم تشغيل وربط جميع الروبوتات بنجاح!');
             }
           }}
           className="bg-black hover:bg-neutral-800 text-white px-6 py-3 rounded-xl font-bold transition shadow cursor-pointer text-sm flex items-center gap-2"

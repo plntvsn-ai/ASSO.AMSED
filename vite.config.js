@@ -100,6 +100,23 @@ function localApiPlugin() {
           }));
           return;
         }
+        if (req.url === '/api/news') {
+          res.setHeader('Content-Type', 'application/json');
+          res.end(JSON.stringify({
+            success: true,
+            news: [
+              {
+                id: 'news-1',
+                title: 'مستجدات برامج تأهيل أطفال التوحد والإدماج المدرسي AVS',
+                summary: 'جمعية AMSED تواصل مواكبة الأسر وأطفال التوحد بمدينة القنيطرة.',
+                formattedDate: new Date().toLocaleDateString('ar-MA'),
+                source: 'AMSED News',
+                category: 'التوحد والطفولة'
+              }
+            ]
+          }));
+          return;
+        }
         if (req.url === '/api/seo/robots' || req.url === '/robots.txt') {
           res.setHeader('Content-Type', 'text/plain; charset=utf-8');
           res.end(devAdvancedSettings.robots_txt);

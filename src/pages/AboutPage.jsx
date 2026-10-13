@@ -7,7 +7,7 @@ import { Sparkles, Heart, ShieldCheck, Award, ArrowLeft } from 'lucide-react';
 
 export const AboutPage = () => {
   const { cmsData } = useCms();
-  const aboutData = cmsData.pages.about || { title: "من نحن", sections: [] };
+  const aboutData = cmsData?.pages?.about || { title: "من نحن", sections: [] };
   const visibleSections = (aboutData.sections || []).filter(s => s.visible !== false);
 
   return (

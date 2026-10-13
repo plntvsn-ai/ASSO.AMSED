@@ -17,7 +17,7 @@ export const ArticleDetailPage = () => {
   const { cmsData } = useCms();
   const { getLocalized } = useLanguage();
 
-  const article = (cmsData.articles || []).find(a => a.id === id);
+  const article = (cmsData.articles || []).find(a => a.id === id || a.slug === id || String(a.id) === String(id));
   const otherArticles = (cmsData.articles || []).filter(a => a.id !== id && a.published !== false).slice(0, 3);
 
   if (!article) {

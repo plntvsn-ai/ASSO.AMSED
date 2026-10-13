@@ -45,7 +45,7 @@ export const ArticlesAdmin = () => {
     return matchesSearch && matchesCategory;
   });
 
-  const categories = ["الكل", "أخبار الجمعية", "التعليم والإدماج", "التأهيل المهني", "أنشطة وترفيه", "قوافل ومبادرات"];
+  const categories = ["الكل", "التوحد والطفولة", "أخبار الجمعية", "التعليم والإدماج", "التأهيل المهني", "أنشطة وترفيه", "قوافل ومبادرات"];
 
   if (loading) {
     return (

@@ -1,8 +1,13 @@
+import autonomousPublishHandler from './autonomous-publish.js';
+
 export default async function handler(req, res) {
-  return res.json({
-    success: true,
-    autonomous: true,
-    message: 'AMSED Autism robot ready for cron-job.org',
-    time: new Date().toISOString()
-  });
+  try {
+    return await autonomousPublishHandler(req, res);
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      error: err.message || String(err),
+      time: new Date().toISOString()
+    });
+  }
 }

@@ -7,7 +7,7 @@ export default function HeroVideo() {
         
         {/* 1. اسم الجمعية في الأعلى */}
         <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tight leading-tight mb-2">
-          جمعية المبادرة المغربية للتكافل والتعاون لرعاية الأطفال في وضعية صعبة
+          جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED
         </h1>
 
         <h2 className="text-sm sm:text-base font-semibold text-emerald-200 mb-3">
