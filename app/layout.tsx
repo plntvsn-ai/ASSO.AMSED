@@ -8,7 +8,7 @@ export const defaultSettings: Record<string, string> = {
   og_image: 'https://asso-amsed.vercel.app/logo.jpg',
   robots_txt: 'User-agent: *\nAllow: /\n\nSitemap: https://asso-amsed.vercel.app/api/seo/sitemap',
   sitemap_enabled: 'true',
-  google_analytics: 'G-XXXXXXXXXX',
+  google_analytics: 'G-JZN5066Y7E',
   google_verification: 'kjDkzRmJppvcCc_okAdKUPHcr9FoarzwnytGYEEng14',
   gtm_id: '',
   search_console: '',
@@ -75,11 +75,15 @@ export default async function RootLayout({
   const schemaJsonLd = {
     "@context": "https://schema.org",
     "@type": "NGO",
-    "name": settings.site_title || "جمعية المبادرة المغربية للتكافل والتعاون لرعاية الأطفال في وضعية صعبة",
-    "alternateName": "AMSED",
+    "name": "Association Initiative Marocain pour la Solidarité et l'Entraide - AMSED",
+    "alternateName": [
+      "AMSED",
+      "جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة",
+      "جمعية المبادرة المغربية للتضامن والتعاون"
+    ],
     "url": "https://asso-amsed.vercel.app",
     "logo": settings.og_image || "https://asso-amsed.vercel.app/logo.jpg",
-    "description": settings.seo_description,
+    "description": "Association Initiative Marocain pour la Solidarité et l'Entraide - المبادرة المغربية للتضامن والتعاون",
     "telephone": "+212654240523",
     "email": settings.email || "asso.amsed@gmail.com",
     "address": {
