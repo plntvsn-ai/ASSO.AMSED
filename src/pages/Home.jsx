@@ -88,20 +88,17 @@ export default function Home() {
       {/* 1. Header with pure Logo only (no iframe/video inside) */}
       <Header />
 
-      {/* 2. 12-Column Hero Area: ServicesCarousel (2) | HeroVideo + Stats (8) | NewsCarousel (2) */}
-      <section className="bg-[#0a4a3a] text-white pt-3 pb-10 border-b border-emerald-900">
+      {/* 2. Hero Area: HeroVideo & StatsSection */}
+      <section className="bg-[#0a4a3a] text-white pt-4 pb-8 border-b border-emerald-900">
         <div className="max-w-[1520px] mx-auto px-2 sm:px-4">
-          <div className="grid grid-cols-12 gap-3 lg:gap-4 items-start">
-            <div className="hidden lg:block lg:col-span-2">
-              <ServicesCarousel />
-            </div>
-            <div className="col-span-12 lg:col-span-8 flex flex-col gap-4">
-              <HeroVideo />
-              <StatsSection />
-            </div>
-            <div className="hidden lg:block lg:col-span-2">
-              <NewsCarousel />
-            </div>
+          <div className="max-w-5xl mx-auto flex flex-col gap-4">
+            <HeroVideo />
+            <StatsSection />
+          </div>
+
+          {/* 3. شريط مستجدات الأخبار التربوية - كاروسيل أفقي بمظهر أنيق وطابع مغربي أصيل */}
+          <div className="mt-8 pt-6 border-t border-emerald-800/80">
+            <NewsCarousel />
           </div>
         </div>
       </section>
