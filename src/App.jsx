@@ -64,9 +64,7 @@ export default function App() {
 
               {/* Secure Hidden AMSED Robots Control Panel */}
               <Route path="/am-ctrl-9k2l8x-2026-secure-panel-77/login" element={<SecureLogin />} />
-              <Route path="/am-ctrl-9k2l8x-2026-secure-panel-77" element={<RobotSettings />} />
-              <Route path="/admin/robots" element={<div className="p-12 text-center text-xl font-bold">404 Not Found</div>} />
-              <Route path="/admin" element={<div className="p-12 text-center text-xl font-bold">404 Not Found</div>} />
+              <Route path="/am-ctrl-9k2l8x-2026-secure-panel-77" element={<AdminLayout><RobotSettings /></AdminLayout>} />
 
               {/* Researcher Portal */}
               <Route path="/researcher/login" element={<ResearcherLogin />} />
@@ -78,7 +76,7 @@ export default function App() {
                 <Route path="settings" element={<SettingsPage />} />
                 <Route path="settings/advanced" element={<AdvancedSettings />} />
                 <Route path="auto" element={<AutoPublisher />} />
-                <Route path="robots" element={<RobotsAdmin />} />
+                <Route path="robots" element={<RobotSettings />} />
                 <Route path="articles" element={<ArticlesAdmin />} />
                 <Route path="videos" element={<VideosAdmin />} />
                 <Route path="topics" element={<TopicsAdmin />} />
@@ -106,7 +104,7 @@ export default function App() {
                 <Route index element={<Dashboard />} />
                 <Route path="settings/advanced" element={<AdvancedSettings />} />
                 <Route path="auto" element={<AutoPublisher />} />
-                <Route path="robots" element={<RobotsAdmin />} />
+                <Route path="robots" element={<RobotSettings />} />
                 <Route path="articles" element={<ArticlesAdmin />} />
                 <Route path="videos" element={<VideosAdmin />} />
                 <Route path="topics" element={<TopicsAdmin />} />

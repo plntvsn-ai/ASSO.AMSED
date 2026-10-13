@@ -23,6 +23,7 @@ export default function SecureLogin() {
 
     if (inputUser === expectedUser && inputPass === expectedPass) {
       localStorage.setItem('amsed_auth', 'true');
+      localStorage.setItem('amsed_admin_authorized', 'amsed_vault_secure_987654');
       navigate('/am-ctrl-9k2l8x-2026-secure-panel-77');
     } else {
       setError('اسم المستخدم أو كلمة المرور غير صحيحة. يرجى التحقق.');

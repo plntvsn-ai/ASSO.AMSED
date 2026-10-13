@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import Logo from '../components/Logo';
 
-export const AdminLayout = () => {
+export const AdminLayout = ({ children }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { cmsData, firebaseStatus } = useCms();
@@ -23,7 +23,7 @@ export const AdminLayout = () => {
     { path: '/admin', label: 'نظرة عامة (Overview)', icon: Home, exact: true },
     { path: '/admin/articles', label: 'المقالات والأخبار', icon: FileText, count: cmsData.articles?.length },
     { path: '/admin/services', label: 'إعدادات الخدمات', icon: HandHeart, count: 8 },
-    { path: '/am-ctrl-9k2l8x-2026-secure-panel-77', label: 'إعدادات الروبوت 🤖', icon: '🤖', count: 8 },
+    { path: '/am-ctrl-9k2l8x-2026-secure-panel-77', label: 'إعدادات الروبوت', icon: '🤖', badge: 'BOSS' },
     { path: '/admin/topics', label: 'خزان المواضيع', icon: BookOpen },
     { path: '/admin/review', label: 'مراجعة المقالات', icon: CheckSquare },
     { path: '/admin/researchers', label: 'المحررون والباحثون', icon: Users },
@@ -78,13 +78,13 @@ export const AdminLayout = () => {
           {menuItems.map((item) => {
             const Icon = item.icon;
             const currentSubPath = item.path.replace(/^\/admin/, '');
-            const targetPath = isSecretPortal 
+            const targetPath = (isSecretPortal && item.path.startsWith('/admin'))
               ? `/portal-amsed-secure-x98k21/admin${currentSubPath}${currentSearch}` 
               : item.path;
 
             const isActive = item.exact 
               ? (location.pathname === item.path || location.pathname === `/portal-amsed-secure-x98k21/admin`)
-              : (location.pathname === item.path || location.pathname.startsWith(`/portal-amsed-secure-x98k21/admin${currentSubPath}`));
+              : (location.pathname === item.path || (item.path !== '/admin' && location.pathname.startsWith(item.path)) || location.pathname.startsWith(`/portal-amsed-secure-x98k21/admin${currentSubPath}`));
 
             return (
               <Link
@@ -108,6 +108,11 @@ export const AdminLayout = () => {
                 {!collapsed && item.count !== undefined && (
                   <span className="text-[10px] bg-slate-800 px-2 py-0.5 rounded-full text-slate-300 font-mono">
                     {item.count}
+                  </span>
+                )}
+                {!collapsed && item.badge && (
+                  <span className="text-[10px] bg-amber-400 text-black font-extrabold px-2 py-0.5 rounded-full shadow-sm">
+                    {item.badge}
                   </span>
                 )}
               </Link>
@@ -171,7 +176,7 @@ export const AdminLayout = () => {
 
         {/* Dynamic Page Outlet */}
         <main className="flex-1 p-4 sm:p-8 overflow-y-auto">
-          <Outlet />
+          {children || <Outlet />}
         </main>
       </div>
 

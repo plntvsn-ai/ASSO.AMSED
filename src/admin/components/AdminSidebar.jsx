@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
 export const ADMIN_SIDEBAR_MENU = [
-  { icon: '🤖', label: 'إعدادات الروبوت', path: '/am-ctrl-9k2l8x-2026-secure-panel-77', badge: '8', className: 'bg-yellow-100' }
+  { icon: '🤖', label: 'إعدادات الروبوت', path: '/am-ctrl-9k2l8x-2026-secure-panel-77', badge: 'BOSS', className: 'bg-yellow-100' }
 ];
 
 export default function AdminSidebar() {
