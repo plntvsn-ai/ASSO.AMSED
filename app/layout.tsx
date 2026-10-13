@@ -75,33 +75,8 @@ export default async function RootLayout({
   const schemaJsonLd = {
     "@context": "https://schema.org",
     "@type": "NGO",
-    "name": "Association Initiative Marocain pour la Solidarité et l'Entraide - AMSED",
-    "alternateName": [
-      "AMSED",
-      "جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة",
-      "جمعية المبادرة المغربية للتضامن والتعاون"
-    ],
-    "url": "https://asso-amsed.vercel.app",
-    "logo": settings.og_image || "https://asso-amsed.vercel.app/logo.jpg",
-    "description": "Association Initiative Marocain pour la Solidarité et l'Entraide - المبادرة المغربية للتضامن والتعاون",
-    "telephone": "+212654240523",
-    "email": settings.email || "asso.amsed@gmail.com",
-    "address": {
-      "@type": "PostalAddress",
-      "streetAddress": settings.address || "SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM",
-      "addressLocality": settings.geo_city,
-      "addressRegion": settings.geo_region || "MA-KEN",
-      "addressCountry": settings.geo_country || "Morocco"
-    },
-    "geo": {
-      "@type": "GeoCoordinates",
-      "latitude": parseFloat(settings.geo_lat) || 34.2610,
-      "longitude": parseFloat(settings.geo_lng) || -6.5802
-    },
-    "sameAs": [
-      "https://facebook.com/amsed.maroc",
-      "https://youtube.com/@association-amesd"
-    ]
+    "name": "AMSED",
+    "url": "https://asso-amsed.vercel.app"
   }
 
   return (
