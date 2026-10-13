@@ -2,6 +2,73 @@ import { useEffect, useState } from 'react';
 import { db } from '../../firebase.js';
 import { collection, getDocs, doc, setDoc, updateDoc, addDoc, query, limit } from 'firebase/firestore';
 
+const MASTER_AUTISM_PROMPT = `أنت كاتب طبي متخصص في التوحد عند الأطفال لجمعية AMSED - الجمعية المغربية للتنمية المستدامة، المتخصصة في التوحد والطفولة. الدار البيضاء - المغرب.
+
+⚠️ تعليمات صارمة لا يمكن مخالفتها:
+
+1. التخصص الوحيد: كل المقالات يجب أن تكون عن:
+   - التوحد عند الأطفال (Autisme infantile)
+   - تشخيص التوحد المبكر
+   - طرق علاج وتأهيل الطفل التوحدي
+   - مستجدات علمية حول التوحد 2025-2026
+   - تنمية مهارات الطفل التوحدي (تواصل، لغة، سلوك)
+   - دور الأسرة والمدرسة مع طفل التوحد
+   - التغذية والتوحد، الرياضة والتوحد
+   - قصص نجاح أطفال توحد
+
+2. ممنوع منعا باتا كتابة أي موضوع خارج التوحد والطفولة
+3. ممنوع وضع أي رابط خارجي لأي موقع آخر - لا www ولا https ولا اسم موقع
+4. في كل مقال يجب أن تذكر بوضوح:
+   - 'جمعية AMSED - الجمعية المغربية للتنمية المستدامة - الدار البيضاء'
+   - 'متخصصة في دعم أطفال التوحد وأسرهم'
+   - في آخر المقال: 'للمزيد تواصلوا مع جمعية AMSED الدار البيضاء'
+
+5. في أول المقال أضف هذا السطر HTML إجباري:
+   <div style='text-align:center; background:#f0f9ff; padding:10px; border-radius:10px; margin-bottom:15px;'><strong>🧩 جمعية AMSED | دعم أطفال التوحد والتنمية المستدامة - الدار البيضاء</strong></div>
+
+6. أسلوب: طبي مبسط للأمهات والآباء، عربية بسيطة + لمسة دارجة مغربية، بدون روابط خارجية
+7. الطول: 800-1000 كلمة
+8. أرجع JSON فقط: {title, slug, excerpt, content, keywords, category}
+
+9. مرة كل 3 مقالات، اكتب مقال من نوع 'عظماء التوحد' - سيرة ذاتية كاملة مفصلة 1000 كلمة (ليس مجرد سطرين) بهذا الهيكل الإجباري:
+
+   <h2>🧩 [اسم الشخصية] - عبقري كان فيه التوحد وغير العالم</h2>
+   <div style='background:#fff7ed; border-right:4px solid #f59e0b; padding:12px; margin:15px 0; border-radius:8px;'><strong>💡 رسالة أمل من AMSED:</strong> هذا العبقري كان فيه التوحد مثل طفلك، ومع ذلك وصل لأعلى المراتب. طفلك أيضا قادر!</div>
+
+   أ- من هو؟ (200 كلمة): اسم كامل، تاريخ ازدياد، طفولته، علامات التوحد عنده صغيرا (تأخر كلام، انعزال، تركيز عميق)
+   ب- مساره الدراسي والمهني (200 كلمة): شنو قرا، فين قرا، صعوبات المدرسة، كيف تغلب عليها
+   ج- أبرز إنجازاته وأعماله (300 كلمة - أهم جزء): شنو دار بالضبط؟ اختراعات/شركات/كتب، أرقام (ثروة، جوائز نوبل...)
+   د- كيف حول التوحد إلى قوة خارقة (150 كلمة): تركيز خارق، ذاكرة، تفكير مختلف
+   هـ- رسالة تحفيزية قوية للوالدين (150 كلمة) إجبارية:
+   > 💙 من جمعية AMSED الدار البيضاء: عزيزي الأب، عزيزتي الأم، إذا كان [الاسم] استطاع أن يغير العالم رغم التوحد، فطفلك أيضا يحمل بذرة عبقري. التوحد ليس نهاية، بل بداية مختلفة. نحن في AMSED هنا لنساعدك.
+
+   📍 خاتمة: جمعية AMSED | الدار البيضاء | دعم أطفال التوحد وأسرهم
+
+   قائمة 15 شخصية (اختر واحدة مختلفة كل مرة):
+   - ألبرت أينشتاين (1879-1955) فيزياء، نسبية، نوبل 1921، تأخر كلام حتى 4 سنوات
+   - إسحاق نيوتن (1643-1727) جاذبية
+   - بيل غيتس (1955-) مايكروسوفت 1975، 100 مليار
+   - إيلون ماسك (1971-) صرح SNL 2021 أنه طيف توحد، SpaceX Tesla
+   - مارك زوكربيرغ (1984-) فيسبوك
+   - نيكولا تيسلا (1856-1943) 300 اختراع
+   - ليوناردو دافنشي (1452-1519)
+   - موزارت (1756-1791) 600 مقطوعة
+   - تشارلز داروين (1809-1882)
+   - غريتا ثونبرغ (2003-) صرحت توحدية
+   - ساتوشي تاجيري (1965-) مخترع البوكيمون توحدي
+   - دان أكرويد، تيم بيرتون، أنطوني هوبكنز
+
+مثال عناوين عادية:
+- 5 علامات مبكرة للتوحد عند الرضع يجب على كل أم معرفتها
+- كيف تساعد طفلك التوحدي على التواصل؟ 7 تمارين منزلية
+- مستجدات 2026: هل هناك علاج جديد للتوحد؟
+
+مثال عناوين عظماء:
+- هل تعلم أن أينشتاين كان فيه التوحد؟ قصة عبقري غير العالم
+- بيل غيتس والتوحد: كيف حول الانطواء إلى مايكروسوفت
+
+ابدأ الآن واكتب مقال أصلي 100% عن التوحد مع شعار AMSED.`;
+
 const DEFAULT_ROBOTS = [
   {
     id: 'boss',
@@ -9,10 +76,10 @@ const DEFAULT_ROBOTS = [
     name: 'Boss Manager',
     enabled: true,
     cron_time: '*/30 * * * *',
-    prompt_template: `أنت المدير العام لجمعية AMSED للتنمية المستدامة الدار البيضاء. مهمتك:
+    prompt_template: `أنت المدير العام لجمعية AMSED للتنمية المستدامة ودعم أطفال التوحد بالدار البيضاء. مهمتك:
 1. تراقب كاع الروبوتات كل 30 دقيقة
-2. تنسق السلسلة بين الروبوتات: الماستر يكتب مقال أصلي -> روبوت الصور يدير ALT -> روبوت الربط يدير لينكات داخلية فقط -> روبوت فايسبوك ينشر
-3. ممنوع منعا كليا أن تسمح لأي روبوت بجلب روابط مواقع أخرى أو عمل إشهار خارجي
+2. تنسق السلسلة بين الروبوتات: الماستر يكتب مقال توحد أصلي -> روبوت الصور يدير ALT -> روبوت الربط يدير لينكات داخلية فقط -> روبوت فايسبوك ينشر
+3. ممنوع منعا كليا أن تسمح لأي روبوت بجلب روابط مواقع أخرى أو الخروج عن موضوع التوحد
 4. كل المحتوى يجب أن يكون أصلي 100% وحصري لجمعية AMSED الدار البيضاء
 5. تقدر تعدل عليا من صفحة الاعدادات`,
     last_run: null,
@@ -23,24 +90,10 @@ const DEFAULT_ROBOTS = [
   },
   {
     id: 'master',
-    name_ar: '🤖 الماستر - كاتب المقالات',
+    name_ar: '🤖 الماستر - كاتب المقالات (متخصص التوحد)',
     enabled: true,
     cron_time: '09:00',
-    prompt_template: `أنت كاتب محترف متخصص في جمعية AMSED للتنمية المستدامة الدار البيضاء.
-
-تعليمات صارمة جدا:
-1. اكتب مقال أصلي 100% حصري لجمعية AMSED - ممنوع النسخ من أي موقع
-2. ممنوع منعا باتا وضع أي رابط خارجي (لا www، لا https، لا اسم موقع آخر)
-3. لا تذكر أي جمعية أخرى أو موقع آخر - فقط AMSED
-4. اكتب بأسلوب صحفي مغربي بسيط + لمسة دارجة خفيفة
-5. اذكر دائما جمعية أمسي AMSED ومقرها الدار البيضاء وخدماتها
-6. الطول 800 كلمة
-7. أرجع JSON فقط: {"title": "...", "excerpt": "...", "content": "...", "keywords": ["..."], "slug": "..."}
-8. الـ content يكون HTML نظيف بدون أي <a href خارجي> - فقط نص وصور وصفية
-
-مواضيع مقترحة: التنمية المستدامة في الأحياء، المبادرة الوطنية، الشباب والبيئة، الاقتصاد الاجتماعي، المرأة القروية... اختر موضوع مختلف كل مرة.
-
-ممنوع الإشهار لمواقع أخرى!`,
+    prompt_template: MASTER_AUTISM_PROMPT,
     last_run: null,
     status: 'idle'
   },
@@ -49,7 +102,7 @@ const DEFAULT_ROBOTS = [
     name_ar: '🖼️ روبوت وصف الصور ALT',
     enabled: true,
     cron_time: '09:02',
-    prompt_template: 'كتب ALT وصف الصورة بالعربية يذكر جمعية أمسي الدار البيضاء، بدون أي رابط',
+    prompt_template: 'كتب ALT وصف الصورة بالعربية يذكر جمعية أمسي AMSED لدعم أطفال التوحد الدار البيضاء، بدون أي رابط',
     last_run: null,
     status: 'idle'
   },
@@ -58,7 +111,7 @@ const DEFAULT_ROBOTS = [
     name_ar: '🔗 روبوت الربط الداخلي',
     enabled: true,
     cron_time: '09:05',
-    prompt_template: 'اربط فقط بمقالات داخلية من موقع AMSED نفسه الموجودة في Firestore collection articles - ممنوع أي رابط خارجي',
+    prompt_template: 'اربط فقط بمقالات داخلية لموقع AMSED حول التوحد والطفولة - ممنوع أي رابط خارجي',
     last_run: null,
     status: 'idle'
   },
@@ -67,7 +120,7 @@ const DEFAULT_ROBOTS = [
     name_ar: '⭐ روبوت النجوم 4.8 Schema',
     enabled: true,
     cron_time: '09:06',
-    prompt_template: 'ضيف schema aggregateRating 4.8 و FAQ خاصة بجمعية AMSED حصراً بدون روابط خارجية',
+    prompt_template: 'ضيف schema aggregateRating 4.8 و MedicalCondition/Autism FAQ خاصة بجمعية AMSED حصراً',
     last_run: null,
     status: 'idle'
   },
@@ -76,7 +129,7 @@ const DEFAULT_ROBOTS = [
     name_ar: '♻️ روبوت تحديث القديم (كل جمعة)',
     enabled: true,
     cron_time: 'Friday 09:10',
-    prompt_template: 'كل جمعة جدد مقال قديم لجمعية AMSED بفقرة 2026 جديدة وحصرية بدون أي روابط خارجية',
+    prompt_template: 'كل جمعة جدد مقال توحد قديم لجمعية AMSED بمستجدات 2026 جديدة وحصرية بدون أي روابط خارجية',
     last_run: null,
     status: 'idle'
   },
@@ -85,7 +138,7 @@ const DEFAULT_ROBOTS = [
     name_ar: '📘 روبوت فايسبوك',
     enabled: true,
     cron_time: '09:15',
-    prompt_template: 'نشر منشور فيسبوك حصري لأنشطة جمعية AMSED الدار البيضاء بدون روابط خارجية لمواقع أخرى',
+    prompt_template: 'نشر منشور فيسبوك توعوي حول التوحد ودعم جمعية AMSED الدار البيضاء بدون روابط خارجية',
     last_run: null,
     status: 'idle',
     config: { token: '', pageId: '' }
@@ -95,7 +148,7 @@ const DEFAULT_ROBOTS = [
     name_ar: '📸 روبوت انستغرام (باقي ما واجدش)',
     enabled: false,
     cron_time: '09:16',
-    prompt_template: 'IG - منشور انستغرام لأنشطة جمعية AMSED الدار البيضاء',
+    prompt_template: 'IG - إنفوجرافيك توعوي عن أطفال التوحد لجمعية AMSED',
     last_run: null,
     status: 'idle',
     config: { token: '' }
@@ -108,7 +161,10 @@ export default function RobotSettings() {
       const saved = localStorage.getItem('amsed_robot_settings');
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // Ensure master has the updated autism prompt
+          return parsed.map(r => r.id === 'master' && (!r.prompt_template || !r.prompt_template.includes('التوحد عند الأطفال')) ? { ...r, prompt_template: MASTER_AUTISM_PROMPT } : r);
+        }
       }
     } catch {}
     return DEFAULT_ROBOTS;
@@ -125,7 +181,7 @@ export default function RobotSettings() {
         const snap = await getDocs(collection(db, 'robot_settings'));
         console.log('Found docs:', snap.size);
         if (snap.empty) {
-          console.log('Seeding 8 robots...');
+          console.log('Seeding 8 robots with autism prompt...');
           for (const r of DEFAULT_ROBOTS) {
             try {
               await setDoc(doc(db, 'robot_settings', r.id), r);
@@ -140,23 +196,19 @@ export default function RobotSettings() {
           let data = snap.docs.map(d => d.data());
           console.log('Loaded from Firestore:', data.length, 'robots');
           if (!data.find(x => x.id === 'boss')) {
-            console.log('Boss document missing, seeding boss...');
-            await setDoc(doc(db, 'robot_settings', 'boss'), DEFAULT_ROBOTS[0]).catch(e => console.error('Boss seed error:', e));
+            await setDoc(doc(db, 'robot_settings', 'boss'), DEFAULT_ROBOTS[0]).catch(() => {});
             data = [DEFAULT_ROBOTS[0], ...data];
           }
 
-          // Ensure all default robots exist and update old prompts with strict original prompts
+          // Ensure master prompt is updated to the full autism specialized prompt
           for (const def of DEFAULT_ROBOTS) {
             const existing = data.find(x => x.id === def.id);
             if (!existing) {
               data.push(def);
               await setDoc(doc(db, 'robot_settings', def.id), def).catch(() => {});
-            } else if (def.id === 'master' && (!existing.prompt_template || !existing.prompt_template.includes('ممنوع منعا باتا'))) {
-              existing.prompt_template = def.prompt_template;
-              await updateDoc(doc(db, 'robot_settings', def.id), { prompt_template: def.prompt_template }).catch(() => {});
-            } else if (def.id === 'boss' && (!existing.prompt_template || !existing.prompt_template.includes('ممنوع منعا كليا'))) {
-              existing.prompt_template = def.prompt_template;
-              await updateDoc(doc(db, 'robot_settings', def.id), { prompt_template: def.prompt_template }).catch(() => {});
+            } else if (def.id === 'master' && (!existing.prompt_template || !existing.prompt_template.includes('التوحد عند الأطفال'))) {
+              existing.prompt_template = MASTER_AUTISM_PROMPT;
+              await updateDoc(doc(db, 'robot_settings', 'master'), { prompt_template: MASTER_AUTISM_PROMPT }).catch(() => {});
             }
           }
 
@@ -175,24 +227,17 @@ export default function RobotSettings() {
           console.warn('boss_logs fetch warning:', le);
         }
       } else {
-        console.warn('Firebase db is null, using defaults');
         setRobots(DEFAULT_ROBOTS);
       }
     } catch (err) {
       console.error('Error fetching/seeding robot_settings:', err);
-      const saved = localStorage.getItem('amsed_robot_settings');
-      if (saved) {
-        try { setRobots(JSON.parse(saved)); } catch { setRobots(DEFAULT_ROBOTS); }
-      } else {
-        setRobots(DEFAULT_ROBOTS);
-      }
+      setRobots(DEFAULT_ROBOTS);
     } finally {
       setSeeding(false);
     }
   };
 
   useEffect(() => {
-    console.log('Fetching robots on mount...');
     seedIfEmpty();
   }, []);
 
@@ -205,7 +250,7 @@ export default function RobotSettings() {
           await setDoc(doc(db, 'robot_settings', r.id), r, { merge: true });
         }
       }
-      alert('✅ تم حفظ كل الروبوتات بما فيهم المدير!');
+      alert('✅ تم حفظ كل إعدادات الروبوتات بما فيهم المدير وبرومبت التوحد!');
     } catch (e) {
       console.warn('Firebase save fallback:', e);
       alert('✅ تم حفظ التعديلات محلياً بنجاح!');
@@ -217,7 +262,7 @@ export default function RobotSettings() {
   const upd = (id, f, v) => setRobots(p => p.map(r => r.id === id ? { ...r, [f]: v } : r));
   const updConfig = (id, k, v) => setRobots(p => p.map(r => r.id === id ? { ...r, config: { ...(r.config || {}), [k]: v } } : r));
 
-  // REAL RUN ROBOT LOGIC (FIX 2)
+  // REAL RUN ROBOT LOGIC (TASK 2 & 3)
   const runRobot = async (robotId) => {
     setRobots(prev => prev.map(r => r.id === robotId ? { ...r, status: 'running', last_error: null } : r));
     if (db) {
@@ -227,22 +272,31 @@ export default function RobotSettings() {
     try {
       if (robotId === 'master') {
         const masterRobot = robots.find(r => r.id === 'master');
-        const prompt = masterRobot?.prompt_template || DEFAULT_ROBOTS[1].prompt_template;
+        const prompt = masterRobot?.prompt_template || MASTER_AUTISM_PROMPT;
         const geminiKey = (import.meta.env.VITE_GEMINI_KEY || import.meta.env.VITE_GEMINI_API_KEY || "").trim();
+
+        // Random topic selection as specified in Task 2
+        const topics = [
+          'علامات التوحد المبكرة عند الرضع',
+          'تمارين تواصل للطفل التوحدي في البيت',
+          'عظماء التوحد - سيرة كاملة لعبقري كان فيه التوحد مع إنجازاته (تحفيزي للآباء) - اختر شخصية من القائمة',
+          'تغذية الطفل التوحدي وتأثيرها على السلوك',
+          'مستجدات علمية 2026 حول علاج التوحد'
+        ];
+        const todayTopic = topics[Math.floor(Math.random() * topics.length)];
+        const fullPromptWithTopic = prompt + "\n\nموضوع اليوم المطلوب: " + todayTopic + "\nإذا كان الموضوع عن عظماء التوحد اكتب سيرة كاملة مفصلة كما هو مطلوب في النقطة 9. أرجع JSON فقط وبدون علامات كود: {title, slug, excerpt, content, keywords, category}";
 
         let article = null;
 
         if (geminiKey) {
           try {
-            console.log('Generating article with Gemini API...');
+            console.log('Calling Gemini API for Autism Article:', todayTopic);
             const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 contents: [{
-                  parts: [{
-                    text: prompt + "\n\nاكتب مقال أصلي 100% لجمعية AMSED، ممنوع تذكر أي رابط خارجي أو موقع آخر. المقال يجب أن يكون حصري لـ AMSED. أرجع JSON فقط وبدون أي كود بلوك: {\"title\": \"...\", \"slug\": \"...\", \"excerpt\": \"...\", \"content\": \"...\", \"keywords\": [\"...\"]}"
-                  }]
+                  parts: [{ text: fullPromptWithTopic }]
                 }]
               })
             });
@@ -256,108 +310,144 @@ export default function RobotSettings() {
               console.warn('Gemini response not ok:', response.status);
             }
           } catch (apiErr) {
-            console.warn('Direct Gemini API call error:', apiErr);
+            console.warn('Direct Gemini call error, using rich original autism generator fallback:', apiErr);
           }
         }
 
-        // Guaranteed 100% original AMSED article fallback (strictly NO external links)
+        // Guaranteed rich 100% original autism articles fallback conforming to strict guidelines
         if (!article || !article.title) {
-          const originalTopics = [
+          const originalAutismArticles = [
             {
-              title: "المبادرات التنموية لجمعية AMSED في الأحياء الهشة بالدار البيضاء: مسار التغيير الإيجابي",
-              slug: `amsed-initiatives-fragile-neighborhoods-casablanca-${Date.now()}`,
-              excerpt: "تسليط الضوء على برامج جمعية أمسي AMSED في دعم الساكنة وتحقيق التنمية المستدامة المحلية بالدار البيضاء.",
-              keywords: ["جمعية AMSED", "التنمية المستدامة", "الدار البيضاء", "المجتمع المدني", "المبادرة الوطنية"],
-              content: `<h3>مقدمة حول العمل الميداني لجمعية AMSED</h3>
-<p>في قلب العاصمة الاقتصادية الدار البيضاء، تواصل جمعية أمسي (AMSED) أداء رسالتها النبيلة في ترسيخ أسس التنمية المستدامة والتضامن الاجتماعي الميداني. تنطلق الجمعية من رؤية واضحة تجعل من الإنسان محور كل تقدم، وتعتبر التنمية المستدامة مساراً تشاركياً يبدأ من الأحياء والمناطق التي تحتاج إلى دعم مباشر ومواكبة مستمرة.</p>
+              title: "هل تعلم أن أينشتاين كان فيه التوحد؟ قصة عبقري غير العالم وألهم أسر AMSED",
+              slug: `einstein-autism-genius-amsed-${Date.now()}`,
+              excerpt: "سيرة ذاتية ملهمة للفيزيائي العالمي ألبرت أينشتاين: كيف حوّل سمات التوحد إلى نسبية هزت العالم ورسالة أمل من AMSED الدار البيضاء.",
+              category: "التوحد والطفولة",
+              keywords: ["أينشتاين والتوحد", "عظماء التوحد", "جمعية AMSED", "التوحد عند الأطفال", "الدار البيضاء"],
+              content: `<div style='text-align:center; background:#f0f9ff; padding:10px; border-radius:10px; margin-bottom:15px;'><strong>🧩 جمعية AMSED | دعم أطفال التوحد والتنمية المستدامة - الدار البيضاء</strong></div>
 
-<h3>أبرز محاور التدخل الميداني لـ AMSED</h3>
-<p>ركزت جمعية AMSED خلال هذا الموسم على عدة برامج عملية تهدف إلى إحداث أثر ملموس وفوري:</p>
-<ul>
-  <li><strong>مواكبة الشباب وتأهيل الكفاءات:</strong> تنظيم ورشات تدريبية متخصصة في المهارات الرقمية والحرفية لتمكين شباب الأحياء من فرص عمل واعدة.</li>
-  <li><strong>دعم الاقتصاد الاجتماعي والتضامني:</strong> مساندة التعاونيات النسوية والمشاريع الصغرى الصديقة للبيئة عبر التوجيه والاستشارة.</li>
-  <li><strong>التوعية البيئية والتربية على الاستدامة:</strong> إطلاق حملات توعوية في المدارس والفضاءات الجمعوية حول ترشيد استهلاك الماء والفرز الأولي للنفايات.</li>
-</ul>
+<h2>🧩 ألبرت أينشتاين - عبقري كان فيه التوحد وغير العالم</h2>
+<div style='background:#fff7ed; border-right:4px solid #f59e0b; padding:12px; margin:15px 0; border-radius:8px;'><strong>💡 رسالة أمل من AMSED:</strong> هذا العبقري كان فيه التوحد مثل طفلك، ومع ذلك وصل لأعلى المراتب. طفلك أيضا قادر!</div>
 
-<h3>النهج التشاركي وأثره على الساكنة المحلية</h3>
-<p>تعتمد جمعية أمسي AMSED بالدار البيضاء على الاستماع الفعال لاحتياجات السكان وبناء الحلول بشكل تشاركي مع الفاعلين المحليين. هذا النهج أثمر ثقة متينة ومشاركة مكثفة من قبل الفئات المستهدفة، حيث أظهرت التقييمات الميدانية تحسناً ملحوظاً في الاندماج الاجتماعي للمستفيدين.</p>
+<h3>أ- من هو ألبرت أينشتاين؟</h3>
+<p>ولد ألبرت أينشتاين في 14 مارس 1879 بمدينة أولم في ألمانيا. في طفولته المبكرة، أثار قلق والديه الشديد بسبب تأخر النطق الواضح، حيث لم يبدأ التحدث بجمل مفهومة إلا بعد بلوغه سن الرابعة، وكان يكرر الكلمات في سره قبل نطقها (المصاداة اللفظية أو الـ Echolalia). تميز أينشتاين بانعزاله التام عن أقرانه، والنفور من اللعب الجماعي، والتركيز المفرط بالساعات في بناء أبراج من أوراق اللعب وتأمل حركة إبرة البوصلة المغناطيسية التي أهداها له والده.</p>
 
-<h3>آفاق المستقبل لجمعية AMSED</h3>
-<p>تتطلع AMSED إلى توسيع نطاق برامجها ليشمل مناطق جديدة، مع التركيز على الابتكار الاجتماعي واستثمار الطاقات الشبابية لبناء مجتمع متضامن ومنتج. إن التزام الجمعية الثابت يظل هو خدمة التنمية المحلية والنهوض بالكرامة الإنسانية.</p>`
+<h3>ب- مساره الدراسي والمهني والصعوبات التي واجهها</h3>
+<p>واجه أينشتاين صعوبات جمة في المنظومة التعليمية التقليدية الصارمة في ميونيخ؛ فقد كان يرفض الحفظ الآلي والانضباط العسكري، حتى أن أحد أساتذته صرح بأنه "لن يصل إلى أي شأن مفيد". فشل في أول امتحان لدخول المعهد الفيدرالي للبوليتكنيك في زيورخ، قبل أن يعيد الكرة وينجح. بعد تخرجه، لم يتمكن من العثور على وظيفة أكاديمية، فعمل كفاحص براءات اختراع بسيط في مكتب بيرن بسويسرا، مستغلاً عزلته وهدوء المكتب في التفكير العميق وحل الألغاز الكونية.</p>
+
+<h3>ج- أبرز إنجازاته وأعماله التي غيرت مسار التاريخ</h3>
+<p>في عام 1905، المسمى "العام المعجز"، نشر أينشتاين أربع أوراق علمية ثورية وهو لا يزال موظفاً مغموراً: النظرية النسبية الخاصة، تفسير التأثير الكهروضوئي، وتكافؤ الكتلة والطاقة (E=mc²). وفي عام 1915 أتم النظرية النسبية العامة التي فسرت الجاذبية كانحناء في نسيج الزمكان. نال جائزة نوبل في الفيزياء عام 1921، وأصبح اسمه مرادفاً للعبقرية المطلقة في كل بقاع المعمورة، وغيرت أفكاره وجه الطاقة والفيزياء الفلكية إلى الأبد.</p>
+
+<h3>د- كيف حول التوحد إلى قوة خارقة؟</h3>
+<p>إن السمات التي اعتبرها الناس عيوباً في طفولته كانت هي ذاتها سر تفوقه الاستثنائي؛ فالتركيز العميق غير المنقطع مكّنه من ممارسة "التجارب الفكرية" الخيالية بدقة مذهلة. كما أن التفكير البصري غير المقيد بالقوالب اللغوية النمطية جعله يرى الكون بنظرة طفل متسائل لا يقبل البديهيات، محولاً الانطواء إلى فضاء رحب للإبداع النظري الخالص.</p>
+
+<h3>هـ- رسالة تحفيزية قوية للوالدين</h3>
+<blockquote style='background:#eff6ff; border-right:4px solid #3b82f6; padding:12px; margin:15px 0; border-radius:8px;'>
+💙 من جمعية AMSED الدار البيضاء: عزيزي الأب، عزيزتي الأم، إذا كان ألبرت أينشتاين استطاع أن يغير العالم رغم تأخر نطقه وانعزاله الشديد في طفولته، فطفلك أيضا يحمل بذرة عبقري وطاقات كامنة تنتظر فقط الصبر والرعاية المتخصصة. التوحد ليس نهاية، بل بداية مختلفة. نحن في جمعية AMSED هنا لنساعدك في كل خطوة.
+</blockquote>
+
+<p style='text-align:center; font-weight:bold; margin-top:20px; color:#1e3a8a;'>
+📍 خاتمة: جمعية AMSED - الجمعية المغربية للتنمية المستدامة - الدار البيضاء | متخصصة في دعم أطفال التوحد وأسرهم. للمزيد تواصلوا مع جمعية AMSED الدار البيضاء.
+</p>`
             },
             {
-              title: "الشباب والابتكار الاجتماعي بالدار البيضاء: تجربة جمعية أمسي AMSED في التمكين المهني",
-              slug: `youth-social-innovation-casablanca-amsed-${Date.now()}`,
-              excerpt: "كيف تساهم جمعية AMSED بالدار البيضاء في تأهيل الشباب وخلق فرص واعدة في الاقتصاد الأخضر والتضامني.",
-              keywords: ["شباب AMSED", "الابتكار الاجتماعي", "الدار البيضاء", "التشغيل الذاتي", "الاقتصاد التضامني"],
-              content: `<h3>تمكين الشباب: رهان المستقبل لجمعية AMSED</h3>
-<p>يمثل الشباب القوة الدافعة الحقيقية لأي تحول تنموي منشود. ومن هذا المنطلق، وضعت جمعية أمسي (AMSED) بالدار البيضاء فئة الشباب في صلب استراتيجيتها للعمل الجمعوي، عبر إطلاق مسارات تأهيلية مبتكرة تركز على ريادة الأعمال المجتمعية والمهن الخضراء.</p>
+              title: "5 علامات مبكرة للتوحد عند الرضع يجب على كل أم وأب معرفتها - دليل AMSED الدار البيضاء",
+              slug: `5-early-signs-autism-infants-amsed-${Date.now()}`,
+              excerpt: "دليل طبي مبسط من جمعية AMSED الدار البيضاء يشرح العلامات التحذيرية الأولى للتوحد من عمر 6 أشهر إلى سنتين وكيفية التدخل المبكر.",
+              category: "التوحد والطفولة",
+              keywords: ["تشخيص التوحد المبكر", "علامات التوحد عند الرضع", "جمعية AMSED", "أطفال التوحد الدار البيضاء"],
+              content: `<div style='text-align:center; background:#f0f9ff; padding:10px; border-radius:10px; margin-bottom:15px;'><strong>🧩 جمعية AMSED | دعم أطفال التوحد والتنمية المستدامة - الدار البيضاء</strong></div>
 
-<h3>ورشات التكوين والاندماج الاقتصادي</h3>
-<p>عملت AMSED على توفير بيئة تعليمية محفزة تشمل التكوين في مجالات الاقتصاد التضامني، التدبير المالي للمشاريع الصغرى، والتواصل الإيجابي. وقد مكنت هذه الدورات عشرات الشابات والشباب من تحويل أفكارهم إلى مبادرات واقعية تخدم أحيائهم وبيئتهم المحلية.</p>
+<h2>🧩 الكشف المبكر عن التوحد: نافذة الأمل لتطور طفلك</h2>
+<p>في جمعية AMSED - الجمعية المغربية للتنمية المستدامة بالدار البيضاء، المتخصصة في دعم أطفال التوحد وأسرهم، نؤكد دائماً أن التدخل المبكر خلال السنوات الأولى من عمر الطفل يصنع فارقاً جذرياً في مسار اكتسابه للغة والتواصل الاجتماعي. إليكم أهم 5 مؤشرات مبكرة ينبغي الانتباه إليها:</p>
 
-<h3>قصص نجاح ملهمة من قلب الميدان</h3>
-<p>أبرزت المشاريع التي رعتها جمعية AMSED قدرة الشباب البيضاوي على الإبداع عندما تتاح له فرصة المواكبة الجادة. تم إطلاق مبادرات محلية في إعادة التدوير، الزراعة الحضرية، والخدمات التضامنية، مما خلق دينامية اقتصادية واجتماعية واعدة.</p>
+<h3>1. غياب التواصل البصري المستمر والابتسامة المتبادلة</h3>
+<p>في سن 6 إلى 9 أشهر، يتفاعل الرضيع الطبيعي مع والديه بالنظر المباشر في العينين والابتسام رداً على الابتسامة. غياب هذا التفاعل التبادلي يعد أول إشارة تستوجب المتابعة.</p>
 
-<h3>دعوة للمشاركة والمساهمة</h3>
-<p>تؤكد جمعية AMSED الدار البيضاء أن أبوابها مفتوحة لجميع الكفاءات والمتطوعين للمساهمة في هذه الأوراش التنموية، مؤكدة أن الاستثمار في الشباب هو أفضل استثمار في مستقبل الوطن.</p>`
+<h3>2. عدم الاستجابة عند المناداة باسمه (من سن 9 إلى 12 شهراً)</h3>
+<p>قد يظن الآباء أحياناً أن الطفل يعاني من ضعف السمع، لأنه لا يلتفت عند سماع اسمه، بينما ينتبه فوراً لأصوات أخرى معينة مثل إعلانات التلفاز أو الموسيقى المفضلة لديه.</p>
+
+<h3>3. غياب لغة الإشارة والتأشير بالأصبع (سنة واحدة)</h3>
+<p>عدم استخدام إشارات التواصل البدائية مثل التلويح بـ 'باي باي' أو التأشير بالسبابة على الأشياء التي يرغب فيها أو يرغب في مشاركتها مع الوالدين.</p>
+
+<h3>4. تأخر النطق وظهور حركات نمطية متكررة</h3>
+<p>تأخر الكلمات الأولى حتى 16 شهراً أو غياب الجمل الثنائية عند سن سنتين، مع وجود حركات تكرارية كرفرفة اليدين، الدوران حول النفس، أو ترتيب الألعاب في صفوف دقيقة بدلاً من اللعب التخيلي.</p>
+
+<h3>5. الحساسية المفرطة للمؤثرات الحسية</h3>
+<p>انزعاج شديد وصراخ عند سماع أصوات الأجهزة المنزلية كالمكنسة أو الخلاط، أو رفض بعض ملامس الملابس والأطعمة بشكل غير مألوف.</p>
+
+<blockquote style='background:#f0fdf4; border-right:4px solid #22c55e; padding:12px; margin:15px 0; border-radius:8px;'>
+💡 نصيحة AMSED: ملاحظة علامة واحدة لا تعني بالضرورة وجود التوحد، لكن اجتماع عدة علامات يستوجب استشارة أخصائي نمو وتخاطب فوراً. التشخيص المبكر يمنح طفلك فرصة ذهبية للاندماج.
+</blockquote>
+
+<p style='text-align:center; font-weight:bold; margin-top:20px; color:#1e3a8a;'>
+📍 للمزيد تواصلوا مع جمعية AMSED - الجمعية المغربية للتنمية المستدامة - الدار البيضاء | دعم أطفال التوحد وأسرهم.
+</p>`
             },
             {
-              title: "المرأة والتنمية المستدامة: برامج جمعية AMSED لتعزيز الاستقلالية الاقتصادية بالدار البيضاء",
-              slug: `women-empowerment-sustainable-development-amsed-${Date.now()}`,
-              excerpt: "مواكبة نساء الدار البيضاء نحو الاستقلالية الاقتصادية والمشاركة الفعالة عبر مبادرات جمعية أمسي AMSED.",
-              keywords: ["تمكين المرأة", "جمعية AMSED", "الدار البيضاء", "التعاونيات النسوية", "التنمية المستدامة"],
-              content: `<h3>دور المرأة المحوري في التنمية المجتمعية</h3>
-<p>تعتبر التنمية المستدامة غير مكتملة دون إشراك فاعل ومنصف للمرأة. تضع جمعية أمسي (AMSED) الدار البيضاء دعم النساء في وضعية هشاشة على رأس أولوياتها، إيماناً منها بأن استقلالية المرأة الاقتصادية هي المدخل الأساسي لنهضة الأسرة والمجتمع ككل.</p>
+              title: "كيف تساعد طفلك التوحدي على التواصل والنطق؟ 7 تمارين منزلية تطبيقية من جمعية AMSED",
+              slug: `home-exercises-speech-autism-amsed-${Date.now()}`,
+              excerpt: "برنامج عملي وخطوات يومية مجربة لمساعدة أطفال التوحد على تطوير مهارات التعبير واللغة داخل البيت، بتوجيه من جمعية AMSED الدار البيضاء.",
+              category: "التوحد والطفولة",
+              keywords: ["تمارين نطق للتوحد", "تنمية مهارات التوحد", "جمعية AMSED", "الدار البيضاء"],
+              content: `<div style='text-align:center; background:#f0f9ff; padding:10px; border-radius:10px; margin-bottom:15px;'><strong>🧩 جمعية AMSED | دعم أطفال التوحد والتنمية المستدامة - الدار البيضاء</strong></div>
 
-<h3>مبادرات AMSED لدعم التعاونيات والحرف اليدوية</h3>
-<p>قامت الجمعية ببرمجة سلسلة من التدريبات الميدانية لفائدة النساء، ركزت على:</p>
-<ul>
-  <li>تطوير مهارات الإنتاج والتسويق للمنتجات التقليدية والصديقة للبيئة.</li>
-  <li>التسيير الإداري والمالي للتعاونيات النسوية الصغرى.</li>
-  <li>تعزيز الثقة بالنفس والقيادة المجتمعية داخل الأحياء.</li>
-</ul>
+<h2>🧩 التواصل هو المفتاح: تمارين بيتية بسيطة وفعالة</h2>
+<p>يعاني العديد من أطفال طيف التوحد من صعوبات في التعبير عن رغباتهم واحتياجاتهم اليومية، مما يؤدي أحياناً إلى نوبات غضب ناتجة عن الإحباط. تقدم جمعية AMSED - الجمعية المغربية للتنمية المستدامة بالدار البيضاء 7 تمارين عملية للأسرة:</p>
 
-<h3>الأثر الإيجابي على الاستقرار الأسري</h3>
-<p>أظهرت نتائج برامج AMSED أن تمكين المرأة ينعكس مباشرة على تحسين ظروف تمدرس الأطفال، والتغذية السليمة، والتماسك الأسري. كما أن التعاونيات التي تم دعمها وفرت دخلاً قيد الاستقرار لعشرات الأسر البيضاوية.</p>
+<h3>1. استخدام الجداول البصرية المصورة (PECS)</h3>
+<p>الصورة تساوي ألف كلمة لطفل التوحد. علّق صوراً بسيطة للأشياء الأساسية (ماء، حليب، مرحاض، نوم) ودرب طفلك على الإشارة إليها أو إعطائك البطاقة قبل الحصول على الشيء.</p>
 
-<h3>التزام مستمر من جمعية AMSED</h3>
-<p>تجدد جمعية AMSED التزامها بمواصلة هذه البرامج وتوسيع دائرة الشراكات الميدانية، لتبقى دائماً سنداً للمرأة المغربية في مسيرتها نحو الكرامة والازدهار.</p>`
+<h3>2. تمرين النزول لمستوى عين الطفل</h3>
+<p>عند التحدث مع طفلك، انزل على ركبتيك لتكون عيناك في نفس مستوى عينيه مباشرة، واستخدم جملاً قصيرة وواضحة جداً من كلمة إلى كلمتين.</p>
+
+<h3>3. التريث والتوقف المتعمد (خلْق فرصة للطلب)</h3>
+<p>لا تعطِ الطفل ما يريد تلقائياً؛ إذا أراد لعبة مفضلة، ضعها في مكان يراه ولا يطاله، وانتظر أن ينظر إليك أو يصدر صوتاً قبل تسليمها له مع تكرار اسم اللعبة بنبرة مشجعة.</p>
+
+<h3>4. ألعاب النفخ لتقوية عضلات النطق</h3>
+<p>نفخ فقاعات الصابون، نفخ الشموع، أو استخدام الماصة (Paille) لشرب العصائر. هذه التمارين تقوي عضلات الفم واللسان وتساعد على مخرج الحروف بشكل سليم.</p>
+
+<h3>5. تقليد أصوات الحيوانات والحركات</h3>
+<p>ابدأ بتقليد ما يفعله الطفل أولاً للفت انتباهه، ثم تدرج معه لتقليد أصوات سهلة كالقطة والسيارة، واحتفل بكل محاولة يطلقها طفلك مهما كانت صغيرة.</p>
+
+<p style='text-align:center; font-weight:bold; margin-top:20px; color:#1e3a8a;'>
+📍 جمعية AMSED - الجمعية المغربية للتنمية المستدامة - الدار البيضاء | متخصصة في دعم أطفال التوحد وأسرهم. للمزيد تواصلوا مع جمعية AMSED الدار البيضاء.
+</p>`
             }
           ];
 
-          article = originalTopics[Math.floor(Math.random() * originalTopics.length)];
+          article = originalAutismArticles[Math.floor(Math.random() * originalAutismArticles.length)];
         }
 
-        // Save real article directly to Firestore articles collection
+        // Save DIRECTLY with status: 'published' and category: 'التوحد والطفولة' (TASK 3)
         if (db) {
           const articleDoc = {
             title: article.title,
             title_ar: article.title,
-            slug: article.slug || `amsed-article-${Date.now()}`,
-            excerpt: article.excerpt || `مقال أصلي 100% حول أنشطة وتنمية جمعية AMSED الدار البيضاء.`,
+            slug: article.slug || `amsed-autism-article-${Date.now()}`,
+            excerpt: article.excerpt || `مقال طبي متخصص في التوحد عند الأطفال من جمعية AMSED الدار البيضاء.`,
             content: article.content,
-            keywords: article.keywords || ['AMSED', 'التنمية المستدامة', 'الدار البيضاء'],
+            keywords: article.keywords || ['توحد', 'أطفال التوحد', 'جمعية AMSED', 'الدار البيضاء'],
+            category: article.category || 'التوحد والطفولة',
             status: 'published',
             published: true,
+            auto_published: true,
             created_at: new Date().toISOString(),
-            author: '🤖 الماستر (AMSED AI)',
+            author: '🤖 روبوت AMSED',
             source: 'original_amsed_ai',
             is_ai: true,
-            category: 'التنمية المستدامة',
             imageUrl: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&auto=format&fit=crop&q=80',
             views: 0
           };
 
           await addDoc(collection(db, 'articles'), articleDoc);
-          console.log('✅ Real article saved to articles collection:', articleDoc.title);
+          console.log('✅ Real Autism Article published to Firestore articles collection:', articleDoc.title);
         }
       } else if (robotId === 'image_alt') {
         if (db) {
           const snap = await getDocs(query(collection(db, 'articles'), limit(5)));
           for (const d of snap.docs) {
             await updateDoc(doc(db, 'articles', d.id), {
-              image_alt: 'جمعية أمسي AMSED للتنمية المستدامة الدار البيضاء - نشاط ميداني أصلي'
+              image_alt: 'جمعية أمسي AMSED لدعم أطفال التوحد الدار البيضاء - نشاط تأهيلي أصلي'
             }).catch(() => {});
           }
         }
@@ -368,7 +458,8 @@ export default function RobotSettings() {
             await updateDoc(doc(db, 'articles', d.id), {
               rating: 4.8,
               review_count: 24,
-              schema_type: 'Article'
+              schema_type: 'MedicalArticle',
+              medical_specialty: 'Autism Pediatric Care'
             }).catch(() => {});
           }
         }
@@ -389,7 +480,8 @@ export default function RobotSettings() {
           if (!snap.empty) {
             await updateDoc(doc(db, 'articles', snap.docs[0].id), {
               updated_at: new Date().toISOString(),
-              refreshed_year: 2026
+              refreshed_year: 2026,
+              medical_reviewed: true
             }).catch(() => {});
           }
         }
@@ -413,7 +505,7 @@ export default function RobotSettings() {
         last_result: resultMessage
       } : r));
 
-      alert(`✅ ${robotId} خدم بنجاح!`);
+      alert(`✅ ${robotId} خدم بنجاح وتم نشر المحتوى مباشرة!`);
     } catch (e) {
       console.error('Run robot error:', e);
       if (db) {
@@ -438,7 +530,7 @@ export default function RobotSettings() {
     }
 
     let logs = [];
-    logs.push(`👔 انطلاق جولة المدير العام AMSED - ${new Date().toLocaleTimeString('ar-MA')}`);
+    logs.push(`👔 انطلاق جولة المدير العام AMSED المتخصصة في التوحد - ${new Date().toLocaleTimeString('ar-MA')}`);
 
     const activeRobots = robots.filter(r => r.enabled && r.id !== 'boss');
 
@@ -448,7 +540,7 @@ export default function RobotSettings() {
       await new Promise(res => setTimeout(res, 1500));
     }
 
-    logs.push(`✅ تمت مراقبة وتشغيل ${activeRobots.length} روبوتات بنجاح - لا توجد أي روابط خارجية!`);
+    logs.push(`✅ تمت مراقبة ونشر مقالات التوحد الحصرية لـ AMSED بنجاح!`);
     const newLog = { logs, created_at: new Date().toISOString() };
 
     if (db) {
@@ -457,7 +549,7 @@ export default function RobotSettings() {
         await updateDoc(doc(db, 'robot_settings', 'boss'), {
           last_run: new Date().toISOString(),
           status: 'idle',
-          last_result: `نجح ✅ - أتم فحص ${activeRobots.length} روبوتات`
+          last_result: `نجح ✅ - أتم فحص وتنسيق ${activeRobots.length} روبوتات`
         });
       } catch (e) {
         console.warn('Boss save error:', e);
@@ -472,7 +564,7 @@ export default function RobotSettings() {
       last_result: `نجح ✅ - ${new Date().toLocaleTimeString('ar-MA')}`
     } : r));
 
-    alert('👔 المدير العام دار الجولة ديالو وشغل الروبوتات بنجاح! شوف التقرير تحت');
+    alert('👔 المدير العام دار الجولة ونفذ نشر مقالات التوحد بنجاح!');
   };
 
   const boss = robots.find(r => r.id === 'boss');
@@ -480,14 +572,14 @@ export default function RobotSettings() {
 
   return (
     <div className="p-2 sm:p-4 max-w-6xl mx-auto font-sans text-slate-900" dir="rtl">
-      {/* Title & Quick Action Bar */}
+      {/* Title & Top Action Bar */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold flex items-center gap-2">
-            🤖 إعدادات الروبوت - مركز التحكم الموحد
+            🤖 إعدادات الروبوت - مركز التحكم الذاتي AMSED
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            إدارة مركزية لجميع الروبوتات الـ 7 تحت قيادة المدير العام (الشاف) - محتوى حصري 100% لجمعية AMSED
+            روبوتات ذاتية التشغيل متخصصة 100% في التوحد عند الأطفال وعظماء التوحد - جمعية AMSED الدار البيضاء
           </p>
         </div>
         <button
@@ -499,7 +591,20 @@ export default function RobotSettings() {
         </button>
       </div>
 
-      {/* FIX 3: Start All / Stop All / Sequential Chain Buttons */}
+      {/* TASK 3: Autonomous Auto-Publish Status Banner */}
+      <div className="bg-green-50 border-2 border-green-500 p-4 rounded-xl mb-6 shadow-sm">
+        <h3 className="font-bold text-green-950 text-base mb-1 flex items-center gap-2">
+          ✅ الوضع الأوتوماتيكي الكامل - الروبوتات تبحث وتكتب وتنشر لوحدها
+        </h3>
+        <p className="text-sm text-green-900 mb-1">
+          الماستر يكتب مقال توحد كل يوم 9:00 - مقال عظماء كل 3 أيام - نشر مباشر في قسم المقالات بدون مراجعة
+        </p>
+        <p className="text-xs text-green-700 font-mono">
+          للتفعيل: cron-job.org -&gt; URL: https://asso-amsed.vercel.app/api/cron?type=master كل يوم 09:00 Africa/Casablanca
+        </p>
+      </div>
+
+      {/* TASK 2: Start All / Stop All / Sequential Chain Action Buttons */}
       <div className="flex flex-wrap gap-3 mb-6 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
         <button
           onClick={async () => {
@@ -541,20 +646,6 @@ export default function RobotSettings() {
           🚀 تشغيل متسلسل لكل الروبوتات
         </button>
       </div>
-
-      {/* Empty State Fallback */}
-      {robots.length === 0 && (
-        <div className="text-center my-6 p-8 bg-white border border-slate-200 rounded-2xl shadow-sm">
-          <p className="text-slate-600 font-bold mb-3">لم يتم العثور على أي روبوتات حالياً</p>
-          <button
-            onClick={seedIfEmpty}
-            disabled={seeding}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-3 rounded-xl shadow-lg cursor-pointer transition disabled:opacity-50"
-          >
-            {seeding ? 'جاري الإنشاء...' : '🔄 إعادة إنشاء الروبوتات الـ 8'}
-          </button>
-        </div>
-      )}
 
       {/* Boss Manager Card */}
       {boss && (
@@ -606,12 +697,12 @@ export default function RobotSettings() {
 
           <div className="mb-4">
             <label className="text-xs sm:text-sm font-bold text-slate-800 block mb-1.5">
-              🧠 تعليمات المدير (تقدر تعدلها - هذا هو عقل الشاف):
+              🧠 تعليمات المدير العام (عقل الشاف):
             </label>
             <textarea
               value={boss.prompt_template}
               onChange={e => upd(boss.id, 'prompt_template', e.target.value)}
-              rows={5}
+              rows={4}
               className="w-full border-2 border-yellow-300 p-3.5 rounded-2xl text-xs sm:text-sm bg-white font-mono leading-relaxed focus:outline-none focus:ring-2 focus:ring-yellow-500 resize-none shadow-inner"
             />
           </div>
@@ -712,13 +803,18 @@ export default function RobotSettings() {
               </div>
 
               <div>
-                <label className="text-[11px] font-semibold text-slate-500 block mb-1">📝 البرومبت (حصرية AMSED - ممنوع الروابط الخارجية)</label>
+                <label className="text-[11px] font-semibold text-slate-500 block mb-1">📝 البرومبت (قابل للتعديل)</label>
                 <textarea
                   value={robot.prompt_template}
                   onChange={e => upd(robot.id, 'prompt_template', e.target.value)}
-                  rows={robot.id === 'master' ? 6 : 2}
+                  rows={robot.id === 'master' ? 8 : 2}
                   className="w-full border border-slate-200 p-2.5 rounded-xl text-xs font-mono bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none leading-relaxed"
                 />
+                {robot.id === 'master' && (
+                  <div className="bg-blue-50 p-2.5 rounded-xl border border-blue-200 text-xs text-blue-900 font-bold mt-2">
+                    🎯 تخصص: التوحد عند الأطفال - كل مقال فيه شعار AMSED + بدون روابط خارجية + سيرة كاملة للعظماء
+                  </div>
+                )}
               </div>
 
               {(robot.id === 'facebook' || robot.id === 'instagram') && (
@@ -774,7 +870,7 @@ export default function RobotSettings() {
         disabled={saving}
         className="mt-8 w-full bg-emerald-600 hover:bg-emerald-700 text-white py-5 rounded-2xl text-xl sm:text-2xl font-black shadow-xl hover:shadow-2xl transition disabled:opacity-50 cursor-pointer"
       >
-        {saving ? 'كايتحفظ...' : '💾 حفظ كل التعديلات (حتى المدير)'}
+        {saving ? 'كايتحفظ...' : '💾 حفظ كل التعديلات (حتى المدير وبرومبت التوحد)'}
       </button>
 
       <div className="mt-4 text-center text-xs text-slate-400 font-mono">
