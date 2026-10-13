@@ -31,6 +31,47 @@ function makeFallbackArticle(topic) {
 -- جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED`,
     fr: `Guide pratique AMSED: ${topic} - Prise en charge des enfants autistes. Contact: 06 54 24 05 23`,
     en: `AMSED Practical Guide: ${topic} - Caring for children with autism. Contact: 06 54 24 05 23`
+function getTopicMatchedImage(topic = '') {
+  const t = topic.toLowerCase();
+  if (t.includes('أينشتاين') || t.includes('اينشتاين') || t.includes('einstein') || t.includes('عبقر') || t.includes('فيزياء')) {
+    return {
+      url: "https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=1000&q=80",
+      alt: "أبحاث علمية وعبقرية أينشتاين والتوحد - AMSED"
+    };
+  }
+  if (t.includes('نطق') || t.includes('تخاطب') || t.includes('تواصل') || t.includes('كلام') || t.includes('صوت') || t.includes('speech')) {
+    return {
+      url: "https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=1000&q=80",
+      alt: "تأهيل النطق والتخاطب لأطفال التوحد - AMSED"
+    };
+  }
+  if (t.includes('تغذي') || t.includes('أكل') || t.includes('حمية') || t.includes('طعام') || t.includes('nutrition')) {
+    return {
+      url: "https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=1000&q=80",
+      alt: "تغذية صحية ومتوازنة للطفل التوحدي - AMSED"
+    };
+  }
+  if (t.includes('مدرس') || t.includes('دمج') || t.includes('قسم') || t.includes('avs') || t.includes('school')) {
+    return {
+      url: "https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=1000&q=80",
+      alt: "الإدماج المدرسي والتعليم الأولي المكيف - AMSED"
+    };
+  }
+  if (t.includes('ورش') || t.includes('حلويات') || t.includes('طبخ') || t.includes('رسم') || t.includes('خياط')) {
+    return {
+      url: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=1000&q=80",
+      alt: "ورشات مهنية وحرفية لأطفال التوحد - AMSED"
+    };
+  }
+  if (t.includes('علامات') || t.includes('رضع') || t.includes('مبكر') || t.includes('تشخيص')) {
+    return {
+      url: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=1000&q=80",
+      alt: "العلامات المبكرة للتوحد عند الأطفال - AMSED"
+    };
+  }
+  return {
+    url: "https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&w=1000&q=80",
+    alt: "رعاية وتأهيل أطفال التوحد - AMSED"
   };
 }
 
@@ -161,8 +202,9 @@ export default async function handler(req, res) {
       is_ai: true,
       createdAt: new Date().toISOString().split('T')[0],
       created_at: new Date().toISOString(),
-      image: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&auto=format&fit=crop&q=80",
-      imageUrl: "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&auto=format&fit=crop&q=80",
+      image: getTopicMatchedImage(final_title_ar).url,
+      imageUrl: getTopicMatchedImage(final_title_ar).url,
+      image_alt: getTopicMatchedImage(final_title_ar).alt,
       views: 0
     };
 

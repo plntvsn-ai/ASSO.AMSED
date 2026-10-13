@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { db } from '../../firebase.js';
 import { collection, getDocs, doc, setDoc, updateDoc, addDoc, query, limit } from 'firebase/firestore';
+import { getTopicMatchedImage } from '../../services/topicImageService.js';
 
 const MASTER_AUTISM_PROMPT = `أنت كاتب طبي متخصص في التوحد عند الأطفال لجمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED - متخصصة في التوحد والطفولة - الدار البيضاء - المغرب.
 
@@ -450,8 +451,9 @@ export default function RobotSettings() {
           author: '🤖 روبوت AMSED الذكي',
           source: 'original_amsed_ai',
           is_ai: true,
-          image: article.imageUrl || 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&auto=format&fit=crop&q=80',
-          imageUrl: article.imageUrl || 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=800&auto=format&fit=crop&q=80',
+          image: article.imageUrl || getTopicMatchedImage(article.title, article.keywords).url,
+          imageUrl: article.imageUrl || getTopicMatchedImage(article.title, article.keywords).url,
+          image_alt: getTopicMatchedImage(article.title, article.keywords).alt,
           views: 0
         };
 

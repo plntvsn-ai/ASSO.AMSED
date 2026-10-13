@@ -1,23 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useData } from '../context/DataContext';
 import { useCms } from '../context/CmsContext';
 import { defaultCmsData } from '../services/cmsService';
 import { 
-  HeartPulse, GraduationCap, Home, Smile, 
-  Sparkles, Scale, ArrowLeft, ArrowRight, CheckCircle2, 
-  HandHeart, X, Compass, Star, Eye, MessageCircle, Phone,
-  LayoutGrid, ScrollText
+  HeartPulse, GraduationCap, Sparkles, ArrowLeft, ArrowRight, 
+  CheckCircle2, HandHeart, X, Star, Eye, MessageCircle, Phone,
+  ChevronRight, ChevronLeft, Bookmark, Award, Clock
 } from 'lucide-react';
-
-const iconMap = {
-  HeartPulse,
-  GraduationCap,
-  Home,
-  Smile,
-  Sparkles,
-  Scale
-};
 
 export const Services = () => {
   const { lang, dir, t, getLocalized } = useLanguage();
@@ -25,24 +15,25 @@ export const Services = () => {
   const { cmsData } = useCms();
   const [selectedService, setSelectedService] = useState(null);
   const [activeCategory, setActiveCategory] = useState('all');
-  const [viewMode, setViewMode] = useState('grid'); // 'grid' | 'scroll'
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
 
-  // Use services from CMS (or fallback to default 8 published services)
+  const carouselRef = useRef(null);
+
+  // استخدام الخدمات من الـ CMS أو الافتراضية
   const servicesList = (cmsData?.services && cmsData.services.length > 0)
     ? cmsData.services
     : (defaultCmsData.services || []);
 
-  const ArrowIcon = dir === 'rtl' ? ArrowLeft : ArrowRight;
-
   const categories = [
-    { id: 'all', label: t('services', 'tabAll') || 'كافة الخدمات' },
+    { id: 'all', label: t('services', 'tabAll') || 'كافة الخدمات (8)' },
     { id: 'التوحد', label: 'مركز التوحد' },
     { id: 'التخاطب', label: 'التخاطب والنطق' },
     { id: 'حركية', label: 'المهارات الحركية' },
     { id: 'نفسي', label: 'الإرشاد النفسي' },
-    { id: 'تعليم أولي', label: 'روض الأطفال' },
-    { id: 'دمج', label: 'التأهيل للدمج' },
-    { id: 'دعم مدرسي', label: 'دروس الدعم' }
+    { id: 'تعليم أولي', label: 'روض الأطفال المكيف' },
+    { id: 'دمج', label: 'التأهيل للدمج المدرسي' },
+    { id: 'دعم مدرسي', label: 'دروس الدعم AVS' }
   ];
 
   const filteredServices = servicesList.filter(item => {
@@ -50,323 +41,377 @@ export const Services = () => {
     return item.category === activeCategory || item.category?.includes(activeCategory);
   });
 
-  const rawPhone = (cmsData?.contact?.phone1 || data?.association?.phone1 || '0663780107').replace(/\D/g, '');
-  const intlPhone = rawPhone.startsWith('0') ? '212' + rawPhone.substring(1) : rawPhone;
+  const cardWidth = 370; // متوسط عرض البطاقة
+
+  // إعادة ضبط السكرول عند تبديل التصنيف
+  useEffect(() => {
+    if (carouselRef.current) {
+      carouselRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+      setCurrentIndex(0);
+    }
+  }, [activeCategory]);
+
+  const handleScroll = useCallback(() => {
+    if (!carouselRef.current) return;
+    const { scrollLeft } = carouselRef.current;
+    const scrollPos = Math.abs(scrollLeft);
+    const index = Math.round(scrollPos / cardWidth);
+    setCurrentIndex(Math.min(Math.max(index, 0), filteredServices.length - 1));
+  }, [filteredServices.length]);
+
+  const scrollPrev = () => {
+    if (!carouselRef.current) return;
+    const delta = dir === 'rtl' ? cardWidth : -cardWidth;
+    carouselRef.current.scrollBy({ left: delta, behavior: 'smooth' });
+  };
+
+  const scrollNext = () => {
+    if (!carouselRef.current) return;
+    const delta = dir === 'rtl' ? -cardWidth : cardWidth;
+    carouselRef.current.scrollBy({ left: delta, behavior: 'smooth' });
+  };
+
+  const scrollToIndex = (idx) => {
+    if (!carouselRef.current) return;
+    const target = dir === 'rtl' ? -(idx * cardWidth) : (idx * cardWidth);
+    carouselRef.current.scrollTo({ left: target, behavior: 'smooth' });
+    setCurrentIndex(idx);
+  };
+
+  // حركة كاروسيل أفقي تلقائية هادئة مع التوقف عند التحويم (Pause on Hover)
+  useEffect(() => {
+    if (isPaused || filteredServices.length <= 1) return;
+    const interval = setInterval(() => {
+      if (!carouselRef.current) return;
+      const { scrollLeft, scrollWidth, clientWidth } = carouselRef.current;
+      const isEnd = dir === 'rtl'
+        ? Math.abs(scrollLeft) + clientWidth >= scrollWidth - 30
+        : scrollLeft + clientWidth >= scrollWidth - 30;
+
+      if (isEnd) {
+        carouselRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+      } else {
+        const delta = dir === 'rtl' ? -cardWidth : cardWidth;
+        carouselRef.current.scrollBy({ left: delta, behavior: 'smooth' });
+      }
+    }, 5500);
+
+    return () => clearInterval(interval);
+  }, [isPaused, filteredServices.length, dir]);
+
+  const rawPhone = (cmsData?.contact?.phone1 || data?.association?.phone1 || '0654240523').replace(/\D/g, '');
+  const intlPhone = rawPhone.startsWith('0') ? '212' + rawPhone.substring(1) : (rawPhone || '212654240523');
   const whatsappUrl = `https://wa.me/${intlPhone}`;
 
+  const ArrowIcon = dir === 'rtl' ? ArrowLeft : ArrowRight;
+
   return (
-    <section id="services" className="py-20 bg-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+    <section 
+      id="services" 
+      className="relative py-20 overflow-hidden bg-gradient-to-b from-[#faf6ee] via-[#f7f2e6] to-[#f4ede0] border-b border-amber-200/60"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      onTouchStart={() => setIsPaused(true)}
+      onTouchEnd={() => setIsPaused(false)}
+    >
+      {/* خلفية بنقوش الزليج المغربي الأصيل (Moroccan Zellij Watermark) */}
+      <div className="absolute inset-0 pointer-events-none opacity-[0.035] bg-[radial-gradient(#0d5938_1.5px,transparent_1.5px)] [background-size:20px_20px]" />
+      <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-emerald-800 via-amber-400 to-emerald-800 opacity-80" />
+
+      <div className="max-w-[1520px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
-        {/* Header */}
-        <div className="text-center max-w-3xl mx-auto mb-10">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold mb-3 border border-emerald-200">
-            <HandHeart className="w-3.5 h-3.5 text-emerald-700" />
-            <span>{t('services', 'badge') || 'خدمات التأهيل والرعاية'}</span>
+        {/* الترويسة بطابع مغربي أصيل ومؤسسة تربوية */}
+        <div className="text-center max-w-4xl mx-auto mb-10">
+          
+          {/* الشارة الرسمية المغربية */}
+          <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-emerald-900 text-amber-300 text-xs font-bold mb-4 border border-amber-400/50 shadow-md">
+            <span className="text-amber-400 text-sm">۞</span>
+            <span>المملكة المغربية • برامج التأهيل والخدمات التربوية المتخصصة</span>
+            <span className="text-amber-400 text-sm">۞</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
+
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-emerald-950 tracking-tight leading-tight">
             {t('services', 'title') || 'خدمات وبرامج الجمعية المتخصصة'}
           </h2>
-          <p className="mt-3 text-slate-600 text-base sm:text-lg">
-            {t('services', 'subtitle') || 'نقدم برامج متكاملة ومكيفة تحت إشراف أطر ومختصين مؤهلين بالقنيطرة'}
-          </p>
-        </div>
 
-        {/* Highlight Banner: Individual Program for Each Child (PPI) */}
-        <div className="mb-12 max-w-4xl mx-auto bg-gradient-to-r from-amber-500/10 via-emerald-500/10 to-teal-500/10 border-2 border-amber-400/40 rounded-3xl p-5 sm:p-6 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-4 text-center sm:text-start">
-            <div className="w-12 h-12 rounded-2xl bg-amber-500 text-white flex items-center justify-center shadow-md shrink-0">
-              <Star className="w-6 h-6 fill-white text-white" />
-            </div>
-            <div>
-              <h3 className="text-base sm:text-lg font-black text-slate-900">
-                {lang === 'ar' ? 'مبدأنا الأساسي: كل طفل عندو برنامج فردي خاص بيه (PPI)' : lang === 'fr' ? 'Notre Principe : Chaque enfant a son projet personnalisé (PPI)' : 'Our Core Principle: An Individualized Plan (IEP) for Each Child'}
-              </h3>
-              <p className="text-xs sm:text-sm text-slate-600 mt-0.5">
-                {lang === 'ar' 
-                  ? 'تتبع علمي ودقيق يتلاءم مع وتيرة واحتياجات كل طفل لبناء استقلاليته واندماجه في المجتمع.' 
-                  : 'Un accompagnement sur-mesure pour développer l\'autonomie et la réussite de chaque enfant.'}
-              </p>
-            </div>
+          {/* فاصل الزخرفة المغربية التقليدية (Moroccan Architectural Flourish) */}
+          <div className="flex items-center justify-center gap-3 my-4">
+            <div className="h-px w-16 sm:w-28 bg-gradient-to-r from-transparent via-amber-400 to-amber-600"></div>
+            <span className="text-amber-600 font-serif text-sm tracking-widest flex items-center gap-1.5">
+              <span>✦</span>
+              <span className="text-base text-emerald-900 font-bold">۞</span>
+              <span>✦</span>
+            </span>
+            <div className="h-px w-16 sm:w-28 bg-gradient-to-l from-transparent via-amber-400 to-amber-600"></div>
           </div>
-          <span className="shrink-0 bg-emerald-700 text-white text-xs font-bold px-3 py-1.5 rounded-xl shadow-sm">
-            {lang === 'ar' ? 'تتبع متعدد التخصصات' : 'Équipe Pluridisciplinaire'}
-          </span>
-        </div>
 
-        {/* Category Filter Tabs & View Mode */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-10">
-          <div className="flex flex-wrap items-center justify-center gap-2">
+          <p className="text-slate-700 text-sm sm:text-base lg:text-lg leading-relaxed max-w-3xl mx-auto font-medium">
+            {t('services', 'subtitle') || 'نقدم برامج متكاملة ومكيفة تحت إشراف أطر ومختصين مؤهلين بالقنيطرة لرعاية أطفال التوحد والطفولة في وضعية صعبة.'}
+          </p>
+
+          {/* لافتة المشروع الفردي (PPI) بإطار مغربي فاخر */}
+          <div className="mt-8 max-w-3xl mx-auto bg-gradient-to-r from-emerald-950 via-emerald-900 to-[#0a4a3a] text-white border-2 border-amber-400/60 rounded-3xl p-5 sm:p-6 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-4 text-center sm:text-start">
+              <div className="w-12 h-12 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center shadow-lg shrink-0 border border-amber-300">
+                <Star className="w-6 h-6 fill-slate-950 text-slate-950" />
+              </div>
+              <div>
+                <h3 className="text-base sm:text-lg font-black text-amber-300">
+                  {lang === 'ar' ? 'مبدأنا الأساسي: كل طفل يستفيد من برنامج فردي خاص به (PPI)' : 'Chaque enfant a son projet personnalisé (PPI)'}
+                </h3>
+                <p className="text-xs sm:text-sm text-emerald-100/90 mt-1">
+                  تتبع علمي وتربوي دقيق يتلاءم مع وتيرة واحتياجات كل طفل لبناء استقلاليته واندماجه في المجتمع.
+                </p>
+              </div>
+            </div>
+            <span className="shrink-0 bg-amber-400 text-emerald-950 text-xs font-black px-4 py-2 rounded-xl shadow-md border border-amber-300">
+              أطر متخصصة ومتكاملة
+            </span>
+          </div>
+
+          {/* تبويبات الفئات بأوسمة مذهبة */}
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5 mt-8">
             {categories.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
-                className={`px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-bold transition shadow-sm ${
+                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 ${
                   activeCategory === cat.id
-                    ? 'bg-slate-900 text-white ring-2 ring-slate-900 shadow-md'
-                    : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
+                    ? 'bg-emerald-950 text-amber-300 shadow-md border border-amber-400/60 scale-105'
+                    : 'bg-white/80 text-emerald-950 hover:bg-white border border-amber-200/80 shadow-sm'
                 }`}
               >
                 {cat.label}
               </button>
             ))}
           </div>
+        </div>
 
-          {/* View Mode Toggle Buttons */}
-          <div className="inline-flex items-center gap-1.5 bg-slate-100 p-1.5 rounded-2xl border border-slate-200 shadow-sm shrink-0">
+        {/* شريط التحكم وأزرار التنقل الأفقي بالكاروسيل */}
+        <div className="flex items-center justify-between mb-5 px-2">
+          <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-emerald-950 bg-white/70 px-3.5 py-1.5 rounded-xl border border-amber-200/70 shadow-sm">
+            <Bookmark className="w-4 h-4 text-amber-600" />
+            <span>عرض {filteredServices.length} خدمات تأهيلية</span>
+            <span className="text-[11px] text-amber-700 font-mono">
+              ({currentIndex + 1} / {filteredServices.length})
+            </span>
+          </div>
+
+          {/* أزرار الأسهم النحاسية المغربية */}
+          <div className="flex items-center gap-2">
             <button
-              onClick={() => setViewMode('grid')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
-                viewMode === 'grid'
-                  ? 'bg-white text-slate-900 shadow'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
+              onClick={scrollPrev}
+              aria-label="السابق"
+              className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white hover:bg-emerald-900 text-emerald-950 hover:text-amber-300 border-2 border-amber-300/80 hover:border-amber-400 flex items-center justify-center shadow-md hover:shadow-xl transition-all duration-200 active:scale-95 group"
             >
-              <LayoutGrid className="w-3.5 h-3.5" />
-              <span>{lang === 'ar' ? 'شبكة الملصقات' : 'Grille'}</span>
+              {dir === 'rtl' ? (
+                <ChevronRight className="w-5 h-5 group-hover:scale-110 transition-transform" />
+              ) : (
+                <ChevronLeft className="w-5 h-5 group-hover:scale-110 transition-transform" />
+              )}
             </button>
+
             <button
-              onClick={() => setViewMode('scroll')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
-                viewMode === 'scroll'
-                  ? 'bg-emerald-700 text-white shadow'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
+              onClick={scrollNext}
+              aria-label="التالي"
+              className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white hover:bg-emerald-900 text-emerald-950 hover:text-amber-300 border-2 border-amber-300/80 hover:border-amber-400 flex items-center justify-center shadow-md hover:shadow-xl transition-all duration-200 active:scale-95 group"
             >
-              <ScrollText className="w-3.5 h-3.5" />
-              <span>{lang === 'ar' ? 'تمرير رأسي مستمر' : 'Défilement'}</span>
+              {dir === 'rtl' ? (
+                <ChevronLeft className="w-5 h-5 group-hover:scale-110 transition-transform" />
+              ) : (
+                <ChevronRight className="w-5 h-5 group-hover:scale-110 transition-transform" />
+              )}
             </button>
           </div>
         </div>
 
-        {viewMode === 'scroll' ? (
-          /* Animated Vertical Scroll Carousel (User Request) */
-          <div className="h-[600px] max-w-2xl mx-auto overflow-hidden relative rounded-2xl bg-white/5 backdrop-blur border border-slate-200/80 shadow-lg p-2">
-            <div className="pointer-events-none absolute inset-x-0 top-0 h-16 bg-gradient-to-b from-white via-white/80 to-transparent z-10" />
-
-            <div className="animate-vertical-scroll">
-              {[...filteredServices, ...filteredServices].map((s, idx) => {
-                const title = s.name || s.title || getLocalized(s, 'title');
-                const desc = s.description || s.desc || getLocalized(s, 'desc');
-
-                return (
-                  <div
-                    key={`${s.id || idx}-${idx}`}
-                    onClick={() => setSelectedService(s)}
-                    className="p-4 m-2 bg-white rounded-xl shadow-lg hover:scale-105 transition cursor-pointer border border-slate-100 flex items-center gap-4"
-                  >
-                    {s.image && (
-                      <img
-                        src={s.image}
-                        alt={title}
-                        className="w-16 h-20 rounded-xl object-cover shadow-sm shrink-0 border border-slate-100"
-                      />
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2 mb-1">
-                        <span className="text-[11px] font-bold bg-emerald-50 text-emerald-800 px-2 py-0.5 rounded-md border border-emerald-100">
-                          {s.category}
-                        </span>
-                        <span className="text-[11px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                          ✓ متاح للتسجيل
-                        </span>
-                      </div>
-                      <h3 className="font-bold text-slate-900 truncate text-base hover:text-emerald-700 transition">
-                        {title}
-                      </h3>
-                      <p className="text-xs text-slate-500 line-clamp-1 mt-0.5 leading-relaxed">
-                        {desc}
-                      </p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-white via-white/80 to-transparent z-10" />
-          </div>
-        ) : (
-          /* 8 Services Grid */
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* الكاروسيل الأفقي للخدمات (Horizontal Carousel Track) */}
+        <div
+          ref={carouselRef}
+          onScroll={handleScroll}
+          className="flex gap-5 sm:gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-6 pt-2 px-1 sm:px-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+          style={{ WebkitOverflowScrolling: 'touch' }}
+        >
           {filteredServices.map((item, index) => {
-            const title = item.name || getLocalized(item, 'title');
-            const desc = item.description || getLocalized(item, 'desc');
+            const title = item.name || item.title || getLocalized(item, 'title');
+            const desc = item.description || item.desc || getLocalized(item, 'desc');
 
             return (
-              <div
+              <article
                 key={item.id || index}
-                className="group relative bg-white rounded-3xl p-4 sm:p-5 border border-slate-200 hover:border-emerald-500 shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col justify-between hover:-translate-y-1"
+                className="w-[280px] sm:w-[330px] md:w-[360px] lg:w-[380px] shrink-0 snap-start group bg-gradient-to-b from-white via-[#fcfbf9] to-[#fbf8f2] rounded-[2rem] overflow-hidden border-2 border-amber-200/70 hover:border-amber-400/90 shadow-md hover:shadow-2xl transition-all duration-300 flex flex-col justify-between hover:-translate-y-1.5"
               >
                 <div>
-                  {/* Poster Image */}
+                  {/* إطار الصورة المعماري المغربي (Moroccan Arched Poster) */}
                   <div 
                     onClick={() => setSelectedService(item)}
-                    className="relative aspect-[3/4] rounded-2xl overflow-hidden mb-4 bg-slate-950 border border-slate-200/80 cursor-pointer shadow-sm group-hover:shadow-md transition"
+                    className="relative aspect-[4/3] w-full overflow-hidden bg-slate-950 border-b-2 border-amber-300/60 cursor-pointer"
                   >
                     {item.image ? (
                       <img
                         src={item.image}
                         alt={title}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-108"
+                        loading="lazy"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center bg-slate-900 text-emerald-400 font-bold text-sm">
+                      <div className="w-full h-full flex items-center justify-center bg-emerald-950 text-amber-300 font-black text-sm">
                         {title}
                       </div>
                     )}
-                    {/* Category Overlay Tag */}
-                    <div className="absolute top-3 end-3">
-                      <span className="text-[11px] font-bold bg-slate-950/80 backdrop-blur-md text-amber-400 border border-amber-500/40 px-2.5 py-1 rounded-full shadow">
-                        {item.category}
+
+                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-black/20 pointer-events-none" />
+
+                    {/* شارة الفئة والنجمة المغربية */}
+                    <div className="absolute top-3 start-3 end-3 flex items-center justify-between">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black bg-emerald-950/90 text-amber-300 border border-amber-400/50 shadow-md backdrop-blur-md">
+                        <GraduationCap className="w-3.5 h-3.5 text-amber-400" />
+                        <span>{item.category || 'تأهيل ورعاية'}</span>
+                      </span>
+
+                      <span className="w-6 h-6 rounded-full bg-white/20 backdrop-blur-md border border-white/40 flex items-center justify-center text-amber-300 text-xs">
+                        ۞
                       </span>
                     </div>
-                    {/* Hover Eye Pill */}
-                    <div className="absolute inset-0 bg-slate-950/40 opacity-0 group-hover:opacity-100 transition duration-300 flex items-center justify-center">
-                      <span className="inline-flex items-center gap-1.5 bg-white text-slate-950 text-xs font-bold px-3.5 py-2 rounded-xl shadow-lg">
-                        <Eye className="w-4 h-4 text-emerald-700" />
-                        <span>تكبير الملصق</span>
+
+                    {/* شارة التوفر أسفل الصورة */}
+                    <div className="absolute bottom-2.5 start-3 end-3 flex items-center justify-between text-[11px] text-white">
+                      <span className="bg-emerald-950/85 px-2.5 py-0.5 rounded-md font-bold border border-emerald-500/40 backdrop-blur-sm text-emerald-200">
+                        ✓ متاح للتسجيل
+                      </span>
+                      <span className="bg-black/60 px-2 py-0.5 rounded-md font-mono text-amber-300 flex items-center gap-1 text-[10px]">
+                        <Award className="w-3 h-3 text-amber-400" />
+                        <span>برنامج PPI معتمد</span>
                       </span>
                     </div>
                   </div>
 
-                  {/* Title */}
-                  <h3 className="text-base font-bold text-slate-900 group-hover:text-emerald-800 transition mb-2 leading-snug line-clamp-2">
-                    {title}
-                  </h3>
+                  {/* جسم بطاقة الخدمة */}
+                  <div className="p-5 sm:p-6 pb-2">
+                    <h3 
+                      onClick={() => setSelectedService(item)}
+                      className="text-base sm:text-lg font-extrabold text-slate-900 group-hover:text-emerald-900 transition leading-snug line-clamp-2 cursor-pointer min-h-[3rem]"
+                    >
+                      {title}
+                    </h3>
 
-                  {/* Description */}
-                  <p className="text-slate-600 text-xs leading-relaxed mb-4 line-clamp-3">
-                    {desc}
-                  </p>
+                    <p className="mt-2 text-xs sm:text-sm text-slate-600 line-clamp-3 leading-relaxed">
+                      {desc}
+                    </p>
+                  </div>
                 </div>
 
-                {/* Footer Buttons */}
-                <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                {/* تذييل البطاقة مع أزرار الإجراء */}
+                <div className="p-5 sm:p-6 pt-3 mt-1 border-t border-amber-200/50 flex items-center justify-between bg-amber-50/30 rounded-b-[2rem]">
                   <button
                     onClick={() => setSelectedService(item)}
-                    className="inline-flex items-center gap-1 text-xs font-bold text-slate-700 hover:text-emerald-700 transition"
+                    className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-black text-emerald-950 hover:text-amber-700 transition group/btn"
                   >
-                    <span>تفاصيل</span>
-                    <ArrowIcon className="w-3.5 h-3.5 text-emerald-600" />
+                    <span className="border-b border-emerald-900 group-hover/btn:border-amber-600 pb-0.5">تفاصيل البرنامج التأهيلي</span>
+                    <ArrowIcon className="w-4 h-4 text-amber-600 group-hover/btn:translate-x-1 transition-transform" />
                   </button>
 
                   <a
                     href={whatsappUrl}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1 text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-1.5 rounded-xl transition shadow-sm"
+                    className="inline-flex items-center gap-1 text-[11px] bg-gradient-to-r from-emerald-800 to-emerald-900 hover:from-emerald-900 hover:to-emerald-950 text-amber-300 font-extrabold px-3 py-1.5 rounded-xl border border-amber-400/50 shadow-sm transition"
                   >
-                    <MessageCircle className="w-3.5 h-3.5" />
-                    <span>تواصل معنا</span>
+                    <MessageCircle className="w-3.5 h-3.5 text-amber-400" />
+                    <span>استفسار</span>
                   </a>
                 </div>
-              </div>
+              </article>
             );
           })}
         </div>
-      )}
 
-        {/* Bottom Callout with Kenitra Center Info */}
-        <div className="mt-16 bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 rounded-3xl p-8 sm:p-10 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
-          <div className="space-y-2 text-center md:text-start">
-            <div className="inline-flex items-center gap-2 bg-amber-400 text-slate-950 font-bold text-xs px-3 py-1 rounded-full">
-              <span>📍 {data?.association?.addressAr || 'حي الساكنية، تجزئة الحزام رقم د 25، القنيطرة'}</span>
-            </div>
-            <h3 className="text-xl sm:text-2xl font-bold text-white">
-              {lang === 'ar' ? 'أبواب الجمعية مفتوحة لاستقبالكم وتسجيل أبنائكم' : lang === 'fr' ? 'Nos portes sont ouvertes pour accueillir et inscrire vos enfants' : 'Our center is open to welcome and register your children'}
-            </h3>
-            <p className="text-sm text-slate-300 max-w-2xl">
-              {lang === 'ar' ? 'فريقنا التربوي والطبي بالقنيطرة يرافقكم خطوة بخطوة لوضع البرنامج الفردي المناسب لطفلكم.' : lang === 'fr' ? 'Notre équipe à Kénitra vous accompagne pour définir le projet adapté à votre enfant.' : 'Our team in Kenitra guides you step-by-step to design the individualized plan for your child.'}
-            </p>
+        {/* مؤشرات التنقل النقطية السفلية */}
+        {filteredServices.length > 1 && (
+          <div className="flex items-center justify-center gap-1.5 mt-8">
+            {filteredServices.map((_, idx) => (
+              <button
+                key={`srv-dot-${idx}`}
+                onClick={() => scrollToIndex(idx)}
+                aria-label={`انتقال للخدمة ${idx + 1}`}
+                className={`transition-all duration-300 rounded-full ${
+                  idx === currentIndex
+                    ? 'w-8 h-2.5 bg-gradient-to-r from-emerald-800 to-amber-500 shadow-md border border-amber-300'
+                    : 'w-2.5 h-2.5 bg-amber-300/80 hover:bg-amber-400'
+                }`}
+              />
+            ))}
           </div>
-          <div className="flex flex-wrap gap-3 shrink-0">
-            <a
-              href={data?.association?.mapUrl || 'https://maps.google.com/?q=Kenitra,Morocco'}
-              target="_blank"
-              rel="noreferrer"
-              className="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-5 py-3 rounded-xl transition shadow flex items-center gap-2"
-            >
-              <Compass className="w-4 h-4" />
-              <span>{t('services', 'openInGoogleMaps') || 'موقعنا على الخريطة'}</span>
-            </a>
-            <a
-              href={`tel:${cmsData?.contact?.phone1 || data?.association?.phone1 || '0663780107'}`}
-              className="bg-white/10 hover:bg-white/20 text-white font-bold px-5 py-3 rounded-xl border border-white/20 transition"
-              dir="ltr"
-            >
-              {cmsData?.contact?.phone1 || data?.association?.phone1 || '0663780107'}
-            </a>
-          </div>
-        </div>
+        )}
 
       </div>
 
-      {/* Service Detail Modal */}
+      {/* نافذة تفاصيل الخدمة المنبثقة (Moroccan Pedagogical Modal) */}
       {selectedService && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-              <div className="flex items-center gap-3">
-                <span className="text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 px-3 py-1 rounded-full">
-                  {selectedService.category}
-                </span>
-                <h3 className="text-lg sm:text-xl font-bold text-slate-900">
-                  {selectedService.name || getLocalized(selectedService, 'title')}
-                </h3>
-              </div>
-              <button
-                onClick={() => setSelectedService(null)}
-                className="p-2 text-slate-400 hover:text-slate-700 rounded-full hover:bg-slate-100"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-md animate-fadeIn">
+          <div className="bg-gradient-to-b from-white via-[#faf8f4] to-[#f6f1e8] rounded-[2.5rem] max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border-2 border-amber-300/80 relative">
+            
+            <button
+              onClick={() => setSelectedService(null)}
+              className="absolute top-4 end-4 z-20 p-2.5 bg-slate-900/80 hover:bg-slate-900 text-amber-300 rounded-full transition shadow-lg border border-amber-400/40"
+              aria-label="إغلاق"
+            >
+              <X className="w-5 h-5" />
+            </button>
 
-            <div className="py-6 space-y-5">
-              {/* Poster Preview in Modal */}
-              {selectedService.image && (
-                <div className="w-full max-w-md mx-auto aspect-[3/4] rounded-2xl overflow-hidden shadow-xl border border-slate-200 bg-slate-950">
-                  <img
-                    src={selectedService.image}
-                    alt={selectedService.name}
-                    className="w-full h-full object-contain"
-                  />
+            {selectedService.image && (
+              <div className="relative h-64 w-full overflow-hidden rounded-t-[2.5rem] border-b-2 border-amber-400/60 bg-slate-950">
+                <img
+                  src={selectedService.image}
+                  alt={selectedService.name || selectedService.title || getLocalized(selectedService, 'title')}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent pointer-events-none" />
+                <div className="absolute bottom-4 start-4 end-4 flex items-center justify-between text-white text-xs">
+                  <span className="bg-emerald-950/90 text-amber-300 px-3 py-1 rounded-full font-bold border border-amber-400/40">
+                    {selectedService.category || 'خدمة تأهيلية'}
+                  </span>
+                  <span className="font-bold text-emerald-200">
+                    متاح للتسجيل بالقنيطرة
+                  </span>
                 </div>
-              )}
-
-              <p className="text-slate-700 text-sm sm:text-base leading-relaxed whitespace-pre-line">
-                {selectedService.description || getLocalized(selectedService, 'desc')}
-              </p>
-
-              <div className="bg-emerald-50 rounded-2xl p-4 border border-emerald-100 text-xs sm:text-sm text-emerald-900 space-y-2">
-                <div className="font-bold flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                  <span>منهجية العمل بالجمعية (AMSED):</span>
-                </div>
-                <ul className="list-disc list-inside space-y-1 text-slate-700 text-xs sm:text-sm">
-                  <li>وضع مشروع بيداغوجي فردي (PPI) بعد تقييم قدرات الطفل واحتياجاته الخاصة</li>
-                  <li>تأطير من طرف مربيات ومساعدي حياة مدرسية (AVS) وأخصائيين مؤهلين</li>
-                  <li>تنسيق دوري ومستمر مع الأسرة والمؤسسات التعليمية الشريكة بالقنيطرة</li>
-                </ul>
               </div>
-            </div>
+            )}
 
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-100">
-              <a
-                href={whatsappUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition shadow"
-              >
-                <MessageCircle className="w-4 h-4" />
-                <span>طلب تسجيل أو استشارة عبر واتساب</span>
-              </a>
-              <button
-                onClick={() => setSelectedService(null)}
-                className="bg-slate-100 hover:bg-slate-200 text-slate-700 px-5 py-2.5 rounded-xl text-sm font-bold transition"
-              >
-                إغلاق
-              </button>
+            <div className="p-6 sm:p-8 space-y-5">
+              <h3 className="text-xl sm:text-2xl font-black text-slate-900 leading-snug">
+                {selectedService.name || selectedService.title || getLocalized(selectedService, 'title')}
+              </h3>
+
+              <div className="text-slate-700 leading-relaxed whitespace-pre-line text-sm sm:text-base border-t border-b border-amber-200/60 py-4 bg-white/60 p-4 rounded-2xl">
+                {selectedService.description || selectedService.desc || getLocalized(selectedService, 'desc')}
+              </div>
+
+              <div className="bg-amber-50/80 border border-amber-200 rounded-2xl p-4 flex items-center gap-3">
+                <Star className="w-5 h-5 text-amber-600 shrink-0" />
+                <p className="text-xs sm:text-sm text-slate-700 font-semibold">
+                  يشمل هذا البرنامج تقييماً دورياً من طرف أطباء وأخصائيي النطق والترويض الحركي، مع مواكبة مستمرة للأسرة.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-end gap-3 pt-2">
+                <a
+                  href={whatsappUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 bg-emerald-900 hover:bg-emerald-950 text-amber-300 px-6 py-2.5 rounded-xl text-sm font-black transition shadow-lg border border-amber-400/60"
+                >
+                  <MessageCircle className="w-4 h-4 text-amber-400" />
+                  <span>حجز موعد أو استفسار عبر واتساب</span>
+                </a>
+
+                <button
+                  onClick={() => setSelectedService(null)}
+                  className="bg-amber-100/80 hover:bg-amber-200 text-amber-950 px-5 py-2.5 rounded-xl text-sm font-bold transition border border-amber-300/80"
+                >
+                  إغلاق النافذة
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -374,4 +419,3 @@ export const Services = () => {
     </section>
   );
 };
-export default Services;

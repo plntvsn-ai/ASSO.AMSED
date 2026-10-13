@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { useData } from '../context/DataContext';
 import { useCms } from '../context/CmsContext';
-import { Image, ZoomIn, X, ChevronLeft, ChevronRight, Tag } from 'lucide-react';
+import { 
+  Image, ZoomIn, X, ChevronLeft, ChevronRight, Tag,
+  Camera, Eye, Bookmark, Sparkles, Award, Heart
+} from 'lucide-react';
 
 export const Gallery = () => {
   const { lang, dir, t, getLocalized } = useLanguage();
@@ -10,15 +13,19 @@ export const Gallery = () => {
   const { cmsData } = useCms();
   const [activeCategory, setActiveCategory] = useState('all');
   const [selectedPhoto, setSelectedPhoto] = useState(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+
+  const carouselRef = useRef(null);
 
   const gallery = (cmsData?.gallery && cmsData.gallery.length > 0) ? cmsData.gallery : (data.gallery || []);
 
   const categories = [
-    { id: 'all', label: t('gallery', 'all') },
-    { id: 'medical', label: t('gallery', 'medical') },
-    { id: 'education', label: t('gallery', 'education') },
-    { id: 'social', label: t('gallery', 'social') },
-    { id: 'activities', label: t('gallery', 'activities') },
+    { id: 'all', label: t('gallery', 'all') || 'الكل' },
+    { id: 'medical', label: t('gallery', 'medical') || 'القوافل الطبية' },
+    { id: 'education', label: t('gallery', 'education') || 'التعليم والدراسة' },
+    { id: 'social', label: t('gallery', 'social') || 'المساعدات الاجتماعية' },
+    { id: 'activities', label: t('gallery', 'activities') || 'أنشطة وترفيه' },
   ];
 
   const filteredGallery = gallery.filter(item => {
@@ -26,33 +33,118 @@ export const Gallery = () => {
     return item.category === activeCategory;
   });
 
+  const cardWidth = 360;
+
+  // إعادة ضبط التمرير للبداية عند تغيير الفلتر
+  useEffect(() => {
+    if (carouselRef.current) {
+      carouselRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+      setCurrentIndex(0);
+    }
+  }, [activeCategory]);
+
+  const handleScroll = useCallback(() => {
+    if (!carouselRef.current) return;
+    const { scrollLeft } = carouselRef.current;
+    const scrollPos = Math.abs(scrollLeft);
+    const index = Math.round(scrollPos / cardWidth);
+    setCurrentIndex(Math.min(Math.max(index, 0), filteredGallery.length - 1));
+  }, [filteredGallery.length]);
+
+  const scrollPrev = () => {
+    if (!carouselRef.current) return;
+    const delta = dir === 'rtl' ? cardWidth : -cardWidth;
+    carouselRef.current.scrollBy({ left: delta, behavior: 'smooth' });
+  };
+
+  const scrollNext = () => {
+    if (!carouselRef.current) return;
+    const delta = dir === 'rtl' ? -cardWidth : cardWidth;
+    carouselRef.current.scrollBy({ left: delta, behavior: 'smooth' });
+  };
+
+  const scrollToIndex = (idx) => {
+    if (!carouselRef.current) return;
+    const target = dir === 'rtl' ? -(idx * cardWidth) : (idx * cardWidth);
+    carouselRef.current.scrollTo({ left: target, behavior: 'smooth' });
+    setCurrentIndex(idx);
+  };
+
+  // حركة كاروسيل تلقائية هادئة مع التوقف عند التحويم (Pause on hover)
+  useEffect(() => {
+    if (isPaused || filteredGallery.length <= 1) return;
+    const timer = setInterval(() => {
+      if (!carouselRef.current) return;
+      const { scrollLeft, scrollWidth, clientWidth } = carouselRef.current;
+      const isEnd = dir === 'rtl'
+        ? Math.abs(scrollLeft) + clientWidth >= scrollWidth - 30
+        : scrollLeft + clientWidth >= scrollWidth - 30;
+
+      if (isEnd) {
+        carouselRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+      } else {
+        const delta = dir === 'rtl' ? -cardWidth : cardWidth;
+        carouselRef.current.scrollBy({ left: delta, behavior: 'smooth' });
+      }
+    }, 5000);
+
+    return () => clearInterval(timer);
+  }, [isPaused, filteredGallery.length, dir]);
+
   return (
-    <section id="gallery" className="py-20 bg-slate-50 border-t border-slate-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+    <section 
+      id="gallery" 
+      className="relative py-20 overflow-hidden bg-gradient-to-b from-[#faf6ee] via-[#f7f2e6] to-[#f4ede0] border-t border-b border-amber-200/60"
+      onMouseEnter={() => setIsPaused(true)}
+      onMouseLeave={() => setIsPaused(false)}
+      onTouchStart={() => setIsPaused(true)}
+      onTouchEnd={() => setIsPaused(false)}
+    >
+      {/* خلفية بنقوش الزليج المغربي التقليدي (Moroccan Zellij Watermark) */}
+      <div className="absolute inset-0 pointer-events-none opacity-[0.035] bg-[radial-gradient(#0d5938_1.5px,transparent_1.5px)] [background-size:20px_20px]" />
+      <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-emerald-800 via-amber-400 to-emerald-800 opacity-80" />
+
+      <div className="max-w-[1520px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
-        {/* Header */}
-        <div className="text-center max-w-3xl mx-auto mb-12">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-amber-100 text-amber-900 text-xs font-bold mb-3 border border-amber-200">
-            <Image className="w-3.5 h-3.5 text-amber-700" />
-            <span>{t('gallery', 'badge')}</span>
+        {/* الترويسة بطابع مغربي أصيل ومؤسساتي */}
+        <div className="text-center max-w-4xl mx-auto mb-10">
+          
+          {/* الشارة الرسمية المغربية */}
+          <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-emerald-900 text-amber-300 text-xs font-bold mb-4 border border-amber-400/50 shadow-md">
+            <span className="text-amber-400 text-sm">۞</span>
+            <span>المملكة المغربية • معرض التوثيق والمبادرات الميدانية</span>
+            <span className="text-amber-400 text-sm">۞</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
-            {t('gallery', 'title')}
+
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-emerald-950 tracking-tight leading-tight">
+            {t('gallery', 'title') || 'معرض الصور والمبادرات الإنسانية'}
           </h2>
-          <p className="mt-3 text-slate-600 text-base sm:text-lg">
-            {t('gallery', 'subtitle')}
+
+          {/* فاصل الزخرفة المغربية التقليدية (Moroccan Architectural Flourish) */}
+          <div className="flex items-center justify-center gap-3 my-4">
+            <div className="h-px w-16 sm:w-28 bg-gradient-to-r from-transparent via-amber-400 to-amber-600"></div>
+            <span className="text-amber-600 font-serif text-sm tracking-widest flex items-center gap-1.5">
+              <span>✦</span>
+              <span className="text-base text-emerald-900 font-bold">۞</span>
+              <span>✦</span>
+            </span>
+            <div className="h-px w-16 sm:w-28 bg-gradient-to-l from-transparent via-amber-400 to-amber-600"></div>
+          </div>
+
+          <p className="text-slate-700 text-sm sm:text-base lg:text-lg leading-relaxed max-w-3xl mx-auto font-medium">
+            {t('gallery', 'subtitle') || 'لحظات إنسانية موثقة من قلب الميدان تعكس أثر العطاء وابتسامة أطفال الجمعية في مختلف الأنشطة والقوافل.'}
           </p>
 
-          {/* Filter Pills */}
-          <div className="flex flex-wrap items-center justify-center gap-2 mt-8">
+          {/* أزرار الفلترة بأوسمة مذهبة */}
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5 mt-8">
             {categories.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
-                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition ${
+                className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 ${
                   activeCategory === cat.id
-                    ? 'bg-slate-900 text-white shadow'
-                    : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+                    ? 'bg-emerald-950 text-amber-300 shadow-md border border-amber-400/60 scale-105'
+                    : 'bg-white/80 text-emerald-950 hover:bg-white border border-amber-200/80 shadow-sm'
                 }`}
               >
                 {cat.label}
@@ -61,8 +153,51 @@ export const Gallery = () => {
           </div>
         </div>
 
-        {/* Gallery Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* شريط التحكم وأزرار التنقل الأفقي بالكاروسيل */}
+        <div className="flex items-center justify-between mb-5 px-2">
+          <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-emerald-950 bg-white/70 px-3.5 py-1.5 rounded-xl border border-amber-200/70 shadow-sm">
+            <Camera className="w-4 h-4 text-amber-600" />
+            <span>عرض {filteredGallery.length} صور توثيقية</span>
+            <span className="text-[11px] text-amber-700 font-mono">
+              ({currentIndex + 1} / {filteredGallery.length})
+            </span>
+          </div>
+
+          {/* أزرار الأسهم النحاسية المغربية */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={scrollPrev}
+              aria-label="السابق"
+              className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white hover:bg-emerald-900 text-emerald-950 hover:text-amber-300 border-2 border-amber-300/80 hover:border-amber-400 flex items-center justify-center shadow-md hover:shadow-xl transition-all duration-200 active:scale-95 group"
+            >
+              {dir === 'rtl' ? (
+                <ChevronRight className="w-5 h-5 group-hover:scale-110 transition-transform" />
+              ) : (
+                <ChevronLeft className="w-5 h-5 group-hover:scale-110 transition-transform" />
+              )}
+            </button>
+
+            <button
+              onClick={scrollNext}
+              aria-label="التالي"
+              className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-white hover:bg-emerald-900 text-emerald-950 hover:text-amber-300 border-2 border-amber-300/80 hover:border-amber-400 flex items-center justify-center shadow-md hover:shadow-xl transition-all duration-200 active:scale-95 group"
+            >
+              {dir === 'rtl' ? (
+                <ChevronLeft className="w-5 h-5 group-hover:scale-110 transition-transform" />
+              ) : (
+                <ChevronRight className="w-5 h-5 group-hover:scale-110 transition-transform" />
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* الكاروسيل الأفقي لمعرض الصور (Horizontal Carousel Track) */}
+        <div
+          ref={carouselRef}
+          onScroll={handleScroll}
+          className="flex gap-5 sm:gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-6 pt-2 px-1 sm:px-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+          style={{ WebkitOverflowScrolling: 'touch' }}
+        >
           {filteredGallery.map((item, index) => {
             const title = getLocalized(item, 'title');
 
@@ -70,7 +205,7 @@ export const Gallery = () => {
               <div
                 key={item.id || index}
                 onClick={() => setSelectedPhoto(item)}
-                className="group relative h-72 rounded-2xl overflow-hidden cursor-pointer shadow-sm hover:shadow-xl transition-all duration-300 bg-slate-200"
+                className="w-[280px] sm:w-[320px] md:w-[350px] lg:w-[370px] shrink-0 snap-start group relative h-80 sm:h-96 rounded-[2rem] overflow-hidden cursor-pointer shadow-md hover:shadow-2xl transition-all duration-500 bg-slate-950 border-2 border-amber-200/70 hover:border-amber-400/90 hover:-translate-y-1.5"
               >
                 <img
                   src={item.image}
@@ -79,20 +214,34 @@ export const Gallery = () => {
                   loading="lazy"
                 />
 
-                {/* Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent opacity-80 group-hover:opacity-95 transition-opacity duration-300 flex flex-col justify-end p-6 text-white">
-                  <div className="transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
-                    <span className="inline-block text-[11px] font-bold text-amber-400 bg-amber-950/60 border border-amber-500/30 px-2 py-0.5 rounded mb-2">
-                      {categories.find(c => c.id === item.category)?.label || item.category}
+                {/* طبقة التدرج اللوني المغربي الفاخر */}
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/40 to-black/20 opacity-80 group-hover:opacity-95 transition-opacity duration-300 flex flex-col justify-between p-6 text-white">
+                  
+                  {/* الرأس: شارة الفئة والنجمة المغربية */}
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center gap-1.5 text-[11px] font-black text-amber-300 bg-emerald-950/90 border border-amber-400/50 px-3 py-1 rounded-full shadow-md backdrop-blur-md">
+                      <Camera className="w-3.5 h-3.5 text-amber-400" />
+                      <span>{categories.find(c => c.id === item.category)?.label || item.category}</span>
                     </span>
-                    <h3 className="text-base font-bold text-white line-clamp-2 leading-snug">
-                      {title}
-                    </h3>
+
+                    <span className="w-6 h-6 rounded-full bg-white/20 backdrop-blur-md border border-white/40 flex items-center justify-center text-amber-300 text-xs">
+                      ۞
+                    </span>
                   </div>
 
-                  {/* Zoom indicator */}
-                  <div className="absolute top-4 end-4 w-9 h-9 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <ZoomIn className="w-4 h-4 text-white" />
+                  {/* أسفل البطاقة: العنوان وأيقونة التكبير */}
+                  <div className="transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                    <h3 className="text-base sm:text-lg font-black text-white line-clamp-2 leading-snug group-hover:text-amber-300 transition-colors">
+                      {title}
+                    </h3>
+                    
+                    <div className="mt-3 flex items-center justify-between text-xs text-emerald-200/90 border-t border-white/20 pt-2.5">
+                      <span className="font-semibold">توثيق ميداني معتمد</span>
+                      <span className="inline-flex items-center gap-1 text-amber-300 font-bold bg-white/10 px-2.5 py-1 rounded-lg">
+                        <ZoomIn className="w-3.5 h-3.5" />
+                        <span>معاينة</span>
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -100,24 +249,43 @@ export const Gallery = () => {
           })}
         </div>
 
+        {/* مؤشرات التنقل النقطية السفلية */}
+        {filteredGallery.length > 1 && (
+          <div className="flex items-center justify-center gap-1.5 mt-8">
+            {filteredGallery.map((_, idx) => (
+              <button
+                key={`gal-dot-${idx}`}
+                onClick={() => scrollToIndex(idx)}
+                aria-label={`انتقال للصورة ${idx + 1}`}
+                className={`transition-all duration-300 rounded-full ${
+                  idx === currentIndex
+                    ? 'w-8 h-2.5 bg-gradient-to-r from-emerald-800 to-amber-500 shadow-md border border-amber-300'
+                    : 'w-2.5 h-2.5 bg-amber-300/80 hover:bg-amber-400'
+                }`}
+              />
+            ))}
+          </div>
+        )}
+
       </div>
 
-      {/* Lightbox Modal */}
+      {/* نافذة معاينة الصورة بالكامل (Moroccan Lightbox Modal) */}
       {selectedPhoto && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md animate-fadeIn">
-          <div className="relative max-w-4xl w-full max-h-[90vh] flex flex-col items-center">
+          <div className="relative max-w-4xl w-full max-h-[92vh] flex flex-col items-center">
             
-            {/* Close Button */}
+            {/* زر الإغلاق المذهب */}
             <button
               onClick={() => setSelectedPhoto(null)}
-              className="absolute -top-12 end-0 p-2 text-white hover:text-amber-400 transition"
-              aria-label="Close"
+              className="absolute -top-12 end-0 p-2 text-amber-300 hover:text-white transition flex items-center gap-1 text-sm font-bold bg-white/10 px-3 py-1 rounded-full border border-white/20"
+              aria-label="إغلاق"
             >
-              <X className="w-8 h-8" />
+              <X className="w-5 h-5" />
+              <span>إغلاق</span>
             </button>
 
-            {/* Main Image */}
-            <div className="w-full max-h-[75vh] overflow-hidden rounded-2xl bg-black flex items-center justify-center border border-slate-800 shadow-2xl">
+            {/* الصورة الرئيسية بإطار مغربي */}
+            <div className="w-full max-h-[75vh] overflow-hidden rounded-3xl bg-black flex items-center justify-center border-2 border-amber-400/60 shadow-2xl">
               <img
                 src={selectedPhoto.image}
                 alt={getLocalized(selectedPhoto, 'title')}
@@ -125,9 +293,14 @@ export const Gallery = () => {
               />
             </div>
 
-            {/* Caption */}
-            <div className="mt-4 text-center text-white px-4">
-              <h3 className="text-lg font-bold text-slate-100">
+            {/* العنوان والوصف */}
+            <div className="mt-4 text-center text-white px-4 max-w-2xl">
+              <div className="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-emerald-950 text-amber-300 text-xs font-bold border border-amber-400/40 mb-2">
+                <span>۞</span>
+                <span>{categories.find(c => c.id === selectedPhoto.category)?.label || selectedPhoto.category}</span>
+                <span>۞</span>
+              </div>
+              <h3 className="text-lg sm:text-xl font-black text-slate-100">
                 {getLocalized(selectedPhoto, 'title')}
               </h3>
             </div>
