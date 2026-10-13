@@ -72,7 +72,7 @@ export default async function RootLayout({
 }) {
   const settings = await getMergedSettings()
 
-  const schemaJsonLd = {
+  const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "NGO",
     "name": "AMSED",
@@ -125,10 +125,7 @@ export default async function RootLayout({
         <link rel="manifest" href="/manifest.json" />
 
         {/* LocalBusiness / NGO JSON-LD Schema */}
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaJsonLd) }}
-        />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }} />
 
         {/* Google Analytics Script */}
         {settings.google_analytics && settings.google_analytics !== 'G-XXXXXXXXXX' && (
