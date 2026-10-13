@@ -2,7 +2,10 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 
 export const ADMIN_SIDEBAR_MENU = [
-  { icon: '🤖', label: 'إعدادات الروبوت', path: '/am-ctrl-9k2l8x-2026-secure-panel-77', badge: 'BOSS', className: 'bg-yellow-100' }
+  { label: 'لوحة التحكم (Dashboard)', icon: '🏠', path: '/am-ctrl-9k2l8x-2026-secure-panel-77' },
+  { label: 'المقالات', icon: '📝', path: '/am-ctrl-9k2l8x-2026-secure-panel-77/articles' },
+  { label: 'إعدادات الروبوتات', icon: '🤖', path: '/am-ctrl-9k2l8x-2026-secure-panel-77/robots', badge: 'AUTO', className: 'bg-yellow-100' },
+  { label: 'الإعدادات العامة', icon: '⚙️', path: '/am-ctrl-9k2l8x-2026-secure-panel-77/settings' },
 ];
 
 export default function AdminSidebar() {

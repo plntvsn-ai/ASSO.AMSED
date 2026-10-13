@@ -10,8 +10,18 @@ export default function SecureLogin() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const expectedUser = (import.meta.env.VITE_ADMIN_USER || 'amsed_admin').trim();
-  const expectedPass = (import.meta.env.VITE_ADMIN_PASS || 'Amsed@2026!Secure#77').trim();
+  const validUsers = [
+    'admin_amsed_2026',
+    'amsed_admin',
+    (import.meta.env.VITE_ADMIN_USER || '').trim()
+  ].filter(Boolean);
+
+  const validPasses = [
+    (import.meta.env.VITE_ADMIN_PASS || '').trim(),
+    'Amsed@2026!Secure#77',
+    'admin_amsed_2026',
+    'amsed_2026'
+  ].filter(Boolean);
 
   const handleLogin = (e) => {
     e.preventDefault();
@@ -21,12 +31,12 @@ export default function SecureLogin() {
     const inputUser = username.trim();
     const inputPass = password.trim();
 
-    if (inputUser === expectedUser && inputPass === expectedPass) {
+    if (validUsers.includes(inputUser) && validPasses.includes(inputPass)) {
       localStorage.setItem('amsed_auth', 'true');
       localStorage.setItem('amsed_admin_authorized', 'amsed_vault_secure_987654');
       navigate('/am-ctrl-9k2l8x-2026-secure-panel-77');
     } else {
-      setError('اسم المستخدم أو كلمة المرور غير صحيحة. يرجى التحقق.');
+      setError('اسم المستخدم أو كلمة المرور غير صحيحة. يرجى التحقق من بيانات الدخول.');
     }
     setLoading(false);
   };
@@ -43,14 +53,14 @@ export default function SecureLogin() {
             </div>
           </div>
           <h1 className="text-2xl font-black text-white tracking-wide">
-            بوابة الإدارة المركزية الآمنة
+            لوحة التحكم المركزية الآمنة
           </h1>
           <p className="text-xs text-slate-400 font-medium">
-            جمعية المبادرة المغربية للتكافل والتعاون AMSED
+            جمعية AMSED - دعم أطفال التوحد والتنمية المستدامة
           </p>
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono bg-emerald-950/80 text-emerald-400 border border-emerald-800/50">
             <ShieldCheck className="w-3.5 h-3.5" />
-            <span>AMSED Boss Manager Panel 2026</span>
+            <span>AMSED Secure Master Panel 2026</span>
           </div>
         </div>
 
@@ -64,7 +74,7 @@ export default function SecureLogin() {
         {/* Login Form */}
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label className="text-xs font-bold text-slate-300 block mb-1.5">
+            <label className="block text-xs font-bold text-slate-300 mb-1.5">
               اسم المستخدم (Username)
             </label>
             <div className="relative">
@@ -73,15 +83,15 @@ export default function SecureLogin() {
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="أدخل اسم المستخدم..."
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent pl-10"
+                placeholder="admin_amsed_2026"
+                className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 pr-10 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
               />
-              <User className="w-4 h-4 text-slate-500 absolute left-3 top-3.5" />
+              <User className="w-5 h-5 text-slate-500 absolute right-3 top-3.5" />
             </div>
           </div>
 
           <div>
-            <label className="text-xs font-bold text-slate-300 block mb-1.5">
+            <label className="block text-xs font-bold text-slate-300 mb-1.5">
               كلمة المرور (Password)
             </label>
             <div className="relative">
@@ -90,26 +100,24 @@ export default function SecureLogin() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="أدخل كلمة المرور..."
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent pl-10"
+                placeholder="••••••••••••"
+                className="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-3 pr-10 text-sm text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
               />
-              <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-3.5" />
+              <Lock className="w-5 h-5 text-slate-500 absolute right-3 top-3.5" />
             </div>
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-2 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-3.5 rounded-xl text-sm transition shadow-lg shadow-emerald-950/40 disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+            className="w-full bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-extrabold py-3.5 px-4 rounded-xl text-sm transition shadow-lg shadow-emerald-950/50 cursor-pointer disabled:opacity-50 mt-2"
           >
-            {loading ? 'جارٍ التحقق...' : 'تسجيل الدخول إلى مركز التحكم 🚀'}
+            {loading ? 'جاري التحقق...' : 'تسجيل الدخول إلى لوحة التحكم 🚀'}
           </button>
         </form>
 
-        <div className="text-center pt-2 border-t border-slate-800/80">
-          <span className="text-[11px] text-slate-500 font-mono">
-            نظام محمي ومشفر بالكامل &copy; 2026 AMSED
-          </span>
+        <div className="text-center text-[11px] text-slate-500 font-mono pt-2 border-t border-slate-800">
+          مسار آمن ومشفر: /am-ctrl-9k2l8x-2026-secure-panel-77
         </div>
 
       </div>

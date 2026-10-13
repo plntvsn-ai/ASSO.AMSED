@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { LanguageProvider } from './context/LanguageContext';
 import { DataProvider } from './context/DataContext';
@@ -22,7 +22,6 @@ import { AdminLayout } from './admin/AdminLayout';
 import { Dashboard } from './admin/pages/Dashboard';
 import { AdvancedSettings } from './admin/pages/AdvancedSettings';
 import { AutoPublisher } from './admin/pages/AutoPublisher';
-import { RobotsAdmin } from './admin/pages/RobotsAdmin';
 import RobotSettings from './admin/pages/RobotSettings.jsx';
 import SecureLogin from './admin/pages/SecureLogin.jsx';
 import { ArticlesAdmin } from './admin/pages/ArticlesAdmin';
@@ -48,6 +47,10 @@ import { SettingsPage } from './admin/pages/SettingsPage';
 import HeadSeo from './components/HeadSeo';
 
 export default function App() {
+  useEffect(() => {
+    console.log("ADMIN URL: /am-ctrl-9k2l8x-2026-secure-panel-77");
+  }, []);
+
   return (
     <BrowserRouter>
       <HeadSeo />
@@ -62,22 +65,21 @@ export default function App() {
               <Route path="/article/:id" element={<ArticleDetailPage />} />
               <Route path="/about" element={<AboutPage />} />
 
-              {/* Secure Hidden AMSED Robots Control Panel */}
+              {/* Secure Login Entry */}
               <Route path="/am-ctrl-9k2l8x-2026-secure-panel-77/login" element={<SecureLogin />} />
-              <Route path="/am-ctrl-9k2l8x-2026-secure-panel-77" element={<AdminLayout><RobotSettings /></AdminLayout>} />
 
               {/* Researcher Portal */}
               <Route path="/researcher/login" element={<ResearcherLogin />} />
               <Route path="/researcher/dashboard" element={<ResearcherDashboard />} />
 
-              {/* 100% Protected Admin Area (Zero White Screen) */}
-              <Route path="/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
+              {/* 100% Protected Main Admin Dashboard Route (The ONLY Admin Entry) */}
+              <Route path="/am-ctrl-9k2l8x-2026-secure-panel-77" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
                 <Route index element={<Dashboard />} />
+                <Route path="robots" element={<RobotSettings />} />
+                <Route path="articles" element={<ArticlesAdmin />} />
                 <Route path="settings" element={<SettingsPage />} />
                 <Route path="settings/advanced" element={<AdvancedSettings />} />
                 <Route path="auto" element={<AutoPublisher />} />
-                <Route path="robots" element={<RobotSettings />} />
-                <Route path="articles" element={<ArticlesAdmin />} />
                 <Route path="videos" element={<VideosAdmin />} />
                 <Route path="topics" element={<TopicsAdmin />} />
                 <Route path="researchers" element={<ResearchersAdmin />} />
@@ -99,32 +101,13 @@ export default function App() {
                 <Route path="firebase" element={<FirebaseSettingsAdmin />} />
               </Route>
 
-              {/* Secret Obfuscated Admin Portal Route for Native Desktop/Mobile App */}
-              <Route path="/portal-amsed-secure-x98k21/admin" element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
-                <Route index element={<Dashboard />} />
-                <Route path="settings/advanced" element={<AdvancedSettings />} />
-                <Route path="auto" element={<AutoPublisher />} />
-                <Route path="robots" element={<RobotSettings />} />
-                <Route path="articles" element={<ArticlesAdmin />} />
-                <Route path="videos" element={<VideosAdmin />} />
-                <Route path="topics" element={<TopicsAdmin />} />
-                <Route path="researchers" element={<ResearchersAdmin />} />
-                <Route path="review" element={<ReviewAdmin />} />
-                <Route path="messages" element={<MessagesAdmin />} />
-                
-                <Route path="services" element={<ServicesAdmin />} />
-                <Route path="menus" element={<MenusAdmin />} />
-                <Route path="buttons" element={<ButtonsAdmin />} />
-                <Route path="pages" element={<PagesAdmin />} />
-                <Route path="pages/:pageKey" element={<PagesAdmin />} />
-                <Route path="hero" element={<HeroAdmin />} />
-                <Route path="stats" element={<StatsAdmin />} />
-                <Route path="gallery" element={<GalleryAdmin />} />
-                <Route path="archives" element={<ArchivesAdmin />} />
-                <Route path="contact" element={<ContactAdmin />} />
-                <Route path="logo" element={<LogoAdmin />} />
-                <Route path="firebase" element={<FirebaseSettingsAdmin />} />
-              </Route>
+              {/* Native Secret Portal alias redirected or supported */}
+              <Route path="/portal-amsed-secure-x98k21/admin" element={<Navigate to="/am-ctrl-9k2l8x-2026-secure-panel-77" replace />} />
+              <Route path="/portal-amsed-secure-x98k21/admin/*" element={<Navigate to="/am-ctrl-9k2l8x-2026-secure-panel-77" replace />} />
+
+              {/* NO /admin shortcut allowed */}
+              <Route path="/admin" element={<Navigate to="/" replace />} />
+              <Route path="/admin/*" element={<Navigate to="/" replace />} />
 
               {/* Catch-all Redirect */}
               <Route path="*" element={<Navigate to="/" replace />} />

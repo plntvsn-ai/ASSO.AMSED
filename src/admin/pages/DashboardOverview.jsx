@@ -11,27 +11,30 @@ import {
 export const DashboardOverview = () => {
   const { cmsData, firebaseStatus } = useCms();
 
+  const SECURE = '/am-ctrl-9k2l8x-2026-secure-panel-77';
+
   const statsCards = [
-    { label: "المقالات والأخبار", count: cmsData.articles?.length || 0, link: "/admin/articles", icon: FileText, color: "text-emerald-700 bg-emerald-50" },
-    { label: "فيديوهات يوتيوب", count: cmsData.videos?.length || 0, link: "/admin/videos", icon: Video, color: "text-red-700 bg-red-50" },
-    { label: "صور المعرض", count: cmsData.gallery?.length || 0, link: "/admin/gallery", icon: Image, color: "text-amber-700 bg-amber-50" },
-    { label: "ملفات الأرشيف والـ PDF", count: cmsData.archives?.length || 0, link: "/admin/archives", icon: FolderArchive, color: "text-blue-700 bg-blue-50" },
+    { label: "المقالات والأخبار", count: cmsData.articles?.length || 0, link: `${SECURE}/articles`, icon: FileText, color: "text-emerald-700 bg-emerald-50" },
+    { label: "فيديوهات يوتيوب", count: cmsData.videos?.length || 0, link: `${SECURE}/videos`, icon: Video, color: "text-red-700 bg-red-50" },
+    { label: "صور المعرض", count: cmsData.gallery?.length || 0, link: `${SECURE}/gallery`, icon: Image, color: "text-amber-700 bg-amber-50" },
+    { label: "ملفات الأرشيف والـ PDF", count: cmsData.archives?.length || 0, link: `${SECURE}/archives`, icon: FolderArchive, color: "text-blue-700 bg-blue-50" },
   ];
 
   const quickLinks = [
-    { title: "نظام المقالات", desc: "إضافة وتعديل المقالات بمحرر نصوص غني ونشرها", link: "/admin/articles", icon: FileText },
-    { title: "تعديل القوائم", desc: "ترتيب وتعديل روابط الهيدر والفوتر", link: "/admin/menus", icon: Menu },
-    { title: "تعديل الأزرار", desc: "تغيير نصوص وألوان وروابط جميع أزرار الموقع", link: "/admin/buttons", icon: MousePointerClick },
-    { title: "أقسام الصفحات", desc: "تعديل محتوى الصفحة الرئيسية وصفحة من نحن", link: "/admin/pages", icon: LayoutTemplate },
-    { title: "فيديو الـ Hero", desc: `الفيديو التعريفي الحالي (ID: ${cmsData.hero?.videoId || 'CSwDq9szfj0'})`, link: "/admin/hero", icon: Film },
-    { title: "فيديوهات يوتيوب", desc: "إضافة مقاطع جديدة بروابط يوتيوب تلقائياً", link: "/admin/videos", icon: Video },
-    { title: "رسائل الزوار 💬", desc: "استعراض والرد الفوري عبر واتساب على رسائل الزوار", link: "/admin/messages", icon: Phone },
-    { title: "إعدادات متقدمة ⚙️", desc: "النشر الأوتوماتيكي وبنك المواضيع الذكي", link: "/admin/settings/advanced", icon: Sparkles },
-    { title: "معرض الصور", desc: "رفع وحذف صور الأنشطة بالسحب والإفلات", link: "/admin/gallery", icon: Image },
-    { title: "ملفات الأرشيف (PDF)", desc: "إدارة الوثائق والتقارير القانونية السنوية", link: "/admin/archives", icon: FolderArchive },
-    { title: "معلومات الاتصال", desc: "تعديل الهواتف، الإيميل، العنوان ورابط الخريطة", link: "/admin/contact", icon: Phone },
-    { title: "الشعار واللوغو", desc: "رفع وتحديث شعار الجمعية الرسمي الشفاف", link: "/admin/logo", icon: Award },
-    { title: "إعدادات Firebase", desc: "ربط مشروع Firestore السحابي وتحديث المفاتيح", link: "/admin/firebase", icon: Database },
+    { title: "إعدادات الروبوتات 🤖", desc: "إدارة الروبوتات المستقلة والتشغيل الذاتي لمقالات التوحد", link: `${SECURE}/robots`, icon: Sparkles },
+    { title: "نظام المقالات", desc: "إضافة وتعديل المقالات بمحرر نصوص غني ونشرها", link: `${SECURE}/articles`, icon: FileText },
+    { title: "تعديل القوائم", desc: "ترتيب وتعديل روابط الهيدر والفوتر", link: `${SECURE}/menus`, icon: Menu },
+    { title: "تعديل الأزرار", desc: "تغيير نصوص وألوان وروابط جميع أزرار الموقع", link: `${SECURE}/buttons`, icon: MousePointerClick },
+    { title: "أقسام الصفحات", desc: "تعديل محتوى الصفحة الرئيسية وصفحة من نحن", link: `${SECURE}/pages`, icon: LayoutTemplate },
+    { title: "فيديو الـ Hero", desc: `الفيديو التعريفي الحالي (ID: ${cmsData.hero?.videoId || 'CSwDq9szfj0'})`, link: `${SECURE}/hero`, icon: Film },
+    { title: "فيديوهات يوتيوب", desc: "إضافة مقاطع جديدة بروابط يوتيوب تلقائياً", link: `${SECURE}/videos`, icon: Video },
+    { title: "رسائل الزوار 💬", desc: "استعراض والرد الفوري عبر واتساب على رسائل الزوار", link: `${SECURE}/messages`, icon: Phone },
+    { title: "إعدادات متقدمة ⚙️", desc: "النشر الأوتوماتيكي وبنك المواضيع الذكي", link: `${SECURE}/settings/advanced`, icon: Sparkles },
+    { title: "معرض الصور", desc: "رفع وحذف صور الأنشطة بالسحب والإفلات", link: `${SECURE}/gallery`, icon: Image },
+    { title: "ملفات الأرشيف (PDF)", desc: "إدارة الوثائق والتقارير القانونية السنوية", link: `${SECURE}/archives`, icon: FolderArchive },
+    { title: "معلومات الاتصال", desc: "تعديل الهواتف، الإيميل، العنوان ورابط الخريطة", link: `${SECURE}/contact`, icon: Phone },
+    { title: "الشعار واللوغو", desc: "رفع وتحديث شعار الجمعية الرسمي الشفاف", link: `${SECURE}/logo`, icon: Award },
+    { title: "إعدادات Firebase", desc: "ربط مشروع Firestore السحابي وتحديث المفاتيح", link: `${SECURE}/firebase`, icon: Database },
   ];
 
   return (

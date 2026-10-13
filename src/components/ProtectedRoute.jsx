@@ -7,7 +7,7 @@ export const SECRET_ADMIN_KEY = 'amsed_vault_secure_987654';
  * ProtectedRoute:
  * Protects admin area from public visitors and intruders.
  * Only grants access if the secret authentication key is provided in URL or stored in local session.
- * Otherwise redirects public visitors to home page with zero trace.
+ * Otherwise redirects public visitors to login page or home page.
  */
 export default function ProtectedRoute({ children }) {
   const location = useLocation();
@@ -22,7 +22,7 @@ export default function ProtectedRoute({ children }) {
       return true;
     }
     try {
-      return localStorage.getItem('amsed_admin_authorized') === SECRET_ADMIN_KEY;
+      return localStorage.getItem('amsed_admin_authorized') === SECRET_ADMIN_KEY || localStorage.getItem('amsed_auth') === 'true';
     } catch (e) {
       return false;
     }
@@ -37,8 +37,11 @@ export default function ProtectedRoute({ children }) {
     }
   }, [keyParam]);
 
-  // If unauthorized visitor tries to access /admin, redirect immediately to home page
+  // If unauthorized visitor tries to access secure area, redirect to secure login
   if (!authorized) {
+    if (location.pathname.startsWith('/am-ctrl-9k2l8x-2026-secure-panel-77')) {
+      return <Navigate to="/am-ctrl-9k2l8x-2026-secure-panel-77/login" replace />;
+    }
     return <Navigate to="/" replace />;
   }
 

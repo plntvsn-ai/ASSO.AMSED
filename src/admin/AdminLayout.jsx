@@ -16,32 +16,41 @@ export const AdminLayout = ({ children }) => {
   const { cmsData, firebaseStatus } = useCms();
   const [collapsed, setCollapsed] = useState(false);
 
+  const isSecurePanel = location.pathname.startsWith('/am-ctrl-9k2l8x-2026-secure-panel-77');
   const isSecretPortal = location.pathname.startsWith('/portal-amsed-secure-x98k21/admin');
-  const currentSearch = location.search;
+  const adminBase = isSecurePanel 
+    ? '/am-ctrl-9k2l8x-2026-secure-panel-77' 
+    : (isSecretPortal ? '/portal-amsed-secure-x98k21/admin' : '/am-ctrl-9k2l8x-2026-secure-panel-77');
 
   const menuItems = [
-    { path: '/admin', label: 'نظرة عامة (Overview)', icon: Home, exact: true },
-    { path: '/admin/articles', label: 'المقالات والأخبار', icon: FileText, count: cmsData.articles?.length },
-    { path: '/admin/services', label: 'إعدادات الخدمات', icon: HandHeart, count: 8 },
-    { path: '/am-ctrl-9k2l8x-2026-secure-panel-77', label: 'إعدادات الروبوت', icon: '🤖', badge: 'BOSS' },
-    { path: '/admin/topics', label: 'خزان المواضيع', icon: BookOpen },
-    { path: '/admin/review', label: 'مراجعة المقالات', icon: CheckSquare },
-    { path: '/admin/researchers', label: 'المحررون والباحثون', icon: Users },
-    { path: '/admin/messages', label: 'رسائل الزوار 💬', icon: '💬' },
-    { path: '/admin/settings', href: '/admin/settings', label: 'إعدادات الموقع الأساسية', icon: '⚙️', badge: null },
-    { path: '/admin/settings/advanced', href: '/admin/settings/advanced', label: 'إعدادات متقدمة', icon: '⚙️', badge: null },
-    { path: '/admin/menus', label: 'تعديل القوائم', icon: Menu },
-    { path: '/admin/buttons', label: 'تعديل الأزرار', icon: MousePointerClick },
-    { path: '/admin/pages', label: 'أقسام الصفحات', icon: LayoutTemplate },
-    { path: '/admin/hero', label: 'فيديو الـ Hero', icon: Film },
-    { path: '/admin/stats', label: 'الأرقام والإحصائيات', icon: BarChart3 },
-    { path: '/admin/videos', label: 'فيديوهات يوتيوب', icon: Video, count: cmsData.videos?.length },
-    { path: '/admin/gallery', label: 'معرض الصور', icon: Image, count: cmsData.gallery?.length },
-    { path: '/admin/archives', label: 'الأرشيف والـ PDF', icon: FolderArchive, count: cmsData.archives?.length },
-    { path: '/admin/contact', label: 'معلومات الاتصال', icon: Phone },
-    { path: '/admin/logo', label: 'الشعار واللوغو', icon: Award },
-    { path: '/admin/firebase', label: 'إعدادات Firebase', icon: Database },
+    { path: `${adminBase}`, label: 'لوحة التحكم (Dashboard)', icon: Home, exact: true },
+    { path: `${adminBase}/articles`, label: 'المقالات والأخبار', icon: FileText, count: cmsData.articles?.length },
+    { path: `${adminBase}/robots`, label: 'إعدادات الروبوتات 🤖', icon: '🤖', badge: 'AUTO' },
+    { path: `${adminBase}/settings`, label: 'الإعدادات العامة', icon: '⚙️' },
+    { path: `${adminBase}/settings/advanced`, label: 'إعدادات متقدمة', icon: '⚙️' },
+    { path: `${adminBase}/services`, label: 'إعدادات الخدمات', icon: HandHeart, count: 8 },
+    { path: `${adminBase}/topics`, label: 'خزان المواضيع', icon: BookOpen },
+    { path: `${adminBase}/review`, label: 'مراجعة المقالات', icon: CheckSquare },
+    { path: `${adminBase}/researchers`, label: 'المحررون والباحثون', icon: Users },
+    { path: `${adminBase}/messages`, label: 'رسائل الزوار 💬', icon: '💬' },
+    { path: `${adminBase}/menus`, label: 'تعديل القوائم', icon: Menu },
+    { path: `${adminBase}/buttons`, label: 'تعديل الأزرار', icon: MousePointerClick },
+    { path: `${adminBase}/pages`, label: 'أقسام الصفحات', icon: LayoutTemplate },
+    { path: `${adminBase}/hero`, label: 'فيديو الـ Hero', icon: Film },
+    { path: `${adminBase}/stats`, label: 'الأرقام والإحصائيات', icon: BarChart3 },
+    { path: `${adminBase}/videos`, label: 'فيديوهات يوتيوب', icon: Video, count: cmsData.videos?.length },
+    { path: `${adminBase}/gallery`, label: 'معرض الصور', icon: Image, count: cmsData.gallery?.length },
+    { path: `${adminBase}/archives`, label: 'الأرشيف والـ PDF', icon: FolderArchive, count: cmsData.archives?.length },
+    { path: `${adminBase}/contact`, label: 'معلومات الاتصال', icon: Phone },
+    { path: `${adminBase}/logo`, label: 'الشعار واللوغو', icon: Award },
+    { path: `${adminBase}/firebase`, label: 'إعدادات Firebase', icon: Database },
   ];
+
+  const handleLogout = () => {
+    localStorage.removeItem('amsed_auth');
+    localStorage.removeItem('amsed_admin_authorized');
+    navigate('/am-ctrl-9k2l8x-2026-secure-panel-77/login');
+  };
 
   return (
     <div className="min-h-screen bg-slate-100 flex font-sans text-slate-800" dir="rtl">
@@ -58,8 +67,8 @@ export const AdminLayout = ({ children }) => {
                 <Logo size={36} />
               </div>
               <div className="min-w-0">
-                <h2 className="font-extrabold text-sm text-white truncate">لوحة تحكم CMS</h2>
-                <span className="text-[11px] text-amber-400 font-medium truncate block">جمعية المبادرة المغربية</span>
+                <h2 className="font-extrabold text-sm text-white truncate">لوحة تحكم AMSED</h2>
+                <span className="text-[11px] text-amber-400 font-medium truncate block">دعم التوحد والتنمية المستدامة</span>
               </div>
             </div>
           )}
@@ -77,19 +86,14 @@ export const AdminLayout = ({ children }) => {
         <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
           {menuItems.map((item) => {
             const Icon = item.icon;
-            const currentSubPath = item.path.replace(/^\/admin/, '');
-            const targetPath = (isSecretPortal && item.path.startsWith('/admin'))
-              ? `/portal-amsed-secure-x98k21/admin${currentSubPath}${currentSearch}` 
-              : item.path;
-
             const isActive = item.exact 
-              ? (location.pathname === item.path || location.pathname === `/portal-amsed-secure-x98k21/admin`)
-              : (location.pathname === item.path || (item.path !== '/admin' && location.pathname.startsWith(item.path)) || location.pathname.startsWith(`/portal-amsed-secure-x98k21/admin${currentSubPath}`));
+              ? (location.pathname === item.path)
+              : (location.pathname === item.path || (item.path !== adminBase && location.pathname.startsWith(item.path)));
 
             return (
               <Link
                 key={item.path}
-                to={targetPath}
+                to={item.path}
                 className={`flex items-center gap-3 px-3.5 py-3 rounded-2xl text-xs sm:text-sm font-bold transition ${
                   isActive
                     ? 'bg-emerald-700 text-white shadow-lg shadow-emerald-950/50'
@@ -118,6 +122,16 @@ export const AdminLayout = ({ children }) => {
               </Link>
             );
           })}
+
+          {/* Explicit Logout item in sidebar (Required Item 2) */}
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-xs sm:text-sm font-bold text-rose-400 hover:bg-rose-950/60 hover:text-white transition cursor-pointer mt-3 pt-2 border-t border-slate-900"
+            title={collapsed ? 'تسجيل خروج' : undefined}
+          >
+            <LogOut className="w-5 h-5 shrink-0" />
+            {!collapsed && <span>تسجيل خروج 🚪</span>}
+          </button>
         </nav>
 
         {/* Footer info in sidebar */}
@@ -149,7 +163,7 @@ export const AdminLayout = ({ children }) => {
         {/* Top Header */}
         <header className="bg-white border-b border-slate-200 px-6 py-4 flex items-center justify-between shrink-0 shadow-sm">
           <div className="flex items-center gap-2">
-            <span className="text-xs font-bold text-slate-400">نظام إدارة المحتوى (CMS)</span>
+            <span className="text-xs font-bold text-slate-400">لوحة التحكم الآمنة</span>
             <span className="text-slate-300">/</span>
             <span className="text-xs font-extrabold text-slate-700 font-mono">{location.pathname}</span>
           </div>
@@ -164,17 +178,17 @@ export const AdminLayout = ({ children }) => {
             </Link>
 
             <button
-              onClick={() => navigate('/')}
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-xl transition border border-red-200"
+              onClick={handleLogout}
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-xl transition border border-red-200 cursor-pointer"
               title="خروج"
             >
               <LogOut className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">الخروج من لوحة التحكم</span>
+              <span className="hidden sm:inline">تسجيل خروج 🚪</span>
             </button>
           </div>
         </header>
 
-        {/* Dynamic Page Outlet */}
+        {/* Dynamic Page Content */}
         <main className="flex-1 p-4 sm:p-8 overflow-y-auto">
           {children || <Outlet />}
         </main>
@@ -183,3 +197,4 @@ export const AdminLayout = ({ children }) => {
     </div>
   );
 };
+export default AdminLayout;
