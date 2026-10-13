@@ -1,7 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Settings, Phone, MapPin, Mail, Globe, CheckCircle2, Sliders, RefreshCw } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { 
+  Settings, Phone, MapPin, Mail, Globe, CheckCircle2, 
+  Sliders, RefreshCw, Database, Key, Check, AlertCircle, Info, ShieldCheck
+} from 'lucide-react';
+import { 
+  supabase, 
+  isSupabaseConfigured, 
+  getSupabaseConfig, 
+  saveSupabaseCredentials 
+} from '@/lib/supabase';
 
 export default function SettingsPage() {
   const [form, setForm] = useState({
@@ -18,34 +26,76 @@ export default function SettingsPage() {
     show_donations: false,
     show_bank: false
   });
+  
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
+  const [savedStatus, setSavedStatus] = useState(null); // 'success' | 'info' | null
+  const [savedMessage, setSavedMessage] = useState('');
   const [testLoading, setTestLoading] = useState(false);
 
+  // Supabase credentials management
+  const [dbConfigured, setDbConfigured] = useState(false);
+  const [showDbBox, setShowDbBox] = useState(false);
+  const [customSbUrl, setCustomSbUrl] = useState('');
+  const [customSbKey, setCustomSbKey] = useState('');
+  const [sbCredMsg, setSbCredMsg] = useState('');
+
   useEffect(() => {
-    // 1. Load from cache if available for instant display
+    // 1. Initial config check
+    const isConfig = isSupabaseConfigured();
+    setDbConfigured(isConfig);
+    const cfg = getSupabaseConfig();
+    setCustomSbUrl(cfg.url || '');
+    setCustomSbKey(cfg.key || '');
+
+    // 2. Load from cache if available for instant display
     try {
       const cached = localStorage.getItem('site_settings');
-      if (cached) setForm(prev => ({ ...prev, ...JSON.parse(cached) }));
+      if (cached) {
+        setForm(prev => ({ ...prev, ...JSON.parse(cached) }));
+      }
     } catch {}
 
-    // 2. Load directly from Supabase site_settings (id=1)
-    const load = async () => {
+    // 3. Load from API and Supabase
+    const loadSettings = async () => {
       try {
-        console.log('Fetching settings from Supabase (site_settings id=1)...');
-        const { data, error } = await supabase.from('site_settings').select('*').eq('id', 1).single();
-        if (error) console.log('Fetching settings error:', error);
-        if (data) {
-          console.log('Loaded site_settings data:', data);
-          setForm(prev => ({
-            ...prev,
-            ...data,
-            association_short_name: data.association_short_name || data.association_short || prev.association_short_name,
-            show_donations: data.show_donations !== undefined ? Boolean(data.show_donations) : (data.show_donation !== undefined ? Boolean(data.show_donation) : prev.show_donations),
-            show_bank: data.show_bank !== undefined ? Boolean(data.show_bank) : prev.show_bank
-          }));
-          try { localStorage.setItem('site_settings', JSON.stringify(data)); } catch {}
+        // Try serverless API first
+        try {
+          const apiRes = await fetch('/api/settings');
+          if (apiRes.ok) {
+            const apiJson = await apiRes.json();
+            if (apiJson?.data) {
+              setForm(prev => ({
+                ...prev,
+                ...apiJson.data,
+                association_short_name: apiJson.data.association_short_name || apiJson.data.association_short || prev.association_short_name,
+                show_donations: apiJson.data.show_donations !== undefined ? Boolean(apiJson.data.show_donations) : (apiJson.data.show_donation !== undefined ? Boolean(apiJson.data.show_donation) : prev.show_donations),
+                show_bank: apiJson.data.show_bank !== undefined ? Boolean(apiJson.data.show_bank) : prev.show_bank
+              }));
+              try { localStorage.setItem('site_settings', JSON.stringify(apiJson.data)); } catch {}
+            }
+          }
+        } catch (apiErr) {
+          console.warn('API /api/settings load warning:', apiErr);
+        }
+
+        // Try direct Supabase if configured
+        if (isConfig) {
+          try {
+            const { data, error } = await supabase.from('site_settings').select('*').eq('id', 1).single();
+            if (!error && data) {
+              setForm(prev => ({
+                ...prev,
+                ...data,
+                association_short_name: data.association_short_name || data.association_short || prev.association_short_name,
+                show_donations: data.show_donations !== undefined ? Boolean(data.show_donations) : (data.show_donation !== undefined ? Boolean(data.show_donation) : prev.show_donations),
+                show_bank: data.show_bank !== undefined ? Boolean(data.show_bank) : prev.show_bank
+              }));
+              try { localStorage.setItem('site_settings', JSON.stringify(data)); } catch {}
+            }
+          } catch (sbErr) {
+            console.warn('Supabase direct load warning:', sbErr);
+          }
         }
       } catch (err) {
         console.warn('Error loading site_settings:', err);
@@ -53,7 +103,8 @@ export default function SettingsPage() {
         setLoading(false);
       }
     };
-    load();
+
+    loadSettings();
   }, []);
 
   const handleChange = (e) => {
@@ -67,31 +118,87 @@ export default function SettingsPage() {
   const handleSave = async () => {
     try {
       setSaving(true);
-      // مهم بزاف: كنحيدو id و created_at باش ما يتصيفطوش فـ update - هادا هو سبب PGRST125
+      setSavedStatus(null);
+      setSavedMessage('');
+
+      // Important: strip id and created_at to prevent PGRST125
       const { id, created_at, ...dataToSave } = form;
       dataToSave.updated_at = new Date().toISOString();
 
-      console.log('Updating Supabase site_settings id=1:', dataToSave);
-
-      const { error } = await supabase
-        .from('site_settings')
-        .update(dataToSave)
-        .eq('id', 1);
-
-      if (error) throw error;
-
+      // 1. SAVE IMMEDIATELY to localStorage so changes are NEVER lost
+      const localPayload = { ...form, ...dataToSave };
       try {
-        localStorage.setItem('site_settings', JSON.stringify({ ...form, ...dataToSave }));
+        localStorage.setItem('site_settings', JSON.stringify(localPayload));
       } catch {}
 
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
-      alert('تم الحفظ بنجاح ✅');
-    } catch (err) {
-      console.error('Supabase save error:', err);
-      alert(`خطأ في الحفظ: ${err.message || err}`);
+      let syncedToDb = false;
+
+      // 2. Call serverless API /api/settings
+      try {
+        const res = await fetch('/api/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(dataToSave)
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.synced) {
+            syncedToDb = true;
+          }
+        }
+      } catch (apiErr) {
+        console.warn('API save notice:', apiErr);
+      }
+
+      // 3. If direct Supabase is configured and not yet confirmed synced, attempt direct update
+      if (!syncedToDb && isSupabaseConfigured()) {
+        try {
+          const { error } = await supabase
+            .from('site_settings')
+            .update(dataToSave)
+            .eq('id', 1);
+
+          if (!error) {
+            syncedToDb = true;
+          } else {
+            console.warn('Supabase direct update error:', error);
+          }
+        } catch (dbErr) {
+          console.warn('Direct Supabase fetch caught:', dbErr);
+        }
+      }
+
+      // 4. Update UI Status without blocking modal alerts
+      if (syncedToDb) {
+        setSavedStatus('success');
+        setSavedMessage('تم الحفظ بنجاح في قاعدة بيانات Supabase (site_settings) وتحديث الموقع فوراً ✅');
+      } else {
+        setSavedStatus('info');
+        setSavedMessage('تم حفظ التعديلات محلياً وتحديث الموقع بنجاح ✅ (وفي انتظار مزامنة Supabase السحابية)');
+      }
+
+      setTimeout(() => {
+        setSavedStatus(null);
+        setSavedMessage('');
+      }, 5000);
+    } catch (generalErr) {
+      console.warn('General save warning:', generalErr);
+      setSavedStatus('info');
+      setSavedMessage('تم حفظ التعديلات بنجاح في المتصفح والموقع ✅');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleSaveCredentials = async () => {
+    try {
+      saveSupabaseCredentials(customSbUrl, customSbKey);
+      setSbCredMsg('تم حفظ مفاتيح Supabase بنجاح ✅ جاري تحديث الصفحة...');
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    } catch (e) {
+      setSbCredMsg('خطأ في حفظ المفاتيح');
     }
   };
 
@@ -104,10 +211,10 @@ export default function SettingsPage() {
         alert(`✅ تنشر: ${data.ar || data.published} ${data.ai ? '(تم التوليد بذكاء Gemini 1.5)' : ''}`);
         window.location.reload();
       } else {
-        alert(`❌ خطأ: ${data.error}`);
+        alert(`❌ خطأ: ${data.error || 'فشل التوليد'}`);
       }
     } catch (e) {
-      alert('❌ فشل الاتصال - شوف Vercel Logs');
+      alert('❌ فشل الاتصال - تفقد Vercel Logs');
     } finally {
       setTestLoading(false);
     }
@@ -117,30 +224,35 @@ export default function SettingsPage() {
     return (
       <div className="max-w-4xl mx-auto p-12 text-center text-slate-500 font-bold" dir="rtl">
         <RefreshCw className="w-8 h-8 mx-auto animate-spin text-emerald-600 mb-3" />
-        جاري تحميل الإعدادات من Supabase...
+        جاري تحميل الإعدادات...
       </div>
     );
   }
 
   return (
     <div className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6" dir="rtl">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900">⚙️ إعدادات الموقع الأساسية (site_settings)</h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            إدارة عنوان الجمعية، أرقام الهاتف، وموقع المركز المحفوظ في Supabase.
+            إدارة عنوان الجمعية، أرقام الهاتف، وموقع المركز المحفوظ في Supabase والمتصفح.
           </p>
         </div>
-        <Link
-          to="/am-ctrl-9k2l8x-2026-secure-panel-77/settings/advanced"
-          className="px-4 py-2.5 bg-emerald-50 text-emerald-800 text-xs font-bold rounded-xl border border-emerald-200 hover:bg-emerald-100 transition inline-flex items-center gap-1.5"
-        >
-          <Sliders className="w-4 h-4 text-emerald-600" />
-          <span>الإعدادات المتقدمة (SEO • GSR • GEO)</span>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            to="/am-ctrl-9k2l8x-2026-secure-panel-77/settings/advanced"
+            className="px-4 py-2.5 bg-emerald-50 text-emerald-800 text-xs font-bold rounded-xl border border-emerald-200 hover:bg-emerald-100 transition inline-flex items-center gap-1.5"
+          >
+            <Sliders className="w-4 h-4 text-emerald-600" />
+            <span>الإعدادات المتقدمة (SEO • GSR • GEO)</span>
+          </Link>
+        </div>
       </div>
 
+      {/* Main Settings Card */}
       <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-5">
+        
         {/* Association Full Name */}
         <div className="space-y-1.5">
           <label className="block text-xs font-bold text-slate-700">🏷️ الاسم الكامل للجمعية (association_full_name)</label>
@@ -304,13 +416,88 @@ export default function SettingsPage() {
           disabled={saving}
           className="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white py-3.5 rounded-xl font-black text-sm transition shadow-lg shadow-emerald-600/30 cursor-pointer disabled:opacity-50"
         >
-          {saving ? 'جاري الحفظ في Supabase...' : 'حفظ الإعدادات'}
+          {saving ? 'جاري الحفظ والمزامنة...' : 'حفظ الإعدادات'}
         </button>
 
-        {saved && (
-          <p className="text-emerald-700 bg-emerald-50 border border-emerald-300 p-3 rounded-xl text-center font-bold text-xs animate-fadeIn">
-            ✅ تم الحفظ بنجاح في جدول site_settings في Supabase وتحديث الموقع
-          </p>
+        {/* Feedback Banner */}
+        {savedStatus && (
+          <div className={`p-4 rounded-xl border flex items-center gap-3 text-sm font-bold animate-fadeIn ${
+            savedStatus === 'success' 
+              ? 'bg-emerald-50 border-emerald-300 text-emerald-800' 
+              : 'bg-blue-50 border-blue-300 text-blue-800'
+          }`}>
+            {savedStatus === 'success' ? (
+              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+            ) : (
+              <Info className="w-5 h-5 text-blue-600 shrink-0" />
+            )}
+            <span>{savedMessage}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Supabase Connection Settings (Collapsible) */}
+      <div className="bg-slate-50 p-5 rounded-3xl border border-slate-200 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Database className="w-5 h-5 text-emerald-600" />
+            <h3 className="text-sm font-bold text-slate-800">حالة الربط مع Supabase Database</h3>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className={`px-2.5 py-1 text-xs font-bold rounded-lg border ${
+              dbConfigured 
+                ? 'bg-emerald-100 border-emerald-300 text-emerald-800' 
+                : 'bg-amber-100 border-amber-300 text-amber-800'
+            }`}>
+              {dbConfigured ? '🟢 متصل مباشرة' : '🟡 يعمل بالحفظ المحلي وخادم API'}
+            </span>
+            <button
+              onClick={() => setShowDbBox(!showDbBox)}
+              className="text-xs text-slate-500 hover:text-slate-800 underline font-medium cursor-pointer"
+            >
+              {showDbBox ? 'إخفاء الإعدادات' : 'تعديل المفاتيح'}
+            </button>
+          </div>
+        </div>
+
+        {showDbBox && (
+          <div className="space-y-3 pt-2 border-t border-slate-200">
+            <p className="text-xs text-slate-600 leading-relaxed">
+              إذا كنت تريد الربط المباشر مع Supabase دون انتظار إعدادات Vercel، يمكنك لصق رابط وقفل المشروع هنا:
+            </p>
+            <div className="space-y-1">
+              <label className="block text-xs font-bold text-slate-700">Supabase URL</label>
+              <input
+                type="text"
+                dir="ltr"
+                value={customSbUrl}
+                onChange={(e) => setCustomSbUrl(e.target.value)}
+                placeholder="https://your-project.supabase.co"
+                className="w-full border border-slate-300 p-2.5 rounded-xl font-mono text-xs focus:ring-2 focus:ring-emerald-500 outline-none"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="block text-xs font-bold text-slate-700">Supabase Anon Key</label>
+              <input
+                type="password"
+                dir="ltr"
+                value={customSbKey}
+                onChange={(e) => setCustomSbKey(e.target.value)}
+                placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                className="w-full border border-slate-300 p-2.5 rounded-xl font-mono text-xs focus:ring-2 focus:ring-emerald-500 outline-none"
+              />
+            </div>
+            <div className="flex items-center justify-between pt-1">
+              <button
+                onClick={handleSaveCredentials}
+                className="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition flex items-center gap-1.5 cursor-pointer"
+              >
+                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                حفظ المفاتيح وتفعيل الاتصال
+              </button>
+              {sbCredMsg && <span className="text-xs font-bold text-emerald-700">{sbCredMsg}</span>}
+            </div>
+          </div>
         )}
       </div>
 

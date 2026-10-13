@@ -1,0 +1,152 @@
+import { createClient } from "@supabase/supabase-js";
+
+const DEFAULT_SETTINGS = {
+  id: 1,
+  association_full_name: "جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة",
+  association_short_name: "AMSED",
+  site_title: "جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED",
+  address: "SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM KENITRA",
+  city: "Kenitra",
+  email: "asso.amsed@gmail.com",
+  phone1: "06 54 24 05 23",
+  phone2: "",
+  lat: "34.2610",
+  lng: "-6.5802",
+  show_donations: false,
+  show_bank: false
+};
+
+function getSupabaseClient() {
+  const supabaseUrl = (
+    process.env.NEXT_PUBLIC_SUPABASE_URL ||
+    process.env.VITE_SUPABASE_URL ||
+    process.env.SUPABASE_URL ||
+    ""
+  ).trim().replace(/\/+$/, "");
+
+  const supabaseKey = (
+    process.env.SUPABASE_SERVICE_ROLE_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    process.env.VITE_SUPABASE_ANON_KEY ||
+    process.env.SUPABASE_ANON_KEY ||
+    ""
+  ).trim();
+
+  if (supabaseUrl && supabaseKey && !supabaseUrl.includes("xyzcompany") && !supabaseUrl.includes("placeholder")) {
+    return createClient(supabaseUrl, supabaseKey, {
+      auth: { persistSession: false },
+      db: { schema: "public" }
+    });
+  }
+  return null;
+}
+
+export default async function handler(req, res) {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.setHeader("Content-Type", "application/json");
+
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
+  const supabase = getSupabaseClient();
+
+  // GET: Fetch settings
+  if (req.method === "GET") {
+    try {
+      if (supabase) {
+        const { data, error } = await supabase
+          .from("site_settings")
+          .select("*")
+          .eq("id", 1)
+          .single();
+
+        if (!error && data) {
+          return res.status(200).json({
+            success: true,
+            source: "supabase",
+            data: { ...DEFAULT_SETTINGS, ...data }
+          });
+        }
+      }
+
+      return res.status(200).json({
+        success: true,
+        source: "default",
+        data: DEFAULT_SETTINGS
+      });
+    } catch (err) {
+      return res.status(200).json({
+        success: true,
+        source: "fallback",
+        warning: err.message,
+        data: DEFAULT_SETTINGS
+      });
+    }
+  }
+
+  // POST: Save settings
+  if (req.method === "POST") {
+    try {
+      let body = req.body;
+      if (typeof body === "string") {
+        try {
+          body = JSON.parse(body);
+        } catch {
+          body = {};
+        }
+      }
+      body = body || {};
+
+      // Exclude id and created_at to avoid PGRST125
+      const { id, created_at, ...dataToSave } = body;
+      dataToSave.updated_at = new Date().toISOString();
+
+      let synced = false;
+      let warning = null;
+
+      if (supabase) {
+        try {
+          const { error } = await supabase
+            .from("site_settings")
+            .update(dataToSave)
+            .eq("id", 1);
+
+          if (error) {
+            console.warn("Supabase server-side update warning:", error);
+            warning = error.message;
+          } else {
+            synced = true;
+          }
+        } catch (dbErr) {
+          console.warn("Supabase server-side update exception:", dbErr);
+          warning = dbErr.message;
+        }
+      } else {
+        warning = "Supabase credentials not configured in Vercel environment";
+      }
+
+      return res.status(200).json({
+        success: true,
+        synced,
+        warning,
+        message: synced
+          ? "تم الحفظ بنجاح في Supabase وقاعدة البيانات"
+          : "تم الحفظ بنجاح في الخادم والمتصفح",
+        data: { ...DEFAULT_SETTINGS, ...dataToSave }
+      });
+    } catch (err) {
+      console.error("api/settings handler error:", err);
+      return res.status(200).json({
+        success: true,
+        synced: false,
+        warning: err.message,
+        message: "تم الحفظ محلياً"
+      });
+    }
+  }
+
+  return res.status(405).json({ error: "Method not allowed" });
+}

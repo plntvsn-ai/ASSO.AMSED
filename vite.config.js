@@ -43,7 +43,7 @@ function localApiPlugin() {
         if (req.url === '/api/settings' || req.url === '/api/site_settings') {
           res.setHeader('Content-Type', 'application/json');
           if (req.method === 'GET') {
-            res.end(JSON.stringify(devSettings));
+            res.end(JSON.stringify({ success: true, data: devSettings }));
             return;
           }
           if (req.method === 'POST') {
@@ -53,7 +53,7 @@ function localApiPlugin() {
               try {
                 const parsed = JSON.parse(body || '{}');
                 devSettings = { ...devSettings, ...parsed };
-                res.end(JSON.stringify(devSettings));
+                res.end(JSON.stringify({ success: true, synced: true, data: devSettings }));
               } catch (e) {
                 res.statusCode = 400;
                 res.end(JSON.stringify({ error: 'Invalid JSON' }));
