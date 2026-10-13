@@ -1,8 +1,11 @@
 export const initialData = {
   association: {
-    nameAr: "جمعية المبادرة المغربية للتكافل والتعاون لرعاية الأطفال في وضعية صعبة",
+    nameAr: "جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED",
     nameFr: "Association Initiative Marocaine pour la Solidarité et la Coopération pour la Protection des Enfants en Situation Difficile",
     nameEn: "Moroccan Initiative Association for Solidarity and Cooperation for Caring for Children in Difficult Situations",
+    association_full_name: "جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة",
+    association_short: "AMSED",
+    association_full_display: "جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED",
     acronym: "AMSED",
     motto: "الله • الوطن • الملك",
     phone1: "0654240523",
@@ -20,7 +23,7 @@ export const initialData = {
     cityEn: "Saknia - Kenitra",
     mapUrl: "https://maps.app.goo.gl/dB123S6xmCadzDMC6",
     bankName: "التجاري وفا بنك (Attijariwafa Bank)",
-    accountHolder: "جمعية المبادرة المغربية للتكافل والتعاون",
+    accountHolder: "جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة",
     rib: "007 780 0001234567890123 45",
     swift: "BCMAMAMC",
   },
@@ -238,7 +241,7 @@ export const initialData = {
     {
       id: "yt-CSwDq9szfj0",
       youtubeId: "CSwDq9szfj0",
-      titleAr: "جمعية المبادرة المغربية للتكافل والتعاون لرعاية الأطفال في وضعية صعبة",
+      titleAr: "جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED",
       titleFr: "Association Initiative Marocaine pour la Solidarité et la Coopération",
       titleEn: "Moroccan Initiative Association for Children in Difficult Situations",
       descAr: "الفيديو التعريفي الرسمي: أنشطة، برامج التعليم المكيف، والتأهيل المهني لأطفال الجمعية بالقنيطرة.",

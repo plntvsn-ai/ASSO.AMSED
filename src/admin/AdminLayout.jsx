@@ -68,7 +68,7 @@ export const AdminLayout = ({ children }) => {
               </div>
               <div className="min-w-0">
                 <h2 className="font-extrabold text-sm text-white truncate">لوحة تحكم AMSED</h2>
-                <span className="text-[11px] text-amber-400 font-medium truncate block">دعم التوحد والتنمية المستدامة</span>
+                <span className="text-[11px] text-amber-400 font-medium truncate block">رعاية الأطفال في وضعية صعبة - دعم التوحد</span>
               </div>
             </div>
           )}

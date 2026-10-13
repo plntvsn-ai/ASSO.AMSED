@@ -1,11 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Settings, Phone, MapPin, Mail, Globe, CheckCircle2, Sliders, RefreshCw } from 'lucide-react';
+import { db } from '../../firebase';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 export default function SettingsPage() {
   const [s, setS] = useState({
-    site_title: 'جمعية المبادرة المغربية للتكافل والتعاون لرعاية الأطفال في وضعية صعبة',
-    site_description: 'جمعية AMSED بالقنيطرة - تأهيل أطفال التوحد، ترويض طبي، تقويم النطق، الدعم المدرسي AVS، ورشات مهنية، ومواكبة نفسية.',
+    association_full_name: 'جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة',
+    association_short: 'AMSED',
+    association_full_display: 'جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED',
+    site_title: 'جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED',
+    site_description: 'جمعية AMSED - تأهيل أطفال التوحد، ترويض طبي، تقويم النطق، الدعم المدرسي AVS، ورشات مهنية، ومواكبة نفسية.',
     address: 'SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM KENITRA',
     address_ar: 'SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM KENITRA',
     phone: '06 54 24 05 23',
@@ -45,6 +50,35 @@ export default function SettingsPage() {
       if (cached) setS(prev => ({ ...prev, ...JSON.parse(cached) }));
     } catch {}
 
+    // Load from Firestore settings/general or siteSettings/main
+    (async () => {
+      try {
+        if (db) {
+          const genSnap = await getDoc(doc(db, "settings", "general"));
+          if (genSnap.exists()) {
+            setS(prev => ({ ...prev, ...genSnap.data() }));
+            return;
+          }
+          const siteSnap = await getDoc(doc(db, "siteSettings", "main"));
+          if (siteSnap.exists()) {
+            setS(prev => ({ ...prev, ...siteSnap.data() }));
+            return;
+          }
+          // Seed defaults
+          const defaultGeneral = {
+            association_full_name: 'جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة',
+            association_short: 'AMSED',
+            association_full_display: 'جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED',
+            site_title: 'جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED'
+          };
+          await setDoc(doc(db, "settings", "general"), defaultGeneral, { merge: true }).catch(() => {});
+          await setDoc(doc(db, "siteSettings", "main"), defaultGeneral, { merge: true }).catch(() => {});
+        }
+      } catch (e) {
+        console.warn('Firestore settings load warning:', e);
+      }
+    })();
+
     fetch('/api/settings')
       .then(r => r.json())
       .then(data => {
@@ -64,12 +98,30 @@ export default function SettingsPage() {
       phone1: s.phone1 || s.phone,
       address: s.address || s.address_ar,
       address_ar: s.address || s.address_ar,
-      site_title: s.site_title || s.association_name
+      site_title: s.site_title || s.association_full_display || s.association_name,
+      association_full_name: s.association_full_name || 'جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة',
+      association_short: s.association_short || 'AMSED',
+      association_full_display: s.association_full_display || 'جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED'
     };
 
     try {
       localStorage.setItem('site_settings', JSON.stringify(payload));
     } catch {}
+
+    // Save to Firestore collections
+    try {
+      if (db) {
+        await setDoc(doc(db, "settings", "general"), payload, { merge: true });
+        await setDoc(doc(db, "siteSettings", "main"), payload, { merge: true });
+        await setDoc(doc(db, "settings", "cmsConfig"), {
+          association_full_name: payload.association_full_name,
+          association_short: payload.association_short,
+          association_full_display: payload.association_full_display
+        }, { merge: true });
+      }
+    } catch (e) {
+      console.warn('Firestore settings save warning:', e);
+    }
 
     try {
       await fetch('/api/settings', {
@@ -77,11 +129,12 @@ export default function SettingsPage() {
         body: JSON.stringify(payload),
         headers: { 'Content-Type': 'application/json' }
       });
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
     } catch (e) {
       console.warn('Sync notice:', e);
     }
+
+    setSaved(true);
+    setTimeout(() => setSaved(false), 3000);
     setSaving(false);
   };
 
@@ -104,14 +157,47 @@ export default function SettingsPage() {
       </div>
 
       <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-5">
+        {/* Association Branding Names */}
+        <div className="space-y-1.5">
+          <label className="block text-xs font-bold text-slate-700">🏷️ الاسم الرسمي الكامل للجمعية (association_full_name)</label>
+          <input
+            value={s.association_full_name || ''}
+            onChange={e => setS({ ...s, association_full_name: e.target.value })}
+            className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm transition font-medium"
+            placeholder="جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-1.5">
+            <label className="block text-xs font-bold text-slate-700">🔤 الاختصار اللاتيني (association_short)</label>
+            <input
+              value={s.association_short || ''}
+              onChange={e => setS({ ...s, association_short: e.target.value })}
+              className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm font-mono transition"
+              placeholder="AMSED"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="block text-xs font-bold text-slate-700">🏷️ الاسم الكامل مع الاختصار للعرض (association_full_display)</label>
+            <input
+              value={s.association_full_display || ''}
+              onChange={e => setS({ ...s, association_full_display: e.target.value, site_title: e.target.value })}
+              className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm transition"
+              placeholder="جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED"
+            />
+          </div>
+        </div>
+
         {/* Title */}
         <div className="space-y-1.5">
-          <label className="block text-xs font-bold text-slate-700">🏷️ اسم الجمعية / العنوان الرئيسي (site_title)</label>
+          <label className="block text-xs font-bold text-slate-700">🌐 عنوان الموقع الرئيسي (site_title)</label>
           <input
-            value={s.site_title || s.association_name || ''}
+            value={s.site_title || ''}
             onChange={e => setS({ ...s, site_title: e.target.value })}
             className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm transition"
-            placeholder="جمعية المبادرة المغربية للتكافل والتعاون..."
+            placeholder="جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED"
           />
         </div>
 

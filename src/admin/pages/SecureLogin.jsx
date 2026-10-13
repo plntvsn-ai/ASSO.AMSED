@@ -56,7 +56,7 @@ export default function SecureLogin() {
             لوحة التحكم المركزية الآمنة
           </h1>
           <p className="text-xs text-slate-400 font-medium">
-            جمعية AMSED - دعم أطفال التوحد والتنمية المستدامة
+            جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED
           </p>
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-mono bg-emerald-950/80 text-emerald-400 border border-emerald-800/50">
             <ShieldCheck className="w-3.5 h-3.5" />

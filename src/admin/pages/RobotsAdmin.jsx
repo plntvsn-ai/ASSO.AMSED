@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 const DEFAULT_ROBOTS = [
-  { id: 'master', name: 'master', name_ar: '🤖 الماستر - القائد', enabled: true, cron_time: '09:00', prompt_template: 'كتب مقال 800 كلمة عن التنمية المستدامة في المغرب، بأسلوب صحفي مغربي بسيط، مع لمسة دارجة خفيفة، واذكر جمعية أمسي AMSED الدار البيضاء', status: 'idle' },
+  { id: 'master', name: 'master', name_ar: '🤖 الماستر - القائد', enabled: true, cron_time: '09:00', prompt_template: 'كتب مقال عن التوحد عند الأطفال لجمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED الدار البيضاء', status: 'idle' },
   { id: 'seo_linking', name: 'seo_linking', name_ar: '🔗 روبوت الربط الداخلي', enabled: true, cron_time: '09:00', prompt_template: 'اختار 3 مقالات مشابهة للربط', status: 'idle' },
   { id: 'seo_schema', name: 'seo_schema', name_ar: '⭐ روبوت النجوم والـ Schema', enabled: true, cron_time: '09:00', prompt_template: 'schema with aggregateRating 4.8', status: 'idle' },
   { id: 'seo_refresher', name: 'seo_refresher', name_ar: '♻️ روبوت تحديث القديم', enabled: true, cron_time: '09:00', prompt_template: 'كل جمعة جدد مقال قديم بفقرة 2026', status: 'idle' },

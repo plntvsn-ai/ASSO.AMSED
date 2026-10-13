@@ -62,8 +62,8 @@ export const Footer = ({ siteSettings: propSettings }) => {
                 <Logo size={46} />
               </div>
               <div>
-                <span className="text-base font-bold text-white block">
-                  {lang === 'ar' ? association.nameAr : lang === 'fr' ? association.nameFr : association.nameEn}
+                <span className="text-base font-bold text-white block leading-snug">
+                  {lang === 'ar' ? (siteSettings?.association_full_display || "جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED") : lang === 'fr' ? association.nameFr : association.nameEn}
                 </span>
                 <span className="text-xs text-amber-400 font-semibold">
                   {logo.motto || t('identity', 'motto')}
@@ -73,8 +73,8 @@ export const Footer = ({ siteSettings: propSettings }) => {
 
             <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-md">
               {lang === 'ar' 
-                ? 'جمعية المبادرة المغربية للتكافل والتعاون لرعاية الأطفال في وضعية صعبة بالقنيطرة، رعاية وتأهيل متكامل لأطفال التوحد والإدماج المدرسي والمهني.'
-                : 'Association marocaine dédiée à la prise en charge, rééducation et inclusion scolaire des enfants autistes et en situation difficile à Kénitra.'}
+                ? (siteSettings?.association_full_name ? `${siteSettings.association_full_name}، رعاية وتأهيل متكامل لأطفال التوحد والإدماج المدرسي والمهني.` : 'جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة، رعاية وتأهيل متكامل لأطفال التوحد والإدماج المدرسي والمهني.')
+                : 'Association marocaine dédiée à la prise en charge, rééducation et inclusion scolaire des enfants autistes et en situation difficile.'}
             </p>
 
             {/* Social Icons */}
@@ -160,8 +160,8 @@ export const Footer = ({ siteSettings: propSettings }) => {
           <div>
             {siteSettings?.address_ar || "SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM KENITRA"}
           </div>
-          <div className="text-center font-bold text-white">
-            © AMSED
+          <div className="text-center font-bold text-white text-xs sm:text-sm">
+            © {siteSettings?.association_full_display || "جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED"}
           </div>
           <div dir="ltr" className="text-left font-mono font-bold text-emerald-400" style={{ unicodeBidi: 'isolate' }}>
             {siteSettings?.phone || "06 54 24 05 23"}
