@@ -1,25 +1,24 @@
-import { GoogleGenerativeAI } from "@google/generative-ai"
-
-console.log("GEMINI KEY EXISTS:", !!process.env.GEMINI_API_KEY)
+ // GROQ - فابور 100% - بديل Gemini
+console.log("GROQ KEY EXISTS:",!!process.env.GROQ_API_KEY)
 
 export function getGenAI() {
-  const apiKey = (process.env.GEMINI_API_KEY || process.env.GOOGLE_GENERATIVE_AI_API_KEY || "").trim()
-  console.log("API KEY FOUND:", apiKey ? apiKey.substring(0, 15) + "..." : "AUCUNE")
-  if (!apiKey || !apiKey.startsWith("AIza")) return null
-  return new GoogleGenerativeAI(apiKey)
+  const apiKey = (process.env.GROQ_API_KEY || "").trim()
+  console.log("GROQ API KEY FOUND:", apiKey? apiKey.substring(0, 15) + "..." : "AUCUNE")
+  if (!apiKey ||!apiKey.startsWith("gsk_")) return null
+  return { apiKey } as any
 }
 
-export function getGeminiModel(modelName = "gemini-1.5-flash") {
+export function getGeminiModel(modelName = "llama-3.1-8b-instant") {
   const genAI = getGenAI()
   if (!genAI) return null
-  return genAI.getGenerativeModel({ model: modelName })
+  return { modelName, apiKey: genAI.apiKey } as any
 }
 
 export async function generateArticleWithGemini(topic: string) {
-  console.log("GEMINI KEY EXISTS:", !!process.env.GEMINI_API_KEY)
+  console.log("GROQ KEY EXISTS:",!!process.env.GROQ_API_KEY)
   try {
-    const model = getGeminiModel("gemini-1.5-flash")
-    if (!model) return null
+    const apiKey = (process.env.GROQ_API_KEY || "").trim()
+    if (!apiKey) return null
 
     const prompt = `أنت كاتب مقالات إنساني وتربوي في جمعية المبادرة المغربية للتكافل والتعاون (AMSED) بالقنيطرة (مركز تأهيل أطفال التوحد وذوي الاحتياجات الخاصة).
 الموضوع: "${topic}"
@@ -30,20 +29,4 @@ export async function generateArticleWithGemini(topic: string) {
   "title_ar": "عنوان جذاب بالعربية",
   "content_ar": "نص المقال كامل بالعربية بتنسيق markdown مع مقدمة وعناوين ونصائح عملية",
   "title_fr": "Titre en Français",
-  "content_fr": "Article complet en Français",
-  "title_en": "Title in English",
-  "content_en": "Full article in English"
-}
-لا تضف أي نص خارج كائن الـ JSON.`
-
-    const result = await model.generateContent(prompt)
-    const text = result.response.text()
-    const cleaned = text.replace(/```json/gi, '').replace(/```/g, '').trim()
-    return JSON.parse(cleaned)
-  } catch (err: any) {
-    console.warn("Gemini generation notice:", err?.message)
-    return null
-  }
-}
-
-export default { getGenAI, getGeminiModel, generateArticleWithGemini }
+  "content_fr": "Article complet
