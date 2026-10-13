@@ -77,6 +77,15 @@ export const AutoPublisherAdmin = () => {
       const res = await fetch('/api/autonomous-publish', { method: 'POST' });
       const data = await res.json();
       if (data.success) {
+        if (data.article) {
+          try {
+            const stored = localStorage.getItem('amsed_cms_database_v3');
+            const cmsObj = stored ? JSON.parse(stored) : { articles: [] };
+            if (!Array.isArray(cmsObj.articles)) cmsObj.articles = [];
+            cmsObj.articles.unshift(data.article);
+            localStorage.setItem('amsed_cms_database_v3', JSON.stringify(cmsObj));
+          } catch (e) {}
+        }
         alert(`✅ تنشر: ${data.ar || data.published}`);
         window.location.reload();
       } else {

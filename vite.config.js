@@ -84,6 +84,17 @@ function localApiPlugin() {
             return;
           }
         }
+        if (req.url === '/api/articles') {
+          res.setHeader('Content-Type', 'application/json');
+          if (req.method === 'GET') {
+            res.end(JSON.stringify({ success: true, articles: [] }));
+            return;
+          }
+          if (req.method === 'POST') {
+            res.end(JSON.stringify({ success: true, synced: true }));
+            return;
+          }
+        }
         if (req.url === '/api/seo/sitemap' || req.url === '/sitemap.xml') {
           res.setHeader('Content-Type', 'application/xml; charset=utf-8');
           res.end(`<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://asso-amsed.vercel.app/</loc><priority>1.0</priority></url><url><loc>https://asso-amsed.vercel.app/articles</loc><priority>0.9</priority></url><url><loc>https://asso-amsed.vercel.app/about</loc><priority>0.8</priority></url></urlset>`);
