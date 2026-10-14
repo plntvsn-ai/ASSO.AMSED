@@ -34,8 +34,8 @@ export default function HeadSeo() {
       setMeta('property', 'og:type', 'website');
       setMeta('property', 'og:locale', 'ar_MA');
 
-      const lat = settings.geo_lat || settings.lat || '34.2610';
-      const lng = settings.geo_lng || settings.lng || '-6.5802';
+      const lat = settings.geo_lat || settings.lat || '34.250676';
+      const lng = settings.geo_lng || settings.lng || '-6.540316';
       setMeta('name', 'geo.position', `${lat};${lng}`);
       setMeta('name', 'ICBM', `${lat}, ${lng}`);
       setMeta('name', 'geo.placename', settings.geo_city || settings.city || 'Kenitra');

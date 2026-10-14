@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useCms } from '../context/CmsContext';
+import { useLanguage } from '../context/LanguageContext';
 import { Smile, Sparkles, GraduationCap, Users } from 'lucide-react';
 
 export default function StatsSection() {
   const { cmsData } = useCms();
+  const { lang, t } = useLanguage();
   const [stats, setStats] = useState({
     s1_val: "+650",
     s1_label: "طفل مستفيد سنوياً",
@@ -47,10 +49,30 @@ export default function StatsSection() {
   }
 
   const items = [
-    { val: stats.s1_val, label: stats.s1_label, icon: Smile, color: "text-amber-300 bg-emerald-950/80 border-amber-400/40" },
-    { val: stats.s2_val, label: stats.s2_label, icon: Sparkles, color: "text-amber-300 bg-emerald-950/80 border-amber-400/40" },
-    { val: stats.s3_val, label: stats.s3_label, icon: GraduationCap, color: "text-amber-300 bg-emerald-950/80 border-amber-400/40" },
-    { val: stats.s4_val, label: stats.s4_label, icon: Users, color: "text-amber-300 bg-emerald-950/80 border-amber-400/40" }
+    { 
+      val: stats.s1_val, 
+      label: lang === 'ar' ? stats.s1_label : lang === 'fr' ? 'Enfants bénéficiaires par an' : 'Children assisted yearly', 
+      icon: Smile, 
+      color: "text-amber-300 bg-emerald-950/80 border-amber-400/40" 
+    },
+    { 
+      val: stats.s2_val, 
+      label: lang === 'ar' ? stats.s2_label : lang === 'fr' ? 'Bénéficiaires en ateliers métiers' : 'Beneficiaries in skills workshops', 
+      icon: Sparkles, 
+      color: "text-amber-300 bg-emerald-950/80 border-amber-400/40" 
+    },
+    { 
+      val: stats.s3_val, 
+      label: lang === 'ar' ? stats.s3_label : lang === 'fr' ? 'Enfants scolarisés avec AVS' : 'Children included in schools with AVS', 
+      icon: GraduationCap, 
+      color: "text-amber-300 bg-emerald-950/80 border-amber-400/40" 
+    },
+    { 
+      val: stats.s4_val, 
+      label: lang === 'ar' ? stats.s4_label : lang === 'fr' ? 'Bénévoles & Éducateurs' : 'Volunteers & Educators', 
+      icon: Users, 
+      color: "text-amber-300 bg-emerald-950/80 border-amber-400/40" 
+    }
   ];
 
   return (
@@ -63,7 +85,13 @@ export default function StatsSection() {
         <div className="text-center mb-6">
           <span className="inline-flex items-center gap-2 text-xs font-bold text-amber-300 bg-black/40 px-3.5 py-1 rounded-full border border-amber-400/40">
             <span>۞</span>
-            <span>أرقام وإحصائيات الأثر الميداني • جمعية AMSED بالقنيطرة</span>
+            <span>
+              {lang === 'ar' 
+                ? 'أرقام وإحصائيات الأثر الميداني • جمعية AMSED بالقنيطرة' 
+                : lang === 'fr' 
+                ? 'Impact de Terrain & Chiffres Clés • AMSED Kénitra' 
+                : 'Field Impact & Key Figures • AMSED Kenitra'}
+            </span>
             <span>۞</span>
           </span>
         </div>

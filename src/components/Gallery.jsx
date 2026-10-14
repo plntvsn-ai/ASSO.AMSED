@@ -134,7 +134,13 @@ export const Gallery = () => {
           {/* الشارة الرسمية المغربية */}
           <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-emerald-900 text-amber-300 text-xs font-bold mb-4 border border-amber-400/50 shadow-md">
             <span className="text-amber-400 text-sm">۞</span>
-            <span>المملكة المغربية • معرض التوثيق والمبادرات الميدانية</span>
+            <span>
+              {lang === 'ar' 
+                ? 'المملكة المغربية • معرض التوثيق والمبادرات الميدانية' 
+                : lang === 'fr' 
+                ? 'Royaume du Maroc • Galerie des Initiatives de Terrain' 
+                : 'Kingdom of Morocco • Field Initiatives & Photo Gallery'}
+            </span>
             <span className="text-amber-400 text-sm">۞</span>
           </div>
 
@@ -179,7 +185,13 @@ export const Gallery = () => {
         <div className="flex items-center justify-between mb-5 px-2">
           <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-emerald-950 bg-white/70 px-3.5 py-1.5 rounded-xl border border-amber-200/70 shadow-sm">
             <Camera className="w-4 h-4 text-amber-600" />
-            <span>عرض {filteredGallery.length} صور توثيقية</span>
+            <span>
+              {lang === 'ar' 
+                ? `عرض ${filteredGallery.length} صور توثيقية` 
+                : lang === 'fr' 
+                ? `${filteredGallery.length} Photos` 
+                : `${filteredGallery.length} Photos`}
+            </span>
             <span className="text-[11px] text-amber-700 font-mono">
               ({currentIndex + 1} / {filteredGallery.length})
             </span>
@@ -258,10 +270,10 @@ export const Gallery = () => {
                     </h3>
                     
                     <div className="mt-3 flex items-center justify-between text-xs text-emerald-200/90 border-t border-white/20 pt-2.5">
-                      <span className="font-semibold">توثيق ميداني معتمد</span>
+                      <span className="font-semibold">{lang === 'ar' ? 'توثيق ميداني معتمد' : lang === 'fr' ? 'Documentation certifiée' : 'Certified documentation'}</span>
                       <span className="inline-flex items-center gap-1 text-amber-300 font-bold bg-white/10 px-2.5 py-1 rounded-lg">
                         <ZoomIn className="w-3.5 h-3.5" />
-                        <span>معاينة</span>
+                        <span>{lang === 'ar' ? 'معاينة' : lang === 'fr' ? 'Aperçu' : 'View'}</span>
                       </span>
                     </div>
                   </div>
@@ -300,10 +312,10 @@ export const Gallery = () => {
             <button
               onClick={() => setSelectedPhoto(null)}
               className="absolute -top-12 end-0 p-2 text-amber-300 hover:text-white transition flex items-center gap-1 text-sm font-bold bg-white/10 px-3 py-1 rounded-full border border-white/20"
-              aria-label="إغلاق"
+              aria-label={lang === 'ar' ? 'إغلاق' : 'Close'}
             >
               <X className="w-5 h-5" />
-              <span>إغلاق</span>
+              <span>{lang === 'ar' ? 'إغلاق' : lang === 'fr' ? 'Fermer' : 'Close'}</span>
             </button>
 
             {/* الصورة الرئيسية بإطار مغربي */}

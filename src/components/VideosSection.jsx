@@ -91,13 +91,13 @@ export const VideosSection = () => {
           <div>
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-red-950/80 text-red-400 text-xs font-bold mb-3 border border-red-800/60">
               <Radio className="w-3.5 h-3.5 text-red-500 animate-pulse" />
-              <span>فيديوهات القناة الرسمية ({YOUTUBE_CHANNEL_CONFIG.youtubeHandle})</span>
+              <span>{t('videos', 'officialVideos')} ({YOUTUBE_CHANNEL_CONFIG.youtubeHandle})</span>
             </div>
             <h2 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">
               {t('videos', 'title')}
             </h2>
             <p className="mt-2 text-slate-300 text-sm sm:text-base max-w-2xl">
-              تحديث تلقائي لكافة حلقات وبرامج وفيديوهات القناة الرسمية للجمعية على يوتيوب
+              {t('videos', 'subtitle')}
             </p>
           </div>
 
@@ -109,11 +109,11 @@ export const VideosSection = () => {
               </div>
               <div>
                 <span className="text-xs font-bold text-white block">
-                  قناة AMSED الرسمية
+                  {t('videos', 'officialChannel')}
                 </span>
                 <span className="text-[11px] text-emerald-400 flex items-center gap-1 font-medium">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-                  {syncSuccess ? 'تمت مزامنة كل فيديوهات القناة!' : `${videos.length} فيديو متزامن أوتوماتيك`}
+                  {syncSuccess ? t('videos', 'syncedAll') : `${videos.length} ${t('videos', 'videosSynced')}`}
                 </span>
               </div>
             </div>
@@ -123,10 +123,10 @@ export const VideosSection = () => {
                 onClick={handleSyncChannel}
                 disabled={syncing}
                 className="inline-flex items-center gap-1.5 bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold px-3 py-2 rounded-xl border border-slate-600 transition disabled:opacity-50"
-                title="تحديث تلقائي من قناة يوتيوب"
+                title={t('videos', 'syncTooltip')}
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin text-amber-400' : ''}`} />
-                <span>{syncing ? 'جارٍ التحديث...' : 'مزامنة القناة'}</span>
+                <span>{syncing ? t('videos', 'syncing') : t('videos', 'syncBtn')}</span>
               </button>
 
               <a
@@ -135,7 +135,7 @@ export const VideosSection = () => {
                 rel="noreferrer"
                 className="inline-flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3.5 py-2 rounded-xl transition shadow"
               >
-                <span>اشترك في القناة</span>
+                <span>{t('videos', 'subscribe')}</span>
                 <ExternalLink className="w-3.5 h-3.5" />
               </a>
             </div>
@@ -167,7 +167,7 @@ export const VideosSection = () => {
                       {activeVideo.isDailyFeatured && (
                         <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-amber-500/20 text-amber-400 font-bold border border-amber-500/30">
                           <Sparkles className="w-3 h-3" />
-                          الفيديو التعريفي
+                          {t('videos', 'introVideo')}
                         </span>
                       )}
                       <span className="flex items-center gap-1">
@@ -179,7 +179,7 @@ export const VideosSection = () => {
                     <div className="flex items-center gap-2">
                       <span className="flex items-center gap-1">
                         <Eye className="w-3.5 h-3.5 text-slate-400" />
-                        {activeVideo.views || '50+'} مشاهدة
+                        {activeVideo.views || '50+'} {t('videos', 'views')}
                       </span>
                       <a
                         href={`https://youtube.com/watch?v=${activeVideo.youtubeId}`}
@@ -188,7 +188,7 @@ export const VideosSection = () => {
                         className="text-red-400 hover:text-red-300 font-semibold inline-flex items-center gap-1 ms-2"
                       >
                         <YoutubeIcon className="w-3.5 h-3.5" />
-                        <span>مشاهدة على YouTube</span>
+                        <span>{t('videos', 'watchOnYoutube')}</span>
                       </a>
                     </div>
                   </div>
@@ -198,14 +198,14 @@ export const VideosSection = () => {
                   </h3>
 
                   <p className="text-slate-300 text-sm leading-relaxed">
-                    {activeVideo.desc || "حلقة توعوية وإرشادية من إنتاج جمعية المبادرة المغربية للتكافل والتعاون لرعاية الأطفال في وضعية صعبة بالقنيطرة."}
+                    {activeVideo.desc || t('videos', 'defaultDesc')}
                   </p>
                 </div>
               </div>
             ) : (
               <div className="p-12 text-center text-slate-500">
                 <Film className="w-12 h-12 mx-auto mb-3 opacity-40" />
-                <p>لا توجد فيديوهات مضافة حالياً</p>
+                <p>{t('videos', 'noVideos')}</p>
               </div>
             )}
           </div>
@@ -215,7 +215,7 @@ export const VideosSection = () => {
             <div className="flex items-center justify-between px-1">
               <h4 className="text-base font-bold text-slate-200 flex items-center gap-2">
                 <Film className="w-4 h-4 text-emerald-400" />
-                <span>حلقات وفيديوهات القناة ({videos.length})</span>
+                <span>{t('videos', 'channelEpisodes')} ({videos.length})</span>
               </h4>
               <span className="text-xs text-emerald-400 font-bold font-mono">
                 {YOUTUBE_CHANNEL_CONFIG.youtubeHandle}
@@ -258,11 +258,11 @@ export const VideosSection = () => {
                       <div className="flex items-center gap-2 mb-1">
                         {vid.isDailyFeatured ? (
                           <span className="text-[10px] font-bold text-amber-400 bg-amber-950/80 px-1.5 py-0.5 rounded">
-                            ★ التعريفي
+                            {t('videos', 'featuredBadge')}
                           </span>
                         ) : (
                           <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950/80 px-1.5 py-0.5 rounded">
-                            فيديو {idx + 1}
+                            {t('videos', 'videoNum')} {idx + 1}
                           </span>
                         )}
                         <span className="text-[11px] text-slate-400">

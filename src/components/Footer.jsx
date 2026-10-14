@@ -43,11 +43,21 @@ export const Footer = ({ siteSettings: propSettings }) => {
   const contact = cmsData?.contact || association;
   const logo = cmsData?.logo || { url: "/logo.jpg", motto: "الله • الوطن • الملك" };
   const footerMenus = (cmsData?.menus?.footerMenus || [
-    { id: "fm-1", label: "الرئيسية", link: "/", order: 1 },
-    { id: "fm-2", label: "من نحن والأهداف", link: "/about", order: 2 },
-    { id: "fm-3", label: "خدماتنا التأهيلية", link: "/#services", order: 3 },
-    { id: "fm-4", label: "المقالات والأخبار", link: "/articles", order: 4 },
+    { id: "fm-1", label: t('footer', 'home') || "الرئيسية", link: "/", order: 1 },
+    { id: "fm-2", label: t('footer', 'about') || "من نحن والأهداف", link: "/about", order: 2 },
+    { id: "fm-3", label: t('footer', 'services') || "خدماتنا التأهيلية", link: "/#services", order: 3 },
+    { id: "fm-4", label: t('footer', 'articles') || "المقالات والأخبار", link: "/articles", order: 4 },
   ]).filter(m => !m.link?.includes('donate') && !m.label?.includes('تبرع'));
+
+  const getFooterLabel = (label) => {
+    if (!label) return '';
+    if (lang === 'ar') return label;
+    if (label.includes('رئيسية') || label.toLowerCase().includes('home')) return t('footer', 'home');
+    if (label.includes('نحن') || label.toLowerCase().includes('about')) return t('footer', 'about');
+    if (label.includes('خدمات') || label.toLowerCase().includes('service')) return t('footer', 'services');
+    if (label.includes('مقال') || label.includes('أخبار') || label.toLowerCase().includes('article')) return t('footer', 'articles');
+    return label;
+  };
 
   return (
     <footer className="bg-slate-950 text-slate-300 pt-16 pb-12 border-t border-slate-800">
@@ -74,7 +84,9 @@ export const Footer = ({ siteSettings: propSettings }) => {
             <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-md">
               {lang === 'ar' 
                 ? (siteSettings?.association_full_name ? `${siteSettings.association_full_name}، رعاية وتأهيل متكامل لأطفال التوحد والإدماج المدرسي والمهني بالقنيطرة.` : 'جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED القنيطرة، رعاية وتأهيل متكامل لأطفال التوحد والإدماج المدرسي والمهني.')
-                : 'Association marocaine dédiée à la prise en charge, rééducation et inclusion scolaire des enfants autistes et en situation difficile.'}
+                : lang === 'fr'
+                ? 'Association marocaine dédiée à la prise en charge, rééducation et inclusion scolaire des enfants autistes et en situation difficile à Kénitra.'
+                : 'Moroccan association dedicated to care, rehabilitation, and school inclusion for children with autism and in difficult situations in Kenitra.'}
             </p>
 
             {/* Social Icons */}
@@ -115,12 +127,12 @@ export const Footer = ({ siteSettings: propSettings }) => {
                   {item.link.startsWith('/') && !item.link.startsWith('/#') ? (
                     <Link to={item.link} className="hover:text-emerald-400 transition flex items-center gap-1.5">
                       <span>•</span>
-                      <span>{item.label}</span>
+                      <span>{getFooterLabel(item.label)}</span>
                     </Link>
                   ) : (
                     <a href={item.link} className="hover:text-emerald-400 transition flex items-center gap-1.5">
                       <span>•</span>
-                      <span>{item.label}</span>
+                      <span>{getFooterLabel(item.label)}</span>
                     </a>
                   )}
                 </li>
@@ -128,13 +140,13 @@ export const Footer = ({ siteSettings: propSettings }) => {
               <li>
                 <Link to="/privacy" className="hover:text-emerald-400 transition flex items-center gap-1.5 text-slate-400 hover:text-emerald-300">
                   <span>•</span>
-                  <span>سياسة الخصوصية وحماية المعطيات</span>
+                  <span>{t('footer', 'privacy')}</span>
                 </Link>
               </li>
               <li>
                 <Link to="/terms" className="hover:text-emerald-400 transition flex items-center gap-1.5 text-slate-400 hover:text-emerald-300">
                   <span>•</span>
-                  <span>الشروط والأحكام وميثاق الشفافية</span>
+                  <span>{t('footer', 'terms')}</span>
                 </Link>
               </li>
             </ul>
@@ -189,7 +201,11 @@ export const Footer = ({ siteSettings: propSettings }) => {
             {siteSettings?.address_ar || "SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM KENITRA"}
           </div>
           <div className="text-center font-bold text-white text-xs sm:text-sm">
-            © {siteSettings?.association_full_display || "جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED"}
+            © {lang === 'ar'
+                ? (siteSettings?.association_full_display || "جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED")
+                : lang === 'fr'
+                ? "Association Initiative Marocaine pour la Solidarité et la Coopération (AMSED Kénitra)"
+                : "Moroccan Initiative Association for Solidarity and Cooperation (AMSED Kenitra)"}
           </div>
           <div dir="ltr" className="text-left font-mono font-bold text-emerald-400" style={{ unicodeBidi: 'isolate' }}>
             {siteSettings?.phone || "06 54 24 05 23"}

@@ -26,14 +26,14 @@ export const Services = () => {
     : (defaultCmsData.services || []);
 
   const categories = [
-    { id: 'all', label: t('services', 'tabAll') || 'كافة الخدمات (8)' },
-    { id: 'التوحد', label: 'مركز التوحد' },
-    { id: 'التخاطب', label: 'التخاطب والنطق' },
-    { id: 'حركية', label: 'المهارات الحركية' },
-    { id: 'نفسي', label: 'الإرشاد النفسي' },
-    { id: 'تعليم أولي', label: 'روض الأطفال المكيف' },
-    { id: 'دمج', label: 'التأهيل للدمج المدرسي' },
-    { id: 'دعم مدرسي', label: 'دروس الدعم AVS' }
+    { id: 'all', label: lang === 'ar' ? (t('services', 'tabAll') || 'كافة الخدمات (8)') : lang === 'fr' ? 'Tous les Services (8)' : 'All Services (8)' },
+    { id: 'التوحد', label: lang === 'ar' ? 'مركز التوحد' : lang === 'fr' ? 'Pôle Autisme' : 'Autism Center' },
+    { id: 'التخاطب', label: lang === 'ar' ? 'التخاطب والنطق' : lang === 'fr' ? 'Orthophonie' : 'Speech Therapy' },
+    { id: 'حركية', label: lang === 'ar' ? 'المهارات الحركية' : lang === 'fr' ? 'Psychomotricité' : 'Motor Skills' },
+    { id: 'نفسي', label: lang === 'ar' ? 'الإرشاد النفسي' : lang === 'fr' ? 'Guidance Psycho' : 'Psychology' },
+    { id: 'تعليم أولي', label: lang === 'ar' ? 'روض الأطفال المكيف' : lang === 'fr' ? 'Maternelle Adaptée' : 'Adapted Preschool' },
+    { id: 'دمج', label: lang === 'ar' ? 'التأهيل للدمج المدرسي' : lang === 'fr' ? 'Inclusion Scolaire' : 'School Inclusion' },
+    { id: 'دعم مدرسي', label: lang === 'ar' ? 'دروس الدعم AVS' : lang === 'fr' ? 'Soutien & AVS' : 'AVS Support' }
   ];
 
   const filteredServices = servicesList.filter(item => {
@@ -148,7 +148,13 @@ export const Services = () => {
           {/* الشارة الرسمية المغربية */}
           <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-emerald-900 text-amber-300 text-xs font-bold mb-4 border border-amber-400/50 shadow-md">
             <span className="text-amber-400 text-sm">۞</span>
-            <span>المملكة المغربية • برامج التأهيل والخدمات التربوية المتخصصة</span>
+            <span>
+              {lang === 'ar' 
+                ? 'المملكة المغربية • برامج التأهيل والخدمات التربوية المتخصصة' 
+                : lang === 'fr' 
+                ? 'Royaume du Maroc • Programmes de Rééducation & Services Spécialisés' 
+                : 'Kingdom of Morocco • Specialized Rehabilitation & Educational Programs'}
+            </span>
             <span className="text-amber-400 text-sm">۞</span>
           </div>
 
@@ -179,15 +185,23 @@ export const Services = () => {
               </div>
               <div>
                 <h3 className="text-base sm:text-lg font-black text-amber-300">
-                  {lang === 'ar' ? 'مبدأنا الأساسي: كل طفل يستفيد من برنامج فردي خاص به (PPI)' : 'Chaque enfant a son projet personnalisé (PPI)'}
+                  {lang === 'ar' 
+                    ? 'مبدأنا الأساسي: كل طفل يستفيد من برنامج فردي خاص به (PPI)' 
+                    : lang === 'fr'
+                    ? 'Notre Principe: Chaque enfant bénéficie d\'un projet personnalisé (PPI)'
+                    : 'Our Principle: Every child benefits from a personalized educational plan (PPI)'}
                 </h3>
                 <p className="text-xs sm:text-sm text-emerald-100/90 mt-1">
-                  تتبع علمي وتربوي دقيق يتلاءم مع وتيرة واحتياجات كل طفل لبناء استقلاليته واندماجه في المجتمع.
+                  {lang === 'ar'
+                    ? 'تتبع علمي وتربوي دقيق يتلاءم مع وتيرة واحتياجات كل طفل لبناء استقلاليته واندماجه في المجتمع.'
+                    : lang === 'fr'
+                    ? 'Suivi scientifique et pédagogique rigoureux adapté au rythme de chaque enfant pour favoriser son autonomie.'
+                    : 'Rigorous educational and clinical monitoring tailored to each child to foster independence and social inclusion.'}
                 </p>
               </div>
             </div>
             <span className="shrink-0 bg-amber-400 text-emerald-950 text-xs font-black px-4 py-2 rounded-xl shadow-md border border-amber-300">
-              أطر متخصصة ومتكاملة
+              {lang === 'ar' ? 'أطر متخصصة ومتكاملة' : lang === 'fr' ? 'Équipe pluridisciplinaire' : 'Multidisciplinary Team'}
             </span>
           </div>
 
@@ -213,7 +227,13 @@ export const Services = () => {
         <div className="flex items-center justify-between mb-5 px-2">
           <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-emerald-950 bg-white/70 px-3.5 py-1.5 rounded-xl border border-amber-200/70 shadow-sm">
             <Bookmark className="w-4 h-4 text-amber-600" />
-            <span>عرض {filteredServices.length} خدمات تأهيلية</span>
+            <span>
+              {lang === 'ar' 
+                ? `عرض ${filteredServices.length} خدمات تأهيلية` 
+                : lang === 'fr' 
+                ? `${filteredServices.length} Services Spécialisés` 
+                : `${filteredServices.length} Specialized Services`}
+            </span>
             <span className="text-[11px] text-amber-700 font-mono">
               ({currentIndex + 1} / {filteredServices.length})
             </span>
@@ -299,17 +319,17 @@ export const Services = () => {
                     {/* شارة التوفر أسفل الصورة */}
                     <div className="absolute bottom-2.5 start-3 end-3 flex items-center justify-between text-[11px] text-white">
                       <span className="bg-emerald-950/85 px-2.5 py-0.5 rounded-md font-bold border border-emerald-500/40 backdrop-blur-sm text-emerald-200">
-                        ✓ متاح للتسجيل
+                        {lang === 'ar' ? '✓ متاح للتسجيل' : lang === 'fr' ? '✓ Inscriptions ouvertes' : '✓ Open for registration'}
                       </span>
                       <span className="bg-black/60 px-2 py-0.5 rounded-md font-mono text-amber-300 flex items-center gap-1 text-[10px]">
                         <Award className="w-3 h-3 text-amber-400" />
-                        <span>برنامج PPI معتمد</span>
+                        <span>{lang === 'ar' ? 'برنامج PPI معتمد' : lang === 'fr' ? 'Projet PPI Agréé' : 'Accredited PPI Plan'}</span>
                       </span>
                     </div>
                   </div>
 
                   {/* جسم بطاقة الخدمة */}
-                  <div className="p-5 sm:p-6 pb-2">
+                  <div className="p-5 sm:p-6 pb-2 text-start">
                     <h3 
                       onClick={() => setSelectedService(item)}
                       className="text-base sm:text-lg font-extrabold text-slate-900 group-hover:text-emerald-900 transition leading-snug line-clamp-2 cursor-pointer min-h-[3rem]"
@@ -329,7 +349,9 @@ export const Services = () => {
                     onClick={() => setSelectedService(item)}
                     className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-black text-emerald-950 hover:text-amber-700 transition group/btn"
                   >
-                    <span className="border-b border-emerald-900 group-hover/btn:border-amber-600 pb-0.5">تفاصيل البرنامج التأهيلي</span>
+                    <span className="border-b border-emerald-900 group-hover/btn:border-amber-600 pb-0.5">
+                      {lang === 'ar' ? 'تفاصيل البرنامج التأهيلي' : lang === 'fr' ? 'Détails du programme' : 'Program Details'}
+                    </span>
                     <ArrowIcon className="w-4 h-4 text-amber-600 group-hover/btn:translate-x-1 transition-transform" />
                   </button>
 
@@ -340,7 +362,7 @@ export const Services = () => {
                     className="inline-flex items-center gap-1 text-[11px] bg-gradient-to-r from-emerald-800 to-emerald-900 hover:from-emerald-900 hover:to-emerald-950 text-amber-300 font-extrabold px-3 py-1.5 rounded-xl border border-amber-400/50 shadow-sm transition"
                   >
                     <MessageCircle className="w-3.5 h-3.5 text-amber-400" />
-                    <span>استفسار</span>
+                    <span>{lang === 'ar' ? 'استفسار' : lang === 'fr' ? 'Contact' : 'Inquire'}</span>
                   </a>
                 </div>
               </article>
@@ -371,7 +393,7 @@ export const Services = () => {
       {/* نافذة تفاصيل الخدمة المنبثقة (Moroccan Pedagogical Modal) */}
       {selectedService && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/75 backdrop-blur-md animate-fadeIn">
-          <div className="bg-gradient-to-b from-white via-[#faf8f4] to-[#f6f1e8] rounded-[2.5rem] max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border-2 border-amber-300/80 relative">
+          <div className="bg-gradient-to-b from-white via-[#faf8f4] to-[#f6f1e8] rounded-[2.5rem] max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl border-2 border-amber-300/80 relative text-start">
             
             <button
               onClick={() => setSelectedService(null)}
@@ -391,10 +413,10 @@ export const Services = () => {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent pointer-events-none" />
                 <div className="absolute bottom-4 start-4 end-4 flex items-center justify-between text-white text-xs">
                   <span className="bg-emerald-950/90 text-amber-300 px-3 py-1 rounded-full font-bold border border-amber-400/40">
-                    {selectedService.category || 'خدمة تأهيلية'}
+                    {selectedService.category || (lang === 'ar' ? 'خدمة تأهيلية' : 'Service Spécialisé')}
                   </span>
                   <span className="font-bold text-emerald-200">
-                    متاح للتسجيل بالقنيطرة
+                    {lang === 'ar' ? 'متاح للتسجيل بالقنيطرة' : lang === 'fr' ? 'Disponible à Kénitra' : 'Available in Kenitra'}
                   </span>
                 </div>
               </div>
@@ -412,7 +434,11 @@ export const Services = () => {
               <div className="bg-amber-50/80 border border-amber-200 rounded-2xl p-4 flex items-center gap-3">
                 <Star className="w-5 h-5 text-amber-600 shrink-0" />
                 <p className="text-xs sm:text-sm text-slate-700 font-semibold">
-                  يشمل هذا البرنامج تقييماً دورياً من طرف أطباء وأخصائيي النطق والترويض الحركي، مع مواكبة مستمرة للأسرة.
+                  {lang === 'ar'
+                    ? 'يشمل هذا البرنامج تقييماً دورياً من طرف أطباء وأخصائيي النطق والترويض الحركي، مع مواكبة مستمرة للأسرة.'
+                    : lang === 'fr'
+                    ? 'Ce programme comprend des évaluations régulières par des spécialistes et un accompagnement continu des familles.'
+                    : 'This program includes regular clinical assessments by specialists and continuous family support.'}
                 </p>
               </div>
 
@@ -424,14 +450,14 @@ export const Services = () => {
                   className="inline-flex items-center gap-2 bg-emerald-900 hover:bg-emerald-950 text-amber-300 px-6 py-2.5 rounded-xl text-sm font-black transition shadow-lg border border-amber-400/60"
                 >
                   <MessageCircle className="w-4 h-4 text-amber-400" />
-                  <span>حجز موعد أو استفسار عبر واتساب</span>
+                  <span>{lang === 'ar' ? 'حجز موعد أو استفسار عبر واتساب' : lang === 'fr' ? 'Prendre rendez-vous via WhatsApp' : 'Book Appointment via WhatsApp'}</span>
                 </a>
 
                 <button
                   onClick={() => setSelectedService(null)}
                   className="bg-amber-100/80 hover:bg-amber-200 text-amber-950 px-5 py-2.5 rounded-xl text-sm font-bold transition border border-amber-300/80"
                 >
-                  إغلاق النافذة
+                  {lang === 'ar' ? 'إغلاق النافذة' : lang === 'fr' ? 'Fermer' : 'Close'}
                 </button>
               </div>
             </div>

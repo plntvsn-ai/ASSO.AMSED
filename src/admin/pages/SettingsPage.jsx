@@ -134,7 +134,49 @@ export default function SettingsPage() {
       const localPayload = { ...form, ...dataToSave };
       try {
         localStorage.setItem('site_settings', JSON.stringify(localPayload));
-      } catch {}
+
+        // Sync to CMS database (amsed_cms_database_v3)
+        const rawCms = localStorage.getItem('amsed_cms_database_v3');
+        const cmsObj = rawCms ? JSON.parse(rawCms) : {};
+        if (!cmsObj.contact) cmsObj.contact = {};
+        if (!cmsObj.logo) cmsObj.logo = {};
+
+        cmsObj.association_full_name = localPayload.association_full_name;
+        cmsObj.association_subtitle = localPayload.association_subtitle;
+        cmsObj.top_bar_title = localPayload.top_bar_title;
+        cmsObj.logo.name = localPayload.association_full_name;
+        cmsObj.logo.motto = localPayload.top_bar_title || "الله • الوطن • الملك";
+        if (localPayload.logo_url) cmsObj.logo.url = localPayload.logo_url;
+        cmsObj.contact.phone1 = localPayload.phone1 || localPayload.phone;
+        cmsObj.contact.phone2 = localPayload.phone2;
+        cmsObj.contact.phone3 = localPayload.phone3;
+        cmsObj.contact.lat = localPayload.lat;
+        cmsObj.contact.lng = localPayload.lng;
+        cmsObj.contact.mapUrl = `https://www.google.com/maps?q=${localPayload.lat || '34.250676'},${localPayload.lng || '-6.540316'}`;
+
+        localStorage.setItem('amsed_cms_database_v3', JSON.stringify(cmsObj));
+
+        // Broadcast events to all active components
+        window.dispatchEvent(new Event('cms-update'));
+        window.dispatchEvent(new Event('storage'));
+      } catch (e) {
+        console.warn('Local CMS sync warning:', e);
+      }
+
+      // Sync to Firestore siteSettings/main
+      try {
+        const { doc, setDoc } = await import("firebase/firestore");
+        const { db } = await import("../../firebase");
+        if (db) {
+          await setDoc(doc(db, "siteSettings", "main"), {
+            ...localPayload,
+            logoUrl: localPayload.logo_url || localPayload.logoUrl || "/logo_amesd_original_transparent.png",
+            updatedAt: new Date().toISOString()
+          }, { merge: true });
+        }
+      } catch (fsErr) {
+        console.warn('Firestore sync notice:', fsErr);
+      }
 
       let syncedToDb = false;
 
@@ -264,9 +306,63 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* Main Settings Card */}
       <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm space-y-5">
-        
+        {/* Top Bar Title / Motto (العنوان أعلى الموقع وفوق الشعار) */}
+        <div className="space-y-1.5 bg-amber-50/50 p-4 rounded-2xl border border-amber-200/70">
+          <label className="block text-xs font-bold text-amber-900">👑 العنوان / الشعار الوطني في الشريط العلوي (أعلى الموقع وفوق الشعار)</label>
+          <input
+            name="top_bar_title"
+            value={form.top_bar_title || ''}
+            onChange={handleChange}
+            className="w-full border border-amber-300 p-3 rounded-xl focus:ring-2 focus:ring-amber-500 outline-none text-sm transition font-bold bg-white"
+            placeholder="مثال: مصلحة عمومية وطنية ذات أهداف إنسانية وتضامنية"
+          />
+          <p className="text-[11px] text-amber-800">
+            هذا العنوان يظهر في الشريط الأسود العلوي وأعلى الشعار في جميع صفحات الموقع.
+          </p>
+        </div>
+
+        {/* Logo Selection & Preview */}
+        <div className="space-y-2 bg-slate-50 p-4 rounded-2xl border border-slate-200">
+          <label className="block text-xs font-bold text-slate-800">🖼️ الشعار الرسمي المعتمد (اللوغو)</label>
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <div className="w-16 h-16 bg-white rounded-xl border border-slate-300 p-1 flex items-center justify-center shrink-0 shadow-sm">
+              <img
+                src={form.logo_url || "/logo_amesd_original_transparent.png"}
+                alt="Logo Preview"
+                className="max-h-full max-w-full object-contain"
+                onError={(e) => { e.target.src = "/logo_amesd_original_transparent.png"; }}
+              />
+            </div>
+            <div className="flex-1 space-y-2 w-full">
+              <input
+                name="logo_url"
+                value={form.logo_url || ''}
+                dir="ltr"
+                onChange={handleChange}
+                className="w-full border border-slate-300 p-2.5 rounded-xl text-xs font-mono bg-white"
+                placeholder="/logo_amesd_original_transparent.png"
+              />
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => setForm(prev => ({ ...prev, logo_url: '/logo_amesd_original_transparent.png' }))}
+                  className="px-2.5 py-1 text-xs bg-emerald-100 text-emerald-800 rounded-lg hover:bg-emerald-200 font-bold transition"
+                >
+                  استخدام الشعار الأصلي الشفاف
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setForm(prev => ({ ...prev, logo_url: '/logo.png' }))}
+                  className="px-2.5 py-1 text-xs bg-slate-200 text-slate-800 rounded-lg hover:bg-slate-300 font-bold transition"
+                >
+                  شعار logo.png
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Association Full Name */}
         <div className="space-y-1.5">
           <label className="block text-xs font-bold text-slate-700">🏷️ الاسم الكامل للجمعية (association_full_name)</label>
@@ -437,29 +533,41 @@ export default function SettingsPage() {
         </div>
 
         {/* Location Coordinates */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-slate-700">🌐 خط العرض (lat)</label>
-            <input
-              name="lat"
-              value={form.lat || ''}
-              dir="ltr"
-              onChange={handleChange}
-              className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm font-mono transition"
-              placeholder="lat"
-            />
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-700">📍 إحداثيات موقع الجمعية على خريطة Google Maps</span>
+            <button
+              type="button"
+              onClick={() => setForm(prev => ({ ...prev, lat: '34.250676', lng: '-6.540316' }))}
+              className="text-xs text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200 font-bold hover:bg-emerald-100 transition"
+            >
+              🎯 تثبيت إحداثيات القنيطرة (34.250676, -6.540316)
+            </button>
           </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-slate-700">🌐 خط العرض (lat)</label>
+              <input
+                name="lat"
+                value={form.lat || '34.250676'}
+                dir="ltr"
+                onChange={handleChange}
+                className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm font-mono transition"
+                placeholder="34.250676"
+              />
+            </div>
 
-          <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-slate-700">🌐 خط الطول (lng)</label>
-            <input
-              name="lng"
-              value={form.lng || ''}
-              dir="ltr"
-              onChange={handleChange}
-              className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm font-mono transition"
-              placeholder="lng"
-            />
+            <div className="space-y-1.5">
+              <label className="block text-xs font-bold text-slate-700">🌐 خط الطول (lng)</label>
+              <input
+                name="lng"
+                value={form.lng || '-6.540316'}
+                dir="ltr"
+                onChange={handleChange}
+                className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm font-mono transition"
+                placeholder="-6.540316"
+              />
+            </div>
           </div>
         </div>
 

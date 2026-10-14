@@ -15,23 +15,27 @@ export const ArticleDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { cmsData } = useCms();
-  const { getLocalized } = useLanguage();
+  const { lang, dir, getLocalized } = useLanguage();
 
   const article = (cmsData.articles || []).find(a => a.id === id || a.slug === id || String(a.id) === String(id));
   const otherArticles = (cmsData.articles || []).filter(a => a.id !== id && a.published !== false).slice(0, 3);
 
   if (!article) {
     return (
-      <div className="min-h-screen flex flex-col bg-slate-50 font-sans text-slate-800" dir="rtl">
+      <div className="min-h-screen flex flex-col bg-slate-50 font-sans text-slate-800" dir={dir}>
         <Navbar />
         <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-          <h2 className="text-2xl font-bold text-slate-800 mb-2">المقال غير موجود أو تم حذفه</h2>
-          <p className="text-slate-500 text-sm mb-6">يرجى التأكد من صحة الرابط أو الرجوع إلى قائمة المقالات.</p>
+          <h2 className="text-2xl font-bold text-slate-800 mb-2">
+            {lang === 'ar' ? 'المقال غير موجود أو تم حذفه' : lang === 'fr' ? 'Article non trouvé ou supprimé' : 'Article not found or removed'}
+          </h2>
+          <p className="text-slate-500 text-sm mb-6">
+            {lang === 'ar' ? 'يرجى التأكد من صحة الرابط أو الرجوع إلى قائمة المقالات.' : lang === 'fr' ? 'Veuillez vérifier le lien ou retourner à la liste des articles.' : 'Please check the link or return to the articles list.'}
+          </p>
           <Link
             to="/articles"
-            className="bg-emerald-700 text-white font-bold px-6 py-2.5 rounded-xl text-sm"
+            className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-6 py-2.5 rounded-xl text-sm transition"
           >
-            العودة لصفحة المقالات
+            {lang === 'ar' ? 'العودة لصفحة المقالات' : lang === 'fr' ? 'Retour aux articles' : 'Back to articles'}
           </Link>
         </div>
         <Footer />
@@ -43,7 +47,7 @@ export const ArticleDetailPage = () => {
   const whatsappShareUrl = `https://wa.me/?text=${encodeURIComponent(article.title + ' ' + shareUrl)}`;
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 font-sans text-slate-800" dir="rtl">
+    <div className="min-h-screen flex flex-col moroccan-zellij-bg font-sans text-slate-800" dir={dir}>
       <Navbar />
 
       <main className="flex-1 py-10">
@@ -56,15 +60,15 @@ export const ArticleDetailPage = () => {
               to="/articles"
               className="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-emerald-700 transition"
             >
-              <ArrowRight className="w-4 h-4" />
-              <span>العودة إلى جميع المقالات والأخبار</span>
+              {dir === 'rtl' ? <ArrowRight className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
+              <span>{lang === 'ar' ? 'العودة إلى جميع المقالات والأخبار' : lang === 'fr' ? 'Retour aux articles et actualités' : 'Back to all articles and news'}</span>
             </Link>
           </div>
 
           {/* Article Header */}
           <div className="space-y-4">
             <span className="inline-block px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-              {article.category || 'أخبار الجمعية'}
+              {article.category || 'AMSED'}
             </span>
 
             <h1 className="text-2xl sm:text-4xl font-black text-slate-900 leading-tight">
@@ -75,24 +79,30 @@ export const ArticleDetailPage = () => {
               <div className="flex items-center gap-4">
                 <span className="flex items-center gap-1.5">
                   <Calendar className="w-4 h-4 text-slate-400" />
-                  <span>تاريخ النشر: {article.createdAt}</span>
+                  <span>{lang === 'ar' ? `تاريخ النشر: ${article.createdAt}` : lang === 'fr' ? `Publié le: ${article.createdAt}` : `Published on: ${article.createdAt}`}</span>
                 </span>
                 <span>•</span>
                 <span className="flex items-center gap-1.5">
                   <User className="w-4 h-4 text-slate-400" />
-                  <span>بقلم: {article.author && !article.author.includes('روبوت') ? article.author : 'أطر جمعية AMSED'}</span>
+                  <span>
+                    {lang === 'ar' 
+                      ? `بقلم: ${article.author && !article.author.includes('روبوت') ? article.author : 'أطر جمعية AMSED'}` 
+                      : lang === 'fr' 
+                      ? `Par: ${article.author && !article.author.includes('روبوت') ? article.author : 'Équipe AMSED'}` 
+                      : `By: ${article.author && !article.author.includes('روبوت') ? article.author : 'AMSED Team'}`}
+                  </span>
                 </span>
               </div>
 
               {/* Share */}
               <div className="flex items-center gap-2">
-                <span className="font-bold text-slate-700">مشاركة:</span>
+                <span className="font-bold text-slate-700">{lang === 'ar' ? 'مشاركة:' : lang === 'fr' ? 'Partager:' : 'Share:'}</span>
                 <a
                   href={whatsappShareUrl}
                   target="_blank"
                   rel="noreferrer"
                   className="w-8 h-8 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white flex items-center justify-center transition"
-                  title="مشاركة عبر واتساب"
+                  title="WhatsApp"
                 >
                   <MessageCircle className="w-4 h-4" />
                 </a>
@@ -101,15 +111,20 @@ export const ArticleDetailPage = () => {
           </div>
 
           {/* Featured Image */}
-          {article.image && (
-            <div className="rounded-3xl overflow-hidden shadow-xl border border-slate-200 bg-slate-100 max-h-[500px]">
-              <img
-                src={article.image}
-                alt={getLocalized(article, 'title')}
-                className="w-full h-full object-cover max-h-[500px]"
-              />
-            </div>
-          )}
+          {(() => {
+            const displayImg = (article.image && !article.image.includes('photo-1503676260728'))
+              ? article.image
+              : 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&w=1000&q=80';
+            return (
+              <div className="rounded-3xl overflow-hidden shadow-xl border border-slate-200 bg-slate-100 max-h-[500px]">
+                <img
+                  src={displayImg}
+                  alt={getLocalized(article, 'title')}
+                  className="w-full h-full object-cover max-h-[500px]"
+                />
+              </div>
+            );
+          })()}
 
           {/* Content Body */}
           <article className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-sm">
@@ -123,7 +138,7 @@ export const ArticleDetailPage = () => {
           {otherArticles.length > 0 && (
             <div className="pt-8 border-t border-slate-200 space-y-6">
               <h3 className="text-xl font-bold text-slate-900">
-                مقالات وأخبار أخرى قد تهمك
+                {lang === 'ar' ? 'مقالات وأخبار أخرى قد تهمك' : lang === 'fr' ? 'Autres articles recommandés' : 'Other recommended articles'}
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

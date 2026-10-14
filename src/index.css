@@ -76,14 +76,11 @@
   background-size: 24px 24px;
 }
 
-/* Authentic Moroccan Zellij mosaic pattern */
-.moroccan-zellij-bg {
-  background-color: #faf9f5;
-  background-image: 
-    radial-gradient(#c29b38 1px, transparent 1px),
-    radial-gradient(#0d7249 0.75px, #faf9f5 0.75px);
-  background-size: 32px 32px;
-  background-position: 0 0, 16px 16px;
+/* Authentic Moroccan Zellij mosaic pattern with Royal Green, Gold and Red */
+body, .moroccan-zellij-bg {
+  background-color: #faf7f0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg stroke-width='1.2'%3E%3Cpath stroke='%23d4af37' stroke-opacity='0.28' d='M40 0l10 10h10v10l10 10-10 10v10H50l-10 10-10-10H20V50l-10-10 10-10V20h10L40 0zm0 15l7 7h7v7l7 7-7 7v7h-7l-7 7-7-7h-7v-7l-7-7 7-7v-7h7l7-7z'/%3E%3Ccircle cx='40' cy='40' r='6' stroke='%230d7249' stroke-opacity='0.32' fill='%230d7249' fill-opacity='0.05'/%3E%3Cpath stroke='%239e1a24' stroke-opacity='0.25' d='M0 40l10-10 10 10-10 10L0 40zm80 0l-10-10-10 10 10 10 10-10zM40 0l10 10-10 10L30 10 40 0zm0 80l10-10-10-10-10 10 10 10z'/%3E%3Ccircle cx='0' cy='0' r='4' stroke='%23d4af37' stroke-opacity='0.3' fill='%23d4af37' fill-opacity='0.08'/%3E%3Ccircle cx='80' cy='0' r='4' stroke='%23d4af37' stroke-opacity='0.3' fill='%23d4af37' fill-opacity='0.08'/%3E%3Ccircle cx='0' cy='80' r='4' stroke='%23d4af37' stroke-opacity='0.3' fill='%23d4af37' fill-opacity='0.08'/%3E%3Ccircle cx='80' cy='80' r='4' stroke='%23d4af37' stroke-opacity='0.3' fill='%23d4af37' fill-opacity='0.08'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  background-attachment: fixed;
 }
 
 .moroccan-royal-card {

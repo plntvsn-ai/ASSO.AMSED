@@ -14,12 +14,14 @@ import { BankAccountSection } from '../components/BankAccountSection';
 import { ContactSection } from '../components/ContactSection';
 import { Footer } from '../components/Footer';
 import { useCms } from '../context/CmsContext';
+import { useLanguage } from '../context/LanguageContext';
 import { autoGenerateAndPublish } from '../services/autoPublisher';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Phone, MessageCircle } from 'lucide-react';
 
 export default function Home() {
+  const { lang, dir } = useLanguage();
   const { cmsData, triggerAutoPublish } = useCms();
   const [settings, setSettings] = useState(() => {
     try {
@@ -96,7 +98,7 @@ export default function Home() {
   const whatsappUrl = `https://wa.me/${intlPhone}`;
 
   return (
-    <div className="min-h-screen flex flex-col moroccan-zellij-bg text-slate-800 font-sans selection:bg-emerald-600 selection:text-white" dir="rtl">
+    <div className="min-h-screen flex flex-col moroccan-zellij-bg text-slate-800 font-sans selection:bg-emerald-600 selection:text-white" dir={dir}>
       {/* 1. Header with pure Logo only (no iframe/video inside) */}
       <Header />
 
@@ -150,18 +152,18 @@ export default function Home() {
       </footer>
 
       {/* Floating Action Buttons */}
-      <aside aria-label="أزرار التواصل السريع" className="fixed bottom-6 left-6 z-30 flex flex-col gap-3">
+      <aside aria-label={lang === 'ar' ? 'أزرار التواصل السريع' : lang === 'fr' ? 'Boutons de contact rapide' : 'Quick contact buttons'} className="fixed bottom-6 left-6 z-30 flex flex-col gap-3">
         {/* WhatsApp Button */}
         <a
           href={whatsappUrl}
           target="_blank"
           rel="noreferrer"
           className="w-13 h-13 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white flex items-center justify-center shadow-xl hover:scale-110 transition duration-300 group relative"
-          title="تواصل عبر واتساب"
+          title={lang === 'ar' ? 'تواصل عبر واتساب' : lang === 'fr' ? 'Contacter via WhatsApp' : 'Chat via WhatsApp'}
         >
           <MessageCircle className="w-7 h-7" />
           <span className="absolute whitespace-nowrap bg-slate-900 text-white text-xs font-bold px-2.5 py-1 rounded-md shadow pointer-events-none opacity-0 group-hover:opacity-100 transition duration-200 left-full ml-2">
-            واتساب مباشر
+            {lang === 'ar' ? 'واتساب مباشر' : lang === 'fr' ? 'WhatsApp Direct' : 'Direct WhatsApp'}
           </span>
         </a>
 
@@ -169,7 +171,7 @@ export default function Home() {
         <a
           href={`tel:${phoneForCall}`}
           className="w-13 h-13 rounded-full bg-slate-900 hover:bg-slate-800 text-white flex items-center justify-center shadow-xl hover:scale-110 transition duration-300 group relative border-2 border-emerald-500/30"
-          title={`اتصال: ${phoneForCall}`}
+          title={lang === 'ar' ? `اتصال: ${phoneForCall}` : lang === 'fr' ? `Appeler: ${phoneForCall}` : `Call: ${phoneForCall}`}
         >
           <Phone className="w-6 h-6 text-emerald-400" />
         </a>

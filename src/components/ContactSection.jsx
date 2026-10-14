@@ -237,10 +237,18 @@ export const ContactSection = () => {
                 <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center text-amber-700">
                   <Clock className="w-5 h-5" />
                 </div>
-                <span>{lang === 'ar' ? 'أوقات العمل والاستقبال' : 'Horaires d\'ouverture'}</span>
+                <span>
+                  {lang === 'ar' ? 'أوقات العمل والاستقبال' : lang === 'fr' ? "Horaires d'ouverture" : 'Working Hours'}
+                </span>
               </div>
               <p className="text-xs sm:text-sm text-slate-800 font-semibold whitespace-pre-line leading-relaxed bg-white p-3.5 rounded-2xl border border-slate-200">
-                {association.working_hours || (lang === 'ar' ? 'الإثنين - الجمعة: 08:30 إلى 17:00\nالسبت: 09:00 إلى 13:00\nالأحد: مغلق' : 'Lundi - Vendredi: 08h30 - 17h00\nSamedi: 09h00 - 13h00')}
+                {association.working_hours || (
+                  lang === 'ar' 
+                    ? 'الإثنين - الجمعة: 08:30 إلى 17:00\nالسبت: 09:00 إلى 13:00\nالأحد: مغلق' 
+                    : lang === 'fr'
+                    ? 'Lundi - Vendredi: 08h30 - 17h00\nSamedi: 09h00 - 13h00\nDimanche: Fermé'
+                    : 'Monday - Friday: 08:30 - 17:00\nSaturday: 09:00 - 13:00\nSunday: Closed'
+                )}
               </p>
             </div>
 
@@ -251,7 +259,7 @@ export const ContactSection = () => {
                   {t('contact', 'socialMedia')}
                 </h4>
                 <p className="text-xs text-slate-400">
-                  {lang === 'ar' ? 'تابع أنشطتنا وقنواتنا الرسمية' : 'Suivez-nous sur les réseaux'}
+                  {lang === 'ar' ? 'تابع أنشطتنا وقنواتنا الرسمية' : lang === 'fr' ? 'Suivez-nous sur les réseaux' : 'Follow us on social channels'}
                 </p>
               </div>
 
@@ -292,7 +300,9 @@ export const ContactSection = () => {
               <p className="text-xs sm:text-sm text-slate-600 mt-1">
                 {lang === 'ar' 
                   ? 'املأ النموذج وسيقوم مسؤول الجمعية بالتواصل معك مباشرة.' 
-                  : 'Remplissez le formulaire et notre équipe prendra contact avec vous.'}
+                  : lang === 'fr'
+                  ? 'Remplissez le formulaire et notre équipe prendra contact avec vous.'
+                  : 'Fill out the form and our team will get in touch with you shortly.'}
               </p>
             </div>
 
@@ -360,7 +370,7 @@ export const ContactSection = () => {
                     type="text"
                     value={formData.subject}
                     onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                    placeholder={lang === 'ar' ? 'مثال: استفسار، اقتراح' : 'Ex: Information, suggestion'}
+                    placeholder={lang === 'ar' ? 'مثال: استفسار، اقتراح' : lang === 'fr' ? 'Ex: Information, suggestion' : 'E.g.: Inquiry, proposal'}
                     className="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-slate-900 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none transition"
                   />
                 </div>
@@ -375,7 +385,7 @@ export const ContactSection = () => {
                   rows={4}
                   value={formData.message}
                   onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                  placeholder={lang === 'ar' ? 'اكتب تفاصيل طلبك أو رسالتك هنا...' : 'Écrivez votre message ici...'}
+                  placeholder={lang === 'ar' ? 'اكتب تفاصيل طلبك أو رسالتك هنا...' : lang === 'fr' ? 'Écrivez votre message ici...' : 'Write your message or inquiry here...'}
                   className="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-slate-900 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none transition resize-none"
                 ></textarea>
               </div>
@@ -399,47 +409,59 @@ export const ContactSection = () => {
             <div className="space-y-2">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-500/30">
                 <Navigation className="w-3.5 h-3.5" />
-                <span>{lang === 'ar' ? 'مقر الجمعية الميداني' : 'Siège Opérationnel'}</span>
+                <span>{lang === 'ar' ? 'مقر الجمعية الميداني' : lang === 'fr' ? 'Siège Opérationnel' : 'Operational Headquarters'}</span>
               </div>
               <h3 className="text-xl sm:text-2xl font-black text-white">
-                {lang === 'ar' ? 'موقعنا على الخريطة (القنيطرة)' : 'Notre Localisation sur la Carte (Kénitra)'}
+                {lang === 'ar' ? 'موقعنا على الخريطة (القنيطرة)' : lang === 'fr' ? 'Notre Localisation sur la Carte (Kénitra)' : 'Our Location on Google Maps (Kenitra)'}
               </h3>
               <p className="text-xs sm:text-sm text-slate-300 max-w-xl">
-                📍 {lang === 'ar' ? association.addressAr : association.addressFr}
+                📍 {lang === 'ar' ? association.addressAr : lang === 'fr' ? association.addressFr : association.addressEn}
               </p>
             </div>
 
-            <a
-              href={association.mapUrl || "https://maps.app.goo.gl/dB123S6xmCadzDMC6"}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3.5 rounded-2xl shadow-lg transition transform hover:-translate-y-0.5 shrink-0"
-            >
-              <Compass className="w-5 h-5" />
-              <span>{lang === 'ar' ? 'فتح الموقع في تطبيق Google Maps' : 'Ouvrir dans Google Maps'}</span>
-              <ExternalLink className="w-4 h-4 opacity-80" />
-            </a>
+            {(() => {
+              const mapLat = siteSettings?.lat || association?.lat || '34.250676';
+              const mapLng = siteSettings?.lng || association?.lng || '-6.540316';
+              return (
+                <a
+                  href={`https://www.google.com/maps?q=${mapLat},${mapLng}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold px-6 py-3.5 rounded-2xl shadow-lg transition transform hover:-translate-y-0.5 shrink-0"
+                >
+                  <Compass className="w-5 h-5" />
+                  <span>{lang === 'ar' ? 'فتح الموقع في تطبيق Google Maps' : lang === 'fr' ? 'Ouvrir dans Google Maps' : 'Open in Google Maps'}</span>
+                  <ExternalLink className="w-4 h-4 opacity-80" />
+                </a>
+              );
+            })()}
           </div>
 
           {/* Interactive Map Iframe */}
           <div className="relative w-full h-80 sm:h-96 bg-slate-100">
-            <iframe
-              title="موقع جمعية المبادرة المغربية للتكافل والتعاون بالقنيطرة"
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3946.3352707977733!2d-6.542888223788758!3d34.250668007226096!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xda7598d933e7443%3A0xf8e9c56f2cb95186!2z2KzZhdi52YrYqSDYp9mE2YXYqNin2K_YsdipINin2YTZhdi62LHYqNmK2Kkg2YTZhNiq2YPYp9mB2YQg2YjYp9mE2KrYudin2YjZhiDZhNix2LnYp9mK2Kkg2KfZhNij2LfZgdin2YQg2YHZiiDZiNi22LnZitipINi12LnYqNip!5e1!3m2!1sen!2sma!4v1791728796328!5m2!1sen!2sma"
-              className="w-full h-full border-0"
-              loading="lazy"
-              allowFullScreen
-              referrerPolicy="no-referrer-when-downgrade"
-            ></iframe>
+            {(() => {
+              const mapLat = siteSettings?.lat || association?.lat || '34.250676';
+              const mapLng = siteSettings?.lng || association?.lng || '-6.540316';
+              return (
+                <iframe
+                  title={lang === 'ar' ? "موقع جمعية المبادرة المغربية للتكافل والتعاون بالقنيطرة" : "AMSED Association Location Kenitra"}
+                  src={`https://maps.google.com/maps?q=${mapLat},${mapLng}&hl=${lang}&z=17&output=embed`}
+                  className="w-full h-full border-0"
+                  loading="lazy"
+                  allowFullScreen
+                  referrerPolicy="no-referrer-when-downgrade"
+                ></iframe>
+              );
+            })()}
 
             {/* Float badge over map */}
             <div className="absolute top-4 start-4 bg-white/95 backdrop-blur-md p-3 rounded-2xl shadow-lg border border-slate-200 max-w-xs pointer-events-none">
               <div className="flex items-center gap-2 text-xs font-black text-emerald-800">
                 <MapPin className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>جمعية المبادرة المغربية (الساكنية)</span>
+                <span>{lang === 'ar' ? 'جمعية المبادرة المغربية (الساكنية)' : 'AMSED (Saknia)'}</span>
               </div>
               <p className="text-[11px] text-slate-600 mt-1">
-                تجزئة الحزام، رقم د 25، القنيطرة
+                {lang === 'ar' ? 'تجزئة الحزام، رقم د 25، القنيطرة' : 'Lotissement El Hizam, N° D 25, Kénitra'}
               </p>
             </div>
           </div>

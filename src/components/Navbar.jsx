@@ -36,14 +36,29 @@ export const Navbar = ({ onOpenAdmin }) => {
   });
 
   useEffect(() => {
+    const reload = () => {
+      try {
+        const cached = localStorage.getItem('site_settings');
+        if (cached) setSiteSettings(JSON.parse(cached));
+      } catch {}
+    };
+    window.addEventListener('storage', reload);
+    window.addEventListener('cms-update', reload);
+
     fetch('/api/settings')
       .then(res => res.json())
       .then(data => {
         if (data?.data) {
           setSiteSettings(data.data);
+          try { localStorage.setItem('site_settings', JSON.stringify(data.data)); } catch {}
         }
       })
       .catch(() => {});
+
+    return () => {
+      window.removeEventListener('storage', reload);
+      window.removeEventListener('cms-update', reload);
+    };
   }, []);
 
   const association = { ...data.association, ...(cmsData?.contact || {}), ...siteSettings };
@@ -57,17 +72,19 @@ export const Navbar = ({ onOpenAdmin }) => {
   }, []);
 
   const cmsHeaderMenus = cmsData?.menus?.headerMenus;
-  const rawNavLinks = (cmsHeaderMenus && cmsHeaderMenus.length > 0)
+  const defaultNavLinks = [
+    { href: '/', label: lang === 'fr' ? 'Accueil' : lang === 'en' ? 'Home' : t('nav', 'home') },
+    { href: '/about', label: lang === 'fr' ? 'À Propos' : lang === 'en' ? 'About Us' : 'من نحن' },
+    { href: '/#services', label: lang === 'fr' ? 'Nos Services' : lang === 'en' ? 'Our Services' : t('nav', 'services') },
+    { href: '/articles', label: lang === 'fr' ? 'Articles & Actualités' : lang === 'en' ? 'Articles & News' : 'المقالات والأخبار' },
+    { href: '/#videos', label: lang === 'fr' ? 'Vidéos' : lang === 'en' ? 'Videos' : t('nav', 'videos') },
+    { href: '/#gallery', label: lang === 'fr' ? 'Galerie' : lang === 'en' ? 'Gallery' : t('nav', 'gallery') },
+    { href: '/#contact', label: lang === 'fr' ? 'Contact' : lang === 'en' ? 'Contact' : t('nav', 'contact') },
+  ];
+
+  const rawNavLinks = (cmsHeaderMenus && cmsHeaderMenus.length > 0 && lang === 'ar')
     ? cmsHeaderMenus.map(m => ({ href: m.link, label: m.label }))
-    : [
-        { href: '/', label: t('nav', 'home') },
-        { href: '/about', label: 'من نحن' },
-        { href: '/#services', label: t('nav', 'services') },
-        { href: '/articles', label: 'المقالات والأخبار' },
-        { href: '/#videos', label: t('nav', 'videos') },
-        { href: '/#gallery', label: t('nav', 'gallery') },
-        { href: '/#contact', label: t('nav', 'contact') },
-      ];
+    : defaultNavLinks;
   const navLinks = rawNavLinks.filter(l => !l.href?.includes('donate') && !l.label?.includes('تبرع'));
 
   const languages = [
@@ -91,7 +108,7 @@ export const Navbar = ({ onOpenAdmin }) => {
               {t('identity', 'motto')}
             </span>
             <span className="hidden md:inline-block text-slate-400">
-              {t('identity', 'officialAssociation')}
+              {siteSettings.top_bar_title || (lang === 'ar' ? t('identity', 'officialAssociation') : lang === 'fr' ? "Organisation Nationale d'Intérêt Public" : 'National Public Benefit Organization')}
             </span>
           </div>
 
@@ -178,17 +195,24 @@ export const Navbar = ({ onOpenAdmin }) => {
           {/* Standalone Logo & Association Name */}
           <Link to="/" className="flex items-center gap-3.5 group">
             <div className="shrink-0 flex items-center justify-center">
-              <Logo size={60} />
+              <Logo size={62} />
             </div>
             
             <div className="flex flex-col">
+              <span className="text-[10px] text-amber-700 font-bold tracking-wide uppercase">
+                {siteSettings.top_bar_title || (lang === 'ar' ? 'مصلحة عمومية وطنية ذات أهداف إنسانية وتضامنية' : lang === 'fr' ? "Organisation Nationale d'Intérêt Public" : 'National Public Benefit Organization')}
+              </span>
               <span className={`text-xs sm:text-sm lg:text-base leading-snug group-hover:opacity-90 transition ${NAME_STYLES[siteSettings.association_name_style || 'andalusian'] || NAME_STYLES.andalusian}`}>
-                {siteSettings.association_full_name || (lang === 'ar' ? association.nameAr : lang === 'fr' ? association.nameFr : association.nameEn)}
+                {lang === 'ar' 
+                  ? (siteSettings.association_full_name || association.nameAr) 
+                  : lang === 'fr' 
+                  ? 'Association Initiative Marocaine pour la Protection des Enfants' 
+                  : 'Moroccan Initiative Association for Child Care'}
               </span>
               <span className="text-[11px] sm:text-xs text-amber-800/90 font-bold flex items-center gap-1.5 mt-0.5">
                 <span>{association.acronym || 'AMSED'}</span>
                 <span>•</span>
-                <span>{siteSettings.association_subtitle || (lang === 'ar' ? 'رعاية أطفال التوحد وفي وضعية صعبة • القنيطرة' : 'Protection des Enfants en Situation Difficile')}</span>
+                <span>{lang === 'ar' ? (siteSettings.association_subtitle || 'رعاية أطفال التوحد وفي وضعية صعبة • القنيطرة') : lang === 'fr' ? 'Prise en charge de l\'autisme & enfance en difficulté • Kénitra' : 'Autism Care & Children in Need • Kenitra'}</span>
               </span>
             </div>
           </Link>

@@ -14,8 +14,9 @@ const DEFAULT_SETTINGS = {
   phone2: "06 63 78 01 07",
   phone3: "",
   working_hours: "الإثنين - الجمعة: 08:30 إلى 17:00 | السبت: 09:00 إلى 13:00",
-  lat: "34.2610",
-  lng: "-6.5802",
+  lat: "34.250676",
+  lng: "-6.540316",
+  top_bar_title: "مصلحة عمومية وطنية ذات أهداف إنسانية وتضامنية",
   show_donations: false,
   show_bank: false,
   show_stats: true

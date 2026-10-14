@@ -204,31 +204,31 @@ export const Announcements = () => {
     switch (category) {
       case 'robot':
         return {
-          label: '🎓 مقال تربوي وتأهيلي (AMSED)',
+          label: lang === 'ar' ? '🎓 مقال تربوي وتأهيلي (AMSED)' : lang === 'fr' ? '🎓 Article Éducatif (AMSED)' : '🎓 Educational Article (AMSED)',
           icon: <GraduationCap className="w-3.5 h-3.5" />,
           color: 'bg-gradient-to-r from-emerald-800 to-teal-900 text-amber-300 border-amber-400/40 shadow-sm'
         };
       case 'urgent':
         return {
-          label: lang === 'ar' ? '🚨 بلاغ تربوي عاجل' : 'Urgent',
+          label: lang === 'ar' ? '🚨 بلاغ تربوي عاجل' : lang === 'fr' ? '🚨 Avis Urgent' : '🚨 Urgent Notice',
           icon: <AlertCircle className="w-3.5 h-3.5" />,
           color: 'bg-gradient-to-r from-rose-800 to-red-900 text-rose-100 border-rose-400/40 shadow-sm'
         };
       case 'event':
         return {
-          label: lang === 'ar' ? '🎪 نشاط وقافلة تأهيلية' : 'Événement',
+          label: lang === 'ar' ? '🎪 نشاط وقافلة تأهيلية' : lang === 'fr' ? '🎪 Activité & Caravane' : '🎪 Event & Outreach',
           icon: <Award className="w-3.5 h-3.5" />,
           color: 'bg-gradient-to-r from-amber-700 to-yellow-800 text-amber-100 border-amber-300/40 shadow-sm'
         };
       case 'rss':
         return {
-          label: `📡 رصد وطني • ${source || 'Google News'}`,
+          label: lang === 'ar' ? `📡 رصد وطني • ${source || 'Google News'}` : `📡 Presse • ${source || 'Google News'}`,
           icon: <Radio className="w-3.5 h-3.5 animate-pulse text-emerald-300" />,
           color: 'bg-gradient-to-r from-emerald-900 to-cyan-950 text-cyan-200 border-cyan-400/40 shadow-sm'
         };
       default:
         return {
-          label: lang === 'ar' ? '📜 نشرة المؤسسة التربوية' : 'Actualité',
+          label: lang === 'ar' ? '📜 نشرة المؤسسة التربوية' : lang === 'fr' ? '📜 Communiqué Officiel' : '📜 Official Release',
           icon: <BookOpen className="w-3.5 h-3.5" />,
           color: 'bg-gradient-to-r from-slate-800 to-emerald-950 text-emerald-200 border-emerald-400/40 shadow-sm'
         };
@@ -260,13 +260,19 @@ export const Announcements = () => {
           {/* الشارة الرسمية المغربية */}
           <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-emerald-900 text-amber-300 text-xs font-bold mb-4 border border-amber-400/50 shadow-md">
             <span className="text-amber-400 text-sm">۞</span>
-            <span>المملكة المغربية • فضاء الإعلام والتواصل التربوي</span>
+            <span>
+              {lang === 'ar' 
+                ? 'المملكة المغربية • فضاء الإعلام والتواصل التربوي' 
+                : lang === 'fr' 
+                ? 'Royaume du Maroc • Espace Média & Communication' 
+                : 'Kingdom of Morocco • Media & Educational Outreach'}
+            </span>
             <span className="text-amber-400 text-sm">۞</span>
           </div>
 
           {/* العنوان الرئيسي بخط أنيق مستوحى من المؤسسات التربوية الكبرى */}
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black text-emerald-950 tracking-tight leading-tight">
-            نافذة المستجدات والإعلانات التربوية
+            {t('announcements', 'title') || 'نافذة المستجدات والإعلانات التربوية'}
           </h2>
 
           {/* فاصل الزخرفة المغربية التقليدية (Moroccan Architectural Flourish) */}
@@ -281,7 +287,7 @@ export const Announcements = () => {
           </div>
 
           <p className="text-slate-700 text-sm sm:text-base lg:text-lg leading-relaxed max-w-3xl mx-auto font-medium">
-            مواكبة توثيقية حية لمسارات التأهيل، ورشات الإدماج المدرسي، وبحوث التوحد، مع تغطية مستمرة لكافة أنشطة الجمعية الميدانية بالقنيطرة والمغرب.
+            {t('announcements', 'subtitle') || 'مواكبة توثيقية حية لمسارات التأهيل، ورشات الإدماج المدرسي، وبحوث التوحد، مع تغطية مستمرة لكافة أنشطة الجمعية الميدانية بالقنيطرة والمغرب.'}
           </p>
 
           {/* شريط الأخبار الحية RSS بتصميم مغربي مذهب */}
@@ -292,7 +298,7 @@ export const Announcements = () => {
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-600"></span>
               </span>
               <span className="font-extrabold text-emerald-900 whitespace-nowrap flex items-center gap-1">
-                <span>📡 رصد إخباري وطني:</span>
+                <span>{lang === 'ar' ? '📡 رصد إخباري وطني:' : '📡 Presse:'}</span>
               </span>
               <span className="truncate text-slate-800">{rssNews[0]?.title}</span>
               <span className="text-[11px] bg-amber-100 text-amber-900 font-bold px-2 py-0.5 rounded border border-amber-200 flex-shrink-0">
@@ -311,7 +317,7 @@ export const Announcements = () => {
                   : 'bg-white/80 text-emerald-950 hover:bg-white border border-amber-200/80 shadow-sm'
               }`}
             >
-              <span>جميع المستجدات</span>
+              <span>{lang === 'ar' ? 'جميع المستجدات' : lang === 'fr' ? 'Toutes les actualités' : 'All Updates'}</span>
               <span className="text-[10px] bg-amber-400/20 px-1.5 py-0.2 rounded-full">
                 {formattedRobotItems.length + rawAnnouncements.length + (rssNews.length > 0 ? 3 : 0)}
               </span>
@@ -326,7 +332,13 @@ export const Announcements = () => {
               }`}
             >
               <GraduationCap className="w-4 h-4 text-amber-500" />
-              <span>مقالات وبحوث تربوية ({formattedRobotItems.length})</span>
+              <span>
+                {lang === 'ar' 
+                  ? `مقالات وبحوث تربوية (${formattedRobotItems.length})` 
+                  : lang === 'fr' 
+                  ? `Articles & Recherches (${formattedRobotItems.length})` 
+                  : `Educational Articles (${formattedRobotItems.length})`}
+              </span>
             </button>
 
             <button
@@ -350,7 +362,7 @@ export const Announcements = () => {
               }`}
             >
               <Award className="w-3.5 h-3.5 text-amber-600" />
-              <span>أنشطة وقوافل</span>
+              <span>{lang === 'ar' ? 'أنشطة وقوافل' : lang === 'fr' ? 'Événements & Caravanes' : 'Events & Caravans'}</span>
             </button>
 
             <button
@@ -362,7 +374,7 @@ export const Announcements = () => {
               }`}
             >
               <BookOpen className="w-3.5 h-3.5 text-emerald-600" />
-              <span>أخبار الجمعية</span>
+              <span>{lang === 'ar' ? 'أخبار الجمعية' : lang === 'fr' ? 'Actualités AMSED' : 'Association News'}</span>
             </button>
 
             <button
@@ -374,7 +386,7 @@ export const Announcements = () => {
               }`}
             >
               <Radio className="w-3.5 h-3.5 text-teal-600 animate-pulse" />
-              <span>رصد وطني حام (RSS)</span>
+              <span>{lang === 'ar' ? 'رصد وطني حام (RSS)' : lang === 'fr' ? 'Presse Nationale (RSS)' : 'National Press (RSS)'}</span>
               {rssNews.length > 0 && (
                 <span className="text-[10px] bg-teal-100 text-teal-900 px-1.5 py-0.5 rounded-full font-mono font-bold">
                   {rssNews.length}
@@ -389,7 +401,9 @@ export const Announcements = () => {
           {/* عداد المقالات المعروضة مع أيقونة تربوية */}
           <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-emerald-950 bg-white/70 px-3.5 py-1.5 rounded-xl border border-amber-200/70 shadow-sm">
             <Bookmark className="w-4 h-4 text-amber-600" />
-            <span>عرض {displayList.length} مستجدات تربوية</span>
+            <span>
+              {lang === 'ar' ? `عرض ${displayList.length} مستجدات تربوية` : lang === 'fr' ? `${displayList.length} actualités` : `${displayList.length} updates`}
+            </span>
             <span className="text-[11px] text-amber-700 font-mono">
               ({activeSlideIndex + 1} / {displayList.length})
             </span>
@@ -428,7 +442,7 @@ export const Announcements = () => {
           <div className="text-center py-16 bg-white/90 rounded-3xl border border-amber-200/80 max-w-md mx-auto shadow-sm">
             <BookOpen className="w-10 h-10 text-amber-600 mx-auto mb-3 opacity-60" />
             <p className="text-slate-600 font-bold">
-              {loadingRss ? 'جارٍ جلب المستجدات التربوية...' : t('announcements', 'noAnnouncements')}
+              {loadingRss ? (lang === 'ar' ? 'جارٍ جلب المستجدات...' : 'Chargement...') : t('announcements', 'noAnnouncements')}
             </p>
           </div>
         ) : (
@@ -477,17 +491,17 @@ export const Announcements = () => {
                       {/* الوسم التربوي الملحق أسفل الصورة */}
                       <div className="absolute bottom-2.5 start-3 end-3 flex items-center justify-between text-[11px] text-white/90">
                         <span className="bg-emerald-950/85 px-2.5 py-0.5 rounded-md font-semibold border border-emerald-500/40 backdrop-blur-sm">
-                          {item.pedagogyTag || 'رعاية وتأهيل'}
+                          {item.pedagogyTag || (lang === 'ar' ? 'رعاية وتأهيل' : 'Rééducation')}
                         </span>
                         <span className="bg-black/60 px-2 py-0.5 rounded-md font-mono flex items-center gap-1 text-[10px] text-amber-200">
                           <Clock className="w-3 h-3 text-amber-300" />
-                          <span>{item.readingTime || '3 دقائق'}</span>
+                          <span>{item.readingTime || (lang === 'ar' ? '3 دقائق' : '3 min')}</span>
                         </span>
                       </div>
                     </div>
 
                     {/* جسم البطاقة بمظهر وثائقي تربوي */}
-                    <div className="p-5 sm:p-6 pb-2">
+                    <div className="p-5 sm:p-6 pb-2 text-start">
                       {/* التاريخ والمصدر الميداني */}
                       <div className="flex items-center justify-between text-xs text-slate-500 mb-3 border-b border-amber-100/80 pb-2.5">
                         <div className="flex items-center gap-1.5 text-emerald-900 font-semibold">
@@ -520,7 +534,9 @@ export const Announcements = () => {
                         to={item.articleUrl}
                         className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-black text-emerald-950 hover:text-amber-700 transition group/btn"
                       >
-                        <span className="border-b border-emerald-900 group-hover/btn:border-amber-600 pb-0.5">قراءة المقال كاملاً</span>
+                        <span className="border-b border-emerald-900 group-hover/btn:border-amber-600 pb-0.5">
+                          {lang === 'ar' ? 'قراءة المقال كاملاً' : lang === 'fr' ? "Lire l'article complet" : 'Read full article'}
+                        </span>
                         <ArrowIcon className="w-4 h-4 text-amber-600 group-hover/btn:translate-x-1 transition-transform" />
                       </Link>
                     ) : item.isRss && item.link ? (
@@ -530,7 +546,9 @@ export const Announcements = () => {
                         rel="noopener noreferrer"
                         className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-black text-teal-900 hover:text-teal-700 transition"
                       >
-                        <span>قراءة في {item.source || 'المصدر'}</span>
+                        <span>
+                          {lang === 'ar' ? `قراءة في ${item.source || 'المصدر'}` : lang === 'fr' ? `Lire sur ${item.source || 'la source'}` : `Read on ${item.source || 'source'}`}
+                        </span>
                         <ExternalLink className="w-3.5 h-3.5 text-teal-600" />
                       </a>
                     ) : (
@@ -538,7 +556,9 @@ export const Announcements = () => {
                         onClick={() => setSelectedAnnouncement(item)}
                         className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-black text-emerald-950 hover:text-amber-700 transition group/btn"
                       >
-                        <span className="border-b border-emerald-900 group-hover/btn:border-amber-600 pb-0.5">تفاصيل الإعلان التربوي</span>
+                        <span className="border-b border-emerald-900 group-hover/btn:border-amber-600 pb-0.5">
+                          {lang === 'ar' ? 'تفاصيل الإعلان التربوي' : lang === 'fr' ? "Détails de l'annonce" : 'Announcement details'}
+                        </span>
                         <ArrowIcon className="w-4 h-4 text-amber-600 group-hover/btn:translate-x-1 transition-transform" />
                       </button>
                     )}
@@ -549,7 +569,7 @@ export const Announcements = () => {
                         href="#contact"
                         className="text-[11px] bg-gradient-to-r from-emerald-800 to-emerald-900 hover:from-emerald-900 hover:to-emerald-950 text-amber-300 font-extrabold px-3 py-1.5 rounded-xl border border-amber-400/50 shadow-sm transition"
                       >
-                        تواصل للاستفسار
+                        {lang === 'ar' ? 'تواصل للاستفسار' : lang === 'fr' ? 'Contact' : 'Inquire'}
                       </a>
                     )}
                   </div>
@@ -584,7 +604,13 @@ export const Announcements = () => {
             className="inline-flex items-center gap-3 px-7 py-3.5 rounded-2xl bg-gradient-to-r from-emerald-900 via-[#0a4a3a] to-emerald-900 text-amber-300 font-black text-sm sm:text-base border-2 border-amber-400/60 shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all duration-300 group"
           >
             <BookOpen className="w-5 h-5 text-amber-400" />
-            <span>تصفح المكتبة التربوية الشاملة لجميع المقالات والبحوث والأخبار</span>
+            <span>
+              {lang === 'ar' 
+                ? 'تصفح المكتبة التربوية الشاملة لجميع المقالات والبحوث والأخبار' 
+                : lang === 'fr' 
+                ? 'Explorer la bibliothèque éducative des articles et actualités' 
+                : 'Browse the full educational library of articles and news'}
+            </span>
             <ArrowIcon className="w-4 h-4 text-amber-300 group-hover:translate-x-1 transition-transform" />
           </Link>
         </div>
@@ -616,7 +642,7 @@ export const Announcements = () => {
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none" />
                 <div className="absolute bottom-4 start-4 end-4 flex items-center justify-between text-white text-xs">
                   <span className="bg-emerald-950/90 text-amber-300 px-3 py-1 rounded-full font-bold border border-amber-400/40">
-                    {selectedAnnouncement.pedagogyTag || 'إعلان تربوي'}
+                    {selectedAnnouncement.pedagogyTag || (lang === 'ar' ? 'إعلان تربوي' : 'Actualité')}
                   </span>
                   <span className="font-mono text-amber-200">
                     {selectedAnnouncement.date}
@@ -625,7 +651,7 @@ export const Announcements = () => {
               </div>
             )}
 
-            <div className="p-6 sm:p-8 space-y-5">
+            <div className="p-6 sm:p-8 space-y-5 text-start">
               <div className="flex items-center justify-between gap-2 border-b border-amber-200/80 pb-3">
                 <span className={`px-3 py-1 rounded-full text-xs font-bold border ${getCategoryBadge(selectedAnnouncement.category, selectedAnnouncement.source).color}`}>
                   {getCategoryBadge(selectedAnnouncement.category, selectedAnnouncement.source).label}
@@ -653,7 +679,9 @@ export const Announcements = () => {
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 bg-emerald-900 hover:bg-emerald-950 text-amber-300 px-6 py-2.5 rounded-xl text-sm font-black transition shadow-lg border border-amber-400/60"
                   >
-                    <span>فتح في {selectedAnnouncement.source || 'المصدر الأصلي'}</span>
+                    <span>
+                      {lang === 'ar' ? `فتح في ${selectedAnnouncement.source || 'المصدر الأصلي'}` : lang === 'fr' ? `Ouvrir sur ${selectedAnnouncement.source || 'la source'}` : `Open on ${selectedAnnouncement.source || 'source'}`}
+                    </span>
                     <ExternalLink className="w-4 h-4 text-amber-400" />
                   </a>
                 ) : (

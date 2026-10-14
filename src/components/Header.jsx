@@ -27,28 +27,46 @@ export default function Header() {
   });
 
   useEffect(() => {
+    const reloadSettings = () => {
+      try {
+        const cached = localStorage.getItem('site_settings');
+        if (cached) setSiteSettings(JSON.parse(cached));
+      } catch {}
+    };
+
+    window.addEventListener('storage', reloadSettings);
+    window.addEventListener('cms-update', reloadSettings);
+
     fetch('/api/settings')
       .then(res => res.json())
       .then(data => {
         if (data?.data) {
           setSiteSettings(data.data);
+          try { localStorage.setItem('site_settings', JSON.stringify(data.data)); } catch {}
         }
       })
       .catch(() => {});
+
+    return () => {
+      window.removeEventListener('storage', reloadSettings);
+      window.removeEventListener('cms-update', reloadSettings);
+    };
   }, []);
 
   const cmsHeaderMenus = cmsData?.menus?.headerMenus;
-  const rawNavLinks = (cmsHeaderMenus && cmsHeaderMenus.length > 0)
+  const defaultNavLinks = [
+    { href: '/', label: lang === 'fr' ? 'Accueil' : lang === 'en' ? 'Home' : 'الرئيسية' },
+    { href: '/about', label: lang === 'fr' ? 'À Propos' : lang === 'en' ? 'About Us' : 'من نحن' },
+    { href: '/#services', label: lang === 'fr' ? 'Nos Services' : lang === 'en' ? 'Our Services' : 'خدماتنا' },
+    { href: '/articles', label: lang === 'fr' ? 'Articles & Actualités' : lang === 'en' ? 'Articles & News' : 'المقالات والأخبار' },
+    { href: '/#videos', label: lang === 'fr' ? 'Vidéos de Terrain' : lang === 'en' ? 'Field Videos' : 'فيديوهات الميدان' },
+    { href: '/#gallery', label: lang === 'fr' ? 'Galerie Photos' : lang === 'en' ? 'Photo Gallery' : 'معرض الصور' },
+    { href: '/#contact', label: lang === 'fr' ? 'Contactez-nous' : lang === 'en' ? 'Contact Us' : 'اتصل بنا' },
+  ];
+
+  const rawNavLinks = (cmsHeaderMenus && cmsHeaderMenus.length > 0 && lang === 'ar')
     ? cmsHeaderMenus.map(m => ({ href: m.link, label: m.label }))
-    : [
-        { href: '/', label: 'الرئيسية' },
-        { href: '/about', label: 'من نحن' },
-        { href: '/#services', label: 'خدماتنا' },
-        { href: '/articles', label: 'المقالات والأخبار' },
-        { href: '/#videos', label: 'فيديوهات الميدان' },
-        { href: '/#gallery', label: 'معرض الصور' },
-        { href: '/#contact', label: 'اتصل بنا' },
-      ];
+    : defaultNavLinks;
 
   // Completely filter out any donate links as requested
   const navLinks = rawNavLinks.filter(l => !l.href?.includes('donate') && !l.label?.includes('تبرع'));
@@ -60,20 +78,27 @@ export default function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-white shadow-sm border-b border-slate-100 transition-all">
+    <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-100 transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between py-2.5">
         
         {/* Brand: Standalone Clean Logo & Association Title */}
         <Link to="/" className="flex items-center gap-3.5 group">
           <div className="shrink-0 flex items-center justify-center">
-            <Logo size={58} />
+            <Logo size={62} />
           </div>
           <div className="flex flex-col">
+            <span className="text-[10px] text-amber-700 font-bold tracking-wide uppercase">
+              {siteSettings.top_bar_title || (lang === 'ar' ? 'مصلحة عمومية وطنية ذات أهداف إنسانية وتضامنية' : lang === 'fr' ? "Organisation Nationale d'Intérêt Public" : 'National Public Benefit Organization')}
+            </span>
             <span className={`text-xs sm:text-sm lg:text-base leading-tight group-hover:opacity-90 transition ${NAME_STYLES[siteSettings.association_name_style || 'andalusian'] || NAME_STYLES.andalusian}`}>
-              {siteSettings.association_full_name || (lang === 'ar' ? 'جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة' : 'Association Initiative Marocaine')}
+              {lang === 'ar' 
+                ? (siteSettings.association_full_name || 'جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة')
+                : lang === 'fr'
+                ? 'Association Initiative Marocaine pour la Protection des Enfants'
+                : 'Moroccan Initiative Association for Child Care'}
             </span>
             <span className="text-[11px] sm:text-xs text-amber-800/90 font-bold flex items-center gap-1.5 mt-0.5">
-              <span>{siteSettings.association_subtitle || (lang === 'ar' ? 'لرعاية أطفال التوحد وفي وضعية صعبة • القنيطرة' : 'Protection des Enfants en Situation Difficile')}</span>
+              <span>{lang === 'ar' ? (siteSettings.association_subtitle || 'لرعاية أطفال التوحد وفي وضعية صعبة • القنيطرة') : lang === 'fr' ? 'Prise en charge de l\'autisme & enfance en difficulté • Kénitra' : 'Autism Care & Children in Need • Kenitra'}</span>
             </span>
           </div>
         </Link>

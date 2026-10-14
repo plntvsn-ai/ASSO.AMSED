@@ -200,12 +200,22 @@ export default function NewsCarousel() {
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-400"></span>
               </span>
               <h2 className="text-base sm:text-lg font-black text-white tracking-wide flex items-center gap-2">
-                <span>مستجدات الأخبار التربوية والتأهيلية بالقنيطرة</span>
+                <span>
+                  {lang === 'ar' 
+                    ? 'مستجدات الأخبار التربوية والتأهيلية بالقنيطرة' 
+                    : lang === 'fr' 
+                    ? 'Actualités Éducatives & Réadaptation à Kénitra' 
+                    : 'Educational & Rehabilitation News in Kenitra'}
+                </span>
                 <span className="text-amber-400 font-serif text-sm">✦ ۞ ✦</span>
               </h2>
             </div>
             <p className="text-xs text-emerald-200/90 font-medium mt-0.5">
-              رصد حي لبحوث التوحد، برامج الإدماج المدرسي، وأنشطة الجمعية بالقنيطرة والمغرب
+              {lang === 'ar' 
+                ? 'رصد حي لبحوث التوحد، برامج الإدماج المدرسي، وأنشطة الجمعية بالقنيطرة والمغرب' 
+                : lang === 'fr' 
+                ? "Veille en direct sur la recherche sur l'autisme, l'inclusion scolaire et nos actions à Kénitra" 
+                : 'Live updates on autism research, school inclusion programs, and association fieldwork'}
             </p>
           </div>
         </div>
@@ -218,7 +228,7 @@ export default function NewsCarousel() {
 
           <button
             onClick={scrollPrev}
-            aria-label="السابق"
+            aria-label={lang === 'ar' ? 'السابق' : 'Previous'}
             className="w-9 h-9 rounded-full bg-emerald-950/80 hover:bg-amber-500 text-amber-300 hover:text-emerald-950 border border-amber-400/60 flex items-center justify-center transition-all duration-200 shadow-md active:scale-95 group"
           >
             {dir === 'rtl' ? (
@@ -230,7 +240,7 @@ export default function NewsCarousel() {
 
           <button
             onClick={scrollNext}
-            aria-label="التالي"
+            aria-label={lang === 'ar' ? 'التالي' : 'Next'}
             className="w-9 h-9 rounded-full bg-emerald-950/80 hover:bg-amber-500 text-amber-300 hover:text-emerald-950 border border-amber-400/60 flex items-center justify-center transition-all duration-200 shadow-md active:scale-95 group"
           >
             {dir === 'rtl' ? (
@@ -312,11 +322,11 @@ export default function NewsCarousel() {
               </div>
 
               {/* محتوى وتفاصيل الخبر التربوي */}
-              <div className="p-4 flex flex-col justify-between min-h-[140px]">
+              <div className="p-4 flex flex-col justify-between min-h-[140px] text-start">
                 <div>
                   <div className="text-[11px] text-slate-500 font-semibold mb-1 flex items-center justify-between">
                     <span>{item.formattedDate}</span>
-                    <span className="text-emerald-800 font-bold">مؤسسة AMSED</span>
+                    <span className="text-emerald-800 font-bold">AMSED</span>
                   </div>
 
                   <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 group-hover:text-emerald-900 transition leading-snug line-clamp-2">
@@ -327,7 +337,9 @@ export default function NewsCarousel() {
                 {/* تذييل البطاقة مع زر القراءة */}
                 <div className="mt-3 pt-2.5 border-t border-amber-100 flex items-center justify-between text-xs font-bold text-emerald-900 group-hover:text-amber-700">
                   <span className="border-b border-emerald-900/40 group-hover:border-amber-600 pb-0.5">
-                    {isInternal ? 'قراءة المقال التربوي' : 'متابعة تفاصيل الخبر'}
+                    {isInternal 
+                      ? (lang === 'ar' ? 'قراءة المقال التربوي' : lang === 'fr' ? "Lire l'article" : 'Read article')
+                      : (lang === 'ar' ? 'متابعة تفاصيل الخبر' : lang === 'fr' ? 'Voir les détails' : 'Read details')}
                   </span>
                   {isInternal ? (
                     <ArrowIcon className="w-3.5 h-3.5 text-amber-600 group-hover:translate-x-1 transition-transform" />
