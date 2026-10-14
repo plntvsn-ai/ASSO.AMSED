@@ -73,33 +73,41 @@ export const AutoPublisherAdmin = () => {
     setIsPublishingNow(true);
     setPublishResult(null);
     try {
-      // كنعيطو على نفس الـ API اللي كيخدم بيه الكرون
       const res = await fetch('/api/autonomous-publish', { method: 'POST' });
-      const data = await res.json();
-      if (data.success) {
-        if (data.article) {
-          try {
-            const stored = localStorage.getItem('amsed_cms_database_v3');
-            const cmsObj = stored ? JSON.parse(stored) : { articles: [] };
-            if (!Array.isArray(cmsObj.articles)) cmsObj.articles = [];
-            cmsObj.articles.unshift(data.article);
-            localStorage.setItem('amsed_cms_database_v3', JSON.stringify(cmsObj));
-          } catch (e) {}
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          if (data.article) {
+            try {
+              const stored = localStorage.getItem('amsed_cms_database_v3');
+              const cmsObj = stored ? JSON.parse(stored) : { articles: [] };
+              if (!Array.isArray(cmsObj.articles)) cmsObj.articles = [];
+              cmsObj.articles.unshift(data.article);
+              localStorage.setItem('amsed_cms_database_v3', JSON.stringify(cmsObj));
+            } catch (e) {}
+          }
+          alert(`✅ تم النشر بنجاح: ${data.ar || data.published}`);
+          window.location.reload();
+          return;
         }
-        alert(`✅ تنشر: ${data.ar || data.published}`);
-        window.location.reload();
-      } else {
-        alert(`❌ خطأ: ${data.error}`);
-        setPublishResult({
-          success: false,
-          message: data.error
-        });
       }
+      throw new Error('Fallback to client publisher');
     } catch (e) {
-      alert('❌ فشل الاتصال - شوف Vercel Logs');
+      try {
+        const { autoGenerateAndPublish } = await import("../../services/autoPublisher");
+        const resClient = await autoGenerateAndPublish();
+        if (resClient?.success) {
+          alert(`✅ تم النشر بنجاح من خزان المواضيع: ${resClient.topic || 'مقال جديد'}`);
+          window.location.reload();
+          return;
+        }
+      } catch (clientErr) {
+        console.error("Client auto publish fallback notice:", clientErr);
+      }
+      alert('❌ تعذر الاتصال بالخادم، يرجى المحاولة بعد قليل.');
       setPublishResult({
         success: false,
-        message: 'فشل الاتصال - شوف Vercel Logs'
+        message: 'تعذر الاتصال بالخادم، يرجى المحاولة بعد قليل.'
       });
     } finally {
       setIsPublishingNow(false);

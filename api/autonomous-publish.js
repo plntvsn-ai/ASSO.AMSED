@@ -31,6 +31,9 @@ function makeFallbackArticle(topic) {
 -- جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED`,
     fr: `Guide pratique AMSED: ${topic} - Prise en charge des enfants autistes. Contact: 06 54 24 05 23`,
     en: `AMSED Practical Guide: ${topic} - Caring for children with autism. Contact: 06 54 24 05 23`
+  };
+}
+
 function getTopicMatchedImage(topic = '') {
   const t = topic.toLowerCase();
   if (t.includes('أينشتاين') || t.includes('اينشتاين') || t.includes('einstein') || t.includes('عبقر') || t.includes('فيزياء')) {
@@ -65,7 +68,7 @@ function getTopicMatchedImage(topic = '') {
   }
   if (t.includes('علامات') || t.includes('رضع') || t.includes('مبكر') || t.includes('تشخيص')) {
     return {
-      url: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=1000&q=80",
+      url: "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=1000&q=80",
       alt: "العلامات المبكرة للتوحد عند الأطفال - AMSED"
     };
   }
