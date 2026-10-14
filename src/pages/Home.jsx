@@ -37,10 +37,30 @@ export default function Home() {
   });
 
   useEffect(() => {
+    const reload = () => {
+      try {
+        const cached = localStorage.getItem('site_settings');
+        if (cached) setSettings(JSON.parse(cached));
+      } catch {}
+    };
+
+    window.addEventListener('storage', reload);
+    window.addEventListener('cms-update', reload);
+
     fetch('/api/settings')
       .then(r => r.json())
-      .then(setSettings)
+      .then(d => {
+        const cached = localStorage.getItem('site_settings');
+        if (d?.source === 'supabase' || (!cached && d?.data)) {
+          if (d?.data) setSettings(d.data);
+        }
+      })
       .catch(() => {});
+
+    return () => {
+      window.removeEventListener('storage', reload);
+      window.removeEventListener('cms-update', reload);
+    };
   }, []);
 
   useEffect(() => {

@@ -10,6 +10,11 @@ import {
   getSupabaseConfig, 
   saveSupabaseCredentials 
 } from '@/lib/supabase';
+import { 
+  loadSiteSettingsAsync, 
+  saveSiteSettingsAsync, 
+  getLocalSiteSettings 
+} from '@/services/siteSettingsService';
 
 export default function SettingsPage() {
   const [form, setForm] = useState({
@@ -53,63 +58,19 @@ export default function SettingsPage() {
     setCustomSbUrl(cfg.url || '');
     setCustomSbKey(cfg.key || '');
 
-    // 2. Load from cache if available for instant display
-    try {
-      const cached = localStorage.getItem('site_settings');
-      if (cached) {
-        setForm(prev => ({ ...prev, ...JSON.parse(cached) }));
-      }
-    } catch {}
+    // 2. Load from cache immediately for instant display
+    const cached = getLocalSiteSettings();
+    setForm(prev => ({ ...prev, ...cached }));
 
-    // 3. Load from API and Supabase
-    const loadSettings = async () => {
-      try {
-        // Try serverless API first
-        try {
-          const apiRes = await fetch('/api/settings');
-          if (apiRes.ok) {
-            const apiJson = await apiRes.json();
-            if (apiJson?.data) {
-              setForm(prev => ({
-                ...prev,
-                ...apiJson.data,
-                association_short_name: apiJson.data.association_short_name || apiJson.data.association_short || prev.association_short_name,
-                show_donations: apiJson.data.show_donations !== undefined ? Boolean(apiJson.data.show_donations) : (apiJson.data.show_donation !== undefined ? Boolean(apiJson.data.show_donation) : prev.show_donations),
-                show_bank: apiJson.data.show_bank !== undefined ? Boolean(apiJson.data.show_bank) : prev.show_bank
-              }));
-              try { localStorage.setItem('site_settings', JSON.stringify(apiJson.data)); } catch {}
-            }
-          }
-        } catch (apiErr) {
-          console.warn('API /api/settings load warning:', apiErr);
+    // 3. Load full async (Firestore -> Supabase -> API without overwriting)
+    loadSiteSettingsAsync()
+      .then(loaded => {
+        if (loaded) {
+          setForm(prev => ({ ...prev, ...loaded }));
         }
-
-        // Try direct Supabase if configured
-        if (isConfig) {
-          try {
-            const { data, error } = await supabase.from('site_settings').select('*').eq('id', 1).single();
-            if (!error && data) {
-              setForm(prev => ({
-                ...prev,
-                ...data,
-                association_short_name: data.association_short_name || data.association_short || prev.association_short_name,
-                show_donations: data.show_donations !== undefined ? Boolean(data.show_donations) : (data.show_donation !== undefined ? Boolean(data.show_donation) : prev.show_donations),
-                show_bank: data.show_bank !== undefined ? Boolean(data.show_bank) : prev.show_bank
-              }));
-              try { localStorage.setItem('site_settings', JSON.stringify(data)); } catch {}
-            }
-          } catch (sbErr) {
-            console.warn('Supabase direct load warning:', sbErr);
-          }
-        }
-      } catch (err) {
-        console.warn('Error loading site_settings:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadSettings();
+      })
+      .catch(err => console.warn('Load settings error:', err))
+      .finally(() => setLoading(false));
   }, []);
 
   const handleChange = (e) => {
@@ -126,103 +87,11 @@ export default function SettingsPage() {
       setSavedStatus(null);
       setSavedMessage('');
 
-      // Important: strip id and created_at to prevent PGRST125
-      const { id, created_at, ...dataToSave } = form;
-      dataToSave.updated_at = new Date().toISOString();
+      const saved = await saveSiteSettingsAsync(form);
+      setForm(prev => ({ ...prev, ...saved }));
 
-      // 1. SAVE IMMEDIATELY to localStorage so changes are NEVER lost
-      const localPayload = { ...form, ...dataToSave };
-      try {
-        localStorage.setItem('site_settings', JSON.stringify(localPayload));
-
-        // Sync to CMS database (amsed_cms_database_v3)
-        const rawCms = localStorage.getItem('amsed_cms_database_v3');
-        const cmsObj = rawCms ? JSON.parse(rawCms) : {};
-        if (!cmsObj.contact) cmsObj.contact = {};
-        if (!cmsObj.logo) cmsObj.logo = {};
-
-        cmsObj.association_full_name = localPayload.association_full_name;
-        cmsObj.association_subtitle = localPayload.association_subtitle;
-        cmsObj.top_bar_title = localPayload.top_bar_title;
-        cmsObj.logo.name = localPayload.association_full_name;
-        cmsObj.logo.motto = localPayload.top_bar_title || "الله • الوطن • الملك";
-        if (localPayload.logo_url) cmsObj.logo.url = localPayload.logo_url;
-        cmsObj.contact.phone1 = localPayload.phone1 || localPayload.phone;
-        cmsObj.contact.phone2 = localPayload.phone2;
-        cmsObj.contact.phone3 = localPayload.phone3;
-        cmsObj.contact.lat = localPayload.lat;
-        cmsObj.contact.lng = localPayload.lng;
-        cmsObj.contact.mapUrl = `https://www.google.com/maps?q=${localPayload.lat || '34.250676'},${localPayload.lng || '-6.540316'}`;
-
-        localStorage.setItem('amsed_cms_database_v3', JSON.stringify(cmsObj));
-
-        // Broadcast events to all active components
-        window.dispatchEvent(new Event('cms-update'));
-        window.dispatchEvent(new Event('storage'));
-      } catch (e) {
-        console.warn('Local CMS sync warning:', e);
-      }
-
-      // Sync to Firestore siteSettings/main
-      try {
-        const { doc, setDoc } = await import("firebase/firestore");
-        const { db } = await import("../../firebase");
-        if (db) {
-          await setDoc(doc(db, "siteSettings", "main"), {
-            ...localPayload,
-            logoUrl: localPayload.logo_url || localPayload.logoUrl || "/logo_amesd_original_transparent.png",
-            updatedAt: new Date().toISOString()
-          }, { merge: true });
-        }
-      } catch (fsErr) {
-        console.warn('Firestore sync notice:', fsErr);
-      }
-
-      let syncedToDb = false;
-
-      // 2. Call serverless API /api/settings
-      try {
-        const res = await fetch('/api/settings', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(dataToSave)
-        });
-        if (res.ok) {
-          const json = await res.json();
-          if (json.synced) {
-            syncedToDb = true;
-          }
-        }
-      } catch (apiErr) {
-        console.warn('API save notice:', apiErr);
-      }
-
-      // 3. If direct Supabase is configured and not yet confirmed synced, attempt direct update
-      if (!syncedToDb && isSupabaseConfigured()) {
-        try {
-          const { error } = await supabase
-            .from('site_settings')
-            .update(dataToSave)
-            .eq('id', 1);
-
-          if (!error) {
-            syncedToDb = true;
-          } else {
-            console.warn('Supabase direct update error:', error);
-          }
-        } catch (dbErr) {
-          console.warn('Direct Supabase fetch caught:', dbErr);
-        }
-      }
-
-      // 4. Update UI Status without blocking modal alerts
-      if (syncedToDb) {
-        setSavedStatus('success');
-        setSavedMessage('تم الحفظ بنجاح في قاعدة بيانات Supabase (site_settings) وتحديث الموقع فوراً ✅');
-      } else {
-        setSavedStatus('info');
-        setSavedMessage('تم حفظ التعديلات محلياً وتحديث الموقع بنجاح ✅ (وفي انتظار مزامنة Supabase السحابية)');
-      }
+      setSavedStatus('success');
+      setSavedMessage('تم حفظ كافة الإعدادات بنجاح ومزامنتها محلياً وسحابياً دون أي إعادة ضبط ✅');
 
       setTimeout(() => {
         setSavedStatus(null);

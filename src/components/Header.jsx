@@ -40,9 +40,12 @@ export default function Header() {
     fetch('/api/settings')
       .then(res => res.json())
       .then(data => {
-        if (data?.data) {
-          setSiteSettings(data.data);
-          try { localStorage.setItem('site_settings', JSON.stringify(data.data)); } catch {}
+        const cached = localStorage.getItem('site_settings');
+        if (data?.source === 'supabase' || (!cached && data?.data)) {
+          if (data?.data) {
+            setSiteSettings(data.data);
+            try { localStorage.setItem('site_settings', JSON.stringify(data.data)); } catch {}
+          }
         }
       })
       .catch(() => {});

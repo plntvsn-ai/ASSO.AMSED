@@ -4,6 +4,7 @@ import {
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { initialData } from '../data/initialData';
+import { deduplicateArticlesList } from './aiManagerSupervisor';
 
 const LOCAL_STORAGE_KEY = 'amsed_cms_database_v3';
 
@@ -556,13 +557,14 @@ export const loadLocalCmsData = () => {
       const userKeys = new Set(userArticles.map(a => a.slug || a.id || a.title));
       const missingDefaults = defaultCmsData.articles.filter(a => !userKeys.has(a.slug) && !userKeys.has(a.id) && !userKeys.has(a.title));
       const mergedArticles = [...userArticles, ...missingDefaults];
-      const sanitizedArticles = mergedArticles.map(a => {
+      const cleanUniqueArticles = deduplicateArticlesList(mergedArticles);
+      const sanitizedArticles = cleanUniqueArticles.map(a => {
         let author = a.author || 'أطر جمعية AMSED';
         if (author.includes('روبوت')) author = 'أطر جمعية AMSED';
         
         let img = a.image || a.imageUrl;
-        if (!img || img.includes('542601906990-b4d3fb778b09') || img.includes('picsum.photos')) {
-          img = "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=1000&q=80";
+        if (!img || img.includes('542601906990-b4d3fb778b09') || img.includes('picsum.photos') || img.includes('photo-1503676260728')) {
+          img = "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=1000&q=80";
         }
         
         const title = (a.title || '').replace(/الدار البيضاء/g, 'القنيطرة');

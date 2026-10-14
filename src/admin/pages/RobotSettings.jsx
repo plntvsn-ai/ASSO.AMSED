@@ -3,6 +3,12 @@ import { db } from '../../firebase.js';
 import { collection, getDocs, doc, setDoc, updateDoc, addDoc, query, limit } from 'firebase/firestore';
 import { getTopicMatchedImage } from '../../services/topicImageService.js';
 import { getDefaultTopicsObjects } from '../../data/topicsBank.js';
+import { 
+  superviseAndDeduplicateAllArticles, 
+  deduplicateArticlesList, 
+  normalizeTitleForComparison, 
+  extractCoreTopicTag 
+} from '../../services/aiManagerSupervisor.js';
 
 const MASTER_AUTISM_PROMPT = `أنت كاتب طبي متخصص في التوحد عند الأطفال لجمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED - متخصصة في التوحد والطفولة - القنيطرة - المغرب.
 
@@ -182,6 +188,8 @@ export default function RobotSettings() {
   const [saving, setSaving] = useState(false);
   const [seeding, setSeeding] = useState(false);
   const [bossLogs, setBossLogs] = useState([]);
+  const [supervising, setSupervising] = useState(false);
+  const [superviseReport, setSuperviseReport] = useState(null);
 
   const seedIfEmpty = async () => {
     console.log('Fetching robots...');
@@ -308,13 +316,24 @@ export default function RobotSettings() {
           topicsList = getDefaultTopicsObjects();
         }
 
-        const publishedTitles = new Set(existingArticles.map(a => (a.title || '').trim()));
+        const existingTags = new Set(existingArticles.map(a => extractCoreTopicTag(a.title || a.title_ar || '')));
+        const existingNorms = new Set(existingArticles.map(a => normalizeTitleForComparison(a.title || a.title_ar || '')));
 
-        // Pick unused topic that hasn't been published yet
-        let chosenTopic = topicsList.find(t => !t.used && !publishedTitles.has(t.title));
+        // Pick unused topic whose core concept hasn't been published yet
+        let chosenTopic = topicsList.find(t => {
+          if (t.used) return false;
+          const tag = extractCoreTopicTag(t.title);
+          const norm = normalizeTitleForComparison(t.title);
+          return !existingTags.has(tag) && !existingNorms.has(norm);
+        });
+
         if (!chosenTopic) {
+          // If all used or matched, reset used flag and find an unpublished core concept
           topicsList.forEach(t => { t.used = false; });
-          chosenTopic = topicsList.find(t => !publishedTitles.has(t.title)) || topicsList[0];
+          chosenTopic = topicsList.find(t => {
+            const tag = extractCoreTopicTag(t.title);
+            return !existingTags.has(tag);
+          }) || topicsList[0];
         }
 
         const todayTopic = chosenTopic ? chosenTopic.title : "طرق تأهيل أطفال التوحد وتنمية مهارات النطق والتواصل";
@@ -429,6 +448,7 @@ export default function RobotSettings() {
           const cmsObj = stored ? JSON.parse(stored) : { articles: [] };
           if (!Array.isArray(cmsObj.articles)) cmsObj.articles = [];
           cmsObj.articles.unshift(articleDoc);
+          cmsObj.articles = deduplicateArticlesList(cmsObj.articles);
           localStorage.setItem('amsed_cms_database_v3', JSON.stringify(cmsObj));
           window.dispatchEvent(new Event('cms-update'));
           window.dispatchEvent(new Event('storage'));
@@ -549,6 +569,14 @@ export default function RobotSettings() {
 
     let logs = [];
     logs.push(`👔 انطلاق جولة المدير العام AMSED المتخصصة في التوحد - ${new Date().toLocaleTimeString('ar-MA')}`);
+
+    // AI Agent Watchdog: تصفية وتدقيق المقالات ومنع أي تكرار
+    try {
+      const cleanRep = await superviseAndDeduplicateAllArticles();
+      logs.push(`🛡️ رقابة المدير العام: فحص ${cleanRep.scannedCount} مقال، حذف ${cleanRep.duplicatesRemoved} مكرر، المتبقي النظيف ${cleanRep.uniqueRemaining}`);
+    } catch (supErr) {
+      console.warn('Supervisor check notice:', supErr);
+    }
 
     const activeRobots = robots.filter(r => r.enabled && r.id !== 'boss');
 
@@ -743,7 +771,7 @@ export default function RobotSettings() {
             )}
           </div>
 
-          <div className="flex flex-wrap gap-3 mt-4">
+          <div className="flex flex-wrap items-center gap-3 mt-4">
             <button
               onClick={runBossNow}
               disabled={boss.status === 'running'}
@@ -756,12 +784,38 @@ export default function RobotSettings() {
               {boss.status === 'running' ? 'المدير كيخدم... ⏳' : '▶️ شغّل المدير دابا يدويا'}
             </button>
             <button
+              onClick={async () => {
+                try {
+                  setSupervising(true);
+                  const rep = await superviseAndDeduplicateAllArticles();
+                  setSuperviseReport(rep);
+                  alert(`👔 تقرير مراقبة المدير العام (AI Agent Watchdog):\n━━━━━━━━━━━━━━━━━━━━\n✅ تم فحص: ${rep.scannedCount} مقال\n🗑️ تم حذف وتصفية: ${rep.duplicatesRemoved} مقال مكرر\n📚 المقالات الحصرية الفريدة المتبقية: ${rep.uniqueRemaining}`);
+                } catch (e) {
+                  alert(`خطأ في فحص الرقابة: ${e.message}`);
+                } finally {
+                  setSupervising(false);
+                }
+              }}
+              disabled={supervising}
+              className="bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-5 py-3 rounded-xl transition cursor-pointer text-sm flex items-center gap-2 shadow"
+            >
+              {supervising ? 'جاري الفحص والتصفية... ⏳' : '🛡️ فحص ومراقبة المدير العام وتصفية التكرار فوراً'}
+            </button>
+            <button
               onClick={() => upd(boss.id, 'status', 'idle')}
               className="bg-yellow-500 hover:bg-yellow-600 text-black font-bold px-6 py-3 rounded-xl transition cursor-pointer text-sm"
             >
               إعادة ضبط الحالة (Reset)
             </button>
           </div>
+          {superviseReport && (
+            <div className="mt-3 p-3 bg-emerald-100/90 border border-emerald-300 rounded-xl text-xs text-emerald-950 font-bold flex flex-wrap gap-4 items-center">
+              <span>🛡️ آخر تقرير رقابي:</span>
+              <span>مفحوص: {superviseReport.scannedCount}</span>
+              <span className="text-red-700 font-extrabold">مكررات محذوفة: {superviseReport.duplicatesRemoved}</span>
+              <span className="text-emerald-900 font-extrabold">المتبقي النظيف: {superviseReport.uniqueRemaining} مقالاً فريداً</span>
+            </div>
+          )}
         </div>
       )}
 

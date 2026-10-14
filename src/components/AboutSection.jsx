@@ -15,7 +15,7 @@ export default function AboutSection() {
   };
 
   return (
-    <section id="about" className="py-20 bg-white border-b border-slate-200">
+    <section id="about" className="py-20 bg-white/80 backdrop-blur-sm border-b border-amber-200/60 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
           

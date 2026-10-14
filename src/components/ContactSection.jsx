@@ -21,12 +21,30 @@ export const ContactSection = () => {
   });
 
   React.useEffect(() => {
+    const reload = () => {
+      try {
+        const cached = localStorage.getItem('site_settings');
+        if (cached) setSiteSettings(JSON.parse(cached));
+      } catch {}
+    };
+
+    window.addEventListener('storage', reload);
+    window.addEventListener('cms-update', reload);
+
     fetch('/api/settings')
       .then(res => res.json())
       .then(d => {
-        if (d?.data) setSiteSettings(d.data);
+        const cached = localStorage.getItem('site_settings');
+        if (d?.source === 'supabase' || (!cached && d?.data)) {
+          if (d?.data) setSiteSettings(d.data);
+        }
       })
       .catch(() => {});
+
+    return () => {
+      window.removeEventListener('storage', reload);
+      window.removeEventListener('cms-update', reload);
+    };
   }, []);
 
   const association = { 
@@ -110,7 +128,7 @@ export const ContactSection = () => {
   };
 
   return (
-    <section id="contact" className="py-20 bg-white">
+    <section id="contact" className="py-20 bg-white/80 backdrop-blur-sm relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         
         {/* Section Header */}

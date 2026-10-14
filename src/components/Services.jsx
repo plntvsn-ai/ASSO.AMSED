@@ -130,7 +130,7 @@ export const Services = () => {
   return (
     <section 
       id="services" 
-      className="relative py-20 overflow-hidden bg-gradient-to-b from-[#faf6ee] via-[#f7f2e6] to-[#f4ede0] border-b border-amber-200/60"
+      className="relative py-20 overflow-hidden bg-[#faf6ee]/80 backdrop-blur-sm border-b border-amber-200/60"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       onTouchStart={() => setIsPaused(true)}

@@ -11,6 +11,7 @@ import { smartTranslate } from '../services/translator';
 import { getTopicMatchedImage } from '../services/topicImageService';
 import { db, isFirebaseConfigured, initFirebase, getStoredFirebaseConfig } from '../services/firebase';
 import { doc, getDoc, setDoc, updateDoc, onSnapshot } from 'firebase/firestore';
+import { deduplicateArticlesList, superviseAndDeduplicateAllArticles } from '../services/aiManagerSupervisor';
 
 const CmsContext = createContext();
 
@@ -64,7 +65,7 @@ export const CmsProvider = ({ children }) => {
     };
   }, []);
 
-  // Fetch articles created by Robots in Firestore and Supabase
+  // Fetch articles created by Robots in Firestore and Supabase with AI Watchdog deduplication
   useEffect(() => {
     // 1. Fetch from Firestore collection('articles') where robots write
     const syncFirestoreArticles = async () => {
@@ -76,10 +77,9 @@ export const CmsProvider = ({ children }) => {
           const remoteArticles = snap.docs.map(d => ({ id: d.id, ...d.data() }));
           setCmsData(prev => {
             const currentList = Array.isArray(prev.articles) ? prev.articles : [];
-            const currentKeys = new Set(currentList.map(a => a.slug || a.id || a.title));
-            const newToAdd = remoteArticles.filter(a => !currentKeys.has(a.slug) && !currentKeys.has(a.id) && !currentKeys.has(a.title));
-            if (newToAdd.length > 0) {
-              const updated = { ...prev, articles: [...newToAdd, ...currentList] };
+            const merged = deduplicateArticlesList([...remoteArticles, ...currentList]);
+            if (merged.length !== currentList.length) {
+              const updated = { ...prev, articles: merged };
               saveLocalCmsData(updated);
               return updated;
             }
@@ -101,7 +101,9 @@ export const CmsProvider = ({ children }) => {
             const mapped = json.articles.map(a => ({
               id: a.id ? `sp-${a.id}` : `sp-${Date.now()}`,
               title: a.title_ar || a.title || 'مقال جديد',
+              title_ar: a.title_ar || a.title || 'مقال جديد',
               content: a.content_ar || a.content || '',
+              content_ar: a.content_ar || a.content || '',
               excerpt: a.excerpt || (a.content_ar ? a.content_ar.slice(0, 150) + '...' : ''),
               category: a.category || 'التوحد والطفولة',
               author: a.author && !a.author.includes('روبوت') ? a.author : 'أطر جمعية AMSED',
@@ -116,10 +118,9 @@ export const CmsProvider = ({ children }) => {
 
             setCmsData(prev => {
               const currentList = Array.isArray(prev.articles) ? prev.articles : [];
-              const currentKeys = new Set(currentList.map(x => x.slug || x.id || x.title));
-              const newToAdd = mapped.filter(x => !currentKeys.has(x.slug) && !currentKeys.has(x.id) && !currentKeys.has(x.title));
-              if (newToAdd.length > 0) {
-                const updated = { ...prev, articles: [...newToAdd, ...currentList] };
+              const merged = deduplicateArticlesList([...mapped, ...currentList]);
+              if (merged.length !== currentList.length) {
+                const updated = { ...prev, articles: merged };
                 saveLocalCmsData(updated);
                 return updated;
               }
@@ -560,6 +561,8 @@ export const CmsProvider = ({ children }) => {
       updateArticle,
       deleteArticle,
       toggleArticlePublish,
+      superviseAndDeduplicateAllArticles,
+      deduplicateArticlesList,
       // Auto Publisher
       updateAutoSettings,
       updateAutoTopics,

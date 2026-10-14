@@ -53,7 +53,7 @@ export const AdminLayout = ({ children }) => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 flex font-sans text-slate-800" dir="rtl">
+    <div className="min-h-screen moroccan-zellij-bg flex font-sans text-slate-800" dir="rtl">
       
       {/* Sidebar */}
       <aside className={`bg-slate-950 text-white shrink-0 flex flex-col transition-all duration-300 z-30 shadow-2xl ${

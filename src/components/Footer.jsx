@@ -31,9 +31,13 @@ export const Footer = ({ siteSettings: propSettings }) => {
     fetch('/api/settings')
       .then(r => r.json())
       .then(d => {
-        if (d && typeof d === 'object') {
-          setSiteSettings(d);
-          try { localStorage.setItem('site_settings', JSON.stringify(d)); } catch {}
+        const cached = localStorage.getItem('site_settings');
+        const settingsData = d?.data || d;
+        if (d?.source === 'supabase' || (!cached && settingsData)) {
+          if (settingsData && typeof settingsData === 'object') {
+            setSiteSettings(settingsData);
+            try { localStorage.setItem('site_settings', JSON.stringify(settingsData)); } catch {}
+          }
         }
       })
       .catch(() => {});
