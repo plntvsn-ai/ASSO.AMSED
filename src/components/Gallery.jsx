@@ -33,6 +33,9 @@ export const Gallery = () => {
     return item.category === activeCategory;
   });
 
+  // مضاعفة معرض الصور لضمان حركة مستمرة لا نهائية وسلسة بدون فراغ
+  const loopedGallery = filteredGallery.length > 2 ? [...filteredGallery, ...filteredGallery] : filteredGallery;
+
   const cardWidth = 360;
 
   // إعادة ضبط التمرير للبداية عند تغيير الفلتر
@@ -47,8 +50,8 @@ export const Gallery = () => {
     if (!carouselRef.current) return;
     const { scrollLeft } = carouselRef.current;
     const scrollPos = Math.abs(scrollLeft);
-    const index = Math.round(scrollPos / cardWidth);
-    setCurrentIndex(Math.min(Math.max(index, 0), filteredGallery.length - 1));
+    const index = Math.round(scrollPos / cardWidth) % (filteredGallery.length || 1);
+    setCurrentIndex(index);
   }, [filteredGallery.length]);
 
   const scrollPrev = () => {
@@ -70,25 +73,44 @@ export const Gallery = () => {
     setCurrentIndex(idx);
   };
 
-  // حركة كاروسيل تلقائية هادئة مع التوقف عند التحويم (Pause on hover)
+  // حركة تلقائية حية ومستمرة تبدأ فور تحميل الصفحة وتتوقف عند التحويم
   useEffect(() => {
-    if (isPaused || filteredGallery.length <= 1) return;
-    const timer = setInterval(() => {
-      if (!carouselRef.current) return;
-      const { scrollLeft, scrollWidth, clientWidth } = carouselRef.current;
-      const isEnd = dir === 'rtl'
-        ? Math.abs(scrollLeft) + clientWidth >= scrollWidth - 30
-        : scrollLeft + clientWidth >= scrollWidth - 30;
+    const el = carouselRef.current;
+    if (!el || filteredGallery.length <= 1) return;
 
-      if (isEnd) {
-        carouselRef.current.scrollTo({ left: 0, behavior: 'smooth' });
-      } else {
-        const delta = dir === 'rtl' ? -cardWidth : cardWidth;
-        carouselRef.current.scrollBy({ left: delta, behavior: 'smooth' });
+    let reqId;
+    let lastTime = performance.now();
+    const speed = 0.65; // بكسل في كل إطار - سرعة مريحة وانسيابية
+
+    const step = (time) => {
+      const dt = Math.min(time - lastTime, 50);
+      lastTime = time;
+
+      if (!isPaused && el) {
+        const maxScroll = el.scrollWidth - el.clientWidth;
+        if (maxScroll > 10) {
+          const currentAbs = Math.abs(el.scrollLeft);
+
+          if (currentAbs >= maxScroll - 5) {
+            el.scrollLeft = 0;
+          } else {
+            if (dir === 'rtl') {
+              if (el.scrollLeft <= 0) {
+                el.scrollLeft -= speed * (dt / 16);
+              } else {
+                el.scrollLeft += speed * (dt / 16);
+              }
+            } else {
+              el.scrollLeft += speed * (dt / 16);
+            }
+          }
+        }
       }
-    }, 5000);
+      reqId = requestAnimationFrame(step);
+    };
 
-    return () => clearInterval(timer);
+    reqId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(reqId);
   }, [isPaused, filteredGallery.length, dir]);
 
   return (
@@ -195,17 +217,17 @@ export const Gallery = () => {
         <div
           ref={carouselRef}
           onScroll={handleScroll}
-          className="flex gap-5 sm:gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-6 pt-2 px-1 sm:px-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+          className="flex gap-5 sm:gap-6 overflow-x-auto pb-6 pt-2 px-1 sm:px-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
           style={{ WebkitOverflowScrolling: 'touch' }}
         >
-          {filteredGallery.map((item, index) => {
+          {loopedGallery.map((item, index) => {
             const title = getLocalized(item, 'title');
 
             return (
               <div
-                key={item.id || index}
+                key={`${item.id || index}-${index}`}
                 onClick={() => setSelectedPhoto(item)}
-                className="w-[280px] sm:w-[320px] md:w-[350px] lg:w-[370px] shrink-0 snap-start group relative h-80 sm:h-96 rounded-[2rem] overflow-hidden cursor-pointer shadow-md hover:shadow-2xl transition-all duration-500 bg-slate-950 border-2 border-amber-200/70 hover:border-amber-400/90 hover:-translate-y-1.5"
+                className="w-[280px] sm:w-[320px] md:w-[350px] lg:w-[370px] shrink-0 group relative h-80 sm:h-96 rounded-[2rem] overflow-hidden cursor-pointer shadow-md hover:shadow-2xl transition-all duration-500 bg-slate-950 border-2 border-amber-200/70 hover:border-amber-400/90 hover:-translate-y-1.5"
               >
                 <img
                   src={item.image}

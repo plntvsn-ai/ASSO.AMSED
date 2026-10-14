@@ -41,6 +41,9 @@ export const Services = () => {
     return item.category === activeCategory || item.category?.includes(activeCategory);
   });
 
+  // مضاعفة الخدمات لضمان حركة مستمرة لا نهائية وسلسة بدون فراغ
+  const loopedServices = filteredServices.length > 2 ? [...filteredServices, ...filteredServices] : filteredServices;
+
   const cardWidth = 370; // متوسط عرض البطاقة
 
   // إعادة ضبط السكرول عند تبديل التصنيف
@@ -55,8 +58,8 @@ export const Services = () => {
     if (!carouselRef.current) return;
     const { scrollLeft } = carouselRef.current;
     const scrollPos = Math.abs(scrollLeft);
-    const index = Math.round(scrollPos / cardWidth);
-    setCurrentIndex(Math.min(Math.max(index, 0), filteredServices.length - 1));
+    const index = Math.round(scrollPos / cardWidth) % (filteredServices.length || 1);
+    setCurrentIndex(index);
   }, [filteredServices.length]);
 
   const scrollPrev = () => {
@@ -78,25 +81,44 @@ export const Services = () => {
     setCurrentIndex(idx);
   };
 
-  // حركة كاروسيل أفقي تلقائية هادئة مع التوقف عند التحويم (Pause on Hover)
+  // حركة تلقائية حية ومستمرة تبدأ فور تحميل الصفحة وتتوقف عند التحويم
   useEffect(() => {
-    if (isPaused || filteredServices.length <= 1) return;
-    const interval = setInterval(() => {
-      if (!carouselRef.current) return;
-      const { scrollLeft, scrollWidth, clientWidth } = carouselRef.current;
-      const isEnd = dir === 'rtl'
-        ? Math.abs(scrollLeft) + clientWidth >= scrollWidth - 30
-        : scrollLeft + clientWidth >= scrollWidth - 30;
+    const el = carouselRef.current;
+    if (!el || filteredServices.length <= 1) return;
 
-      if (isEnd) {
-        carouselRef.current.scrollTo({ left: 0, behavior: 'smooth' });
-      } else {
-        const delta = dir === 'rtl' ? -cardWidth : cardWidth;
-        carouselRef.current.scrollBy({ left: delta, behavior: 'smooth' });
+    let reqId;
+    let lastTime = performance.now();
+    const speed = 0.65; // بكسل في كل إطار - سرعة مريحة وانسيابية
+
+    const step = (time) => {
+      const dt = Math.min(time - lastTime, 50);
+      lastTime = time;
+
+      if (!isPaused && el) {
+        const maxScroll = el.scrollWidth - el.clientWidth;
+        if (maxScroll > 10) {
+          const currentAbs = Math.abs(el.scrollLeft);
+
+          if (currentAbs >= maxScroll - 5) {
+            el.scrollLeft = 0;
+          } else {
+            if (dir === 'rtl') {
+              if (el.scrollLeft <= 0) {
+                el.scrollLeft -= speed * (dt / 16);
+              } else {
+                el.scrollLeft += speed * (dt / 16);
+              }
+            } else {
+              el.scrollLeft += speed * (dt / 16);
+            }
+          }
+        }
       }
-    }, 5500);
+      reqId = requestAnimationFrame(step);
+    };
 
-    return () => clearInterval(interval);
+    reqId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(reqId);
   }, [isPaused, filteredServices.length, dir]);
 
   const rawPhone = (cmsData?.contact?.phone1 || data?.association?.phone1 || '0654240523').replace(/\D/g, '');
@@ -229,17 +251,17 @@ export const Services = () => {
         <div
           ref={carouselRef}
           onScroll={handleScroll}
-          className="flex gap-5 sm:gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-6 pt-2 px-1 sm:px-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+          className="flex gap-5 sm:gap-6 overflow-x-auto pb-6 pt-2 px-1 sm:px-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
           style={{ WebkitOverflowScrolling: 'touch' }}
         >
-          {filteredServices.map((item, index) => {
+          {loopedServices.map((item, index) => {
             const title = item.name || item.title || getLocalized(item, 'title');
             const desc = item.description || item.desc || getLocalized(item, 'desc');
 
             return (
               <article
-                key={item.id || index}
-                className="w-[280px] sm:w-[330px] md:w-[360px] lg:w-[380px] shrink-0 snap-start group bg-gradient-to-b from-white via-[#fcfbf9] to-[#fbf8f2] rounded-[2rem] overflow-hidden border-2 border-amber-200/70 hover:border-amber-400/90 shadow-md hover:shadow-2xl transition-all duration-300 flex flex-col justify-between hover:-translate-y-1.5"
+                key={`${item.id || index}-${index}`}
+                className="w-[280px] sm:w-[330px] md:w-[360px] lg:w-[380px] shrink-0 group bg-gradient-to-b from-white via-[#fcfbf9] to-[#fbf8f2] rounded-[2rem] overflow-hidden border-2 border-amber-200/70 hover:border-amber-400/90 shadow-md hover:shadow-2xl transition-all duration-300 flex flex-col justify-between hover:-translate-y-1.5"
               >
                 <div>
                   {/* إطار الصورة المعماري المغربي (Moroccan Arched Poster) */}

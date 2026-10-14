@@ -35,7 +35,7 @@ const FALLBACK_NEWS = [
     source: "العمق المغربي",
     formattedDate: "منذ يومين",
     link: "https://al3omk.com",
-    image: "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?auto=format&fit=crop&w=800&q=80",
+    image: "https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=800&q=80",
     pedagogyTag: "دليل الأسرة والدمج",
     readTime: "3 دقائق"
   }
@@ -67,24 +67,26 @@ export default function NewsCarousel() {
       });
   }, []);
 
-  // دمج مقالات الروبوتات التربوية والمستجدات الحية من RSS
-  const robotArticles = (cmsData?.articles || []).slice(0, 4).map(item => ({
+  // دمج مقالات الجمعية التربوية والمستجدات الحية من RSS (بدون ذكر كلمة روبوت)
+  const educationalArticles = (cmsData?.articles || []).slice(0, 5).map(item => ({
     id: item.id,
-    title: item.title,
-    titleAr: item.title,
-    source: item.author || '🤖 روبوت AMSED التربوي',
+    title: (item.title || '').replace(/الدار البيضاء/g, 'القنيطرة'),
+    titleAr: (item.title || '').replace(/الدار البيضاء/g, 'القنيطرة'),
+    source: item.author && !item.author.includes('روبوت') ? item.author : 'أطر جمعية AMSED',
     formattedDate: item.createdAt || '2026-10-13',
     link: `/article/${item.id}`,
     isInternal: true,
-    image: item.image || "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=800&q=80",
+    image: (item.image && !item.image.includes('542601906990-b4d3fb778b09') && !item.image.includes('picsum.photos'))
+      ? item.image 
+      : "https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=800&q=80",
     pedagogyTag: "دراسات وبحوث التوحد",
     readTime: "3 دقائق قراءة"
   }));
 
   const formattedRss = (rssNews.length > 0 ? rssNews : FALLBACK_NEWS).map(item => ({
     id: item.id,
-    title: item.title,
-    titleAr: item.title,
+    title: (item.title || '').replace(/الدار البيضاء/g, 'القنيطرة'),
+    titleAr: (item.title || '').replace(/الدار البيضاء/g, 'القنيطرة'),
     source: item.source || 'رصد إعلامي',
     formattedDate: item.formattedDate || 'حديثاً',
     link: item.link,
@@ -94,17 +96,19 @@ export default function NewsCarousel() {
     readTime: item.readTime || "دقيقتان"
   }));
 
-  const allNews = [...robotArticles, ...formattedRss];
-  const displayNews = allNews.length > 0 ? allNews : FALLBACK_NEWS;
+  const baseNews = [...educationalArticles, ...formattedRss];
+  const displayNews = baseNews.length > 0 ? baseNews : FALLBACK_NEWS;
+  // مضاعفة العناصر لضمان حركة مستمرة لا نهائية وسلسة
+  const loopedNews = [...displayNews, ...displayNews];
 
-  const cardWidth = 360; // Card width in px
+  const cardWidth = 360;
 
   const handleScroll = useCallback(() => {
     if (!carouselRef.current) return;
     const { scrollLeft } = carouselRef.current;
     const scrollPos = Math.abs(scrollLeft);
-    const index = Math.round(scrollPos / cardWidth);
-    setCurrentIndex(Math.min(Math.max(index, 0), displayNews.length - 1));
+    const index = Math.round(scrollPos / cardWidth) % displayNews.length;
+    setCurrentIndex(index);
   }, [displayNews.length]);
 
   const scrollPrev = () => {
@@ -126,25 +130,44 @@ export default function NewsCarousel() {
     setCurrentIndex(idx);
   };
 
-  // حركة تلقائية هادئة للكاروسيل تتوقف عند وضع الفأرة (Pause on hover)
+  // حركة تلقائية حية ومستمرة تبدأ فور تحميل الصفحة وتتوقف عند التحويم
   useEffect(() => {
-    if (isPaused || displayNews.length <= 1) return;
-    const timer = setInterval(() => {
-      if (!carouselRef.current) return;
-      const { scrollLeft, scrollWidth, clientWidth } = carouselRef.current;
-      const isEnd = dir === 'rtl'
-        ? Math.abs(scrollLeft) + clientWidth >= scrollWidth - 30
-        : scrollLeft + clientWidth >= scrollWidth - 30;
+    const el = carouselRef.current;
+    if (!el || displayNews.length <= 1) return;
 
-      if (isEnd) {
-        carouselRef.current.scrollTo({ left: 0, behavior: 'smooth' });
-      } else {
-        const delta = dir === 'rtl' ? -cardWidth : cardWidth;
-        carouselRef.current.scrollBy({ left: delta, behavior: 'smooth' });
+    let reqId;
+    let lastTime = performance.now();
+    const speed = 0.65; // بكسل في كل إطار - سرعة مريحة وقابلة للقراءة
+
+    const step = (time) => {
+      const dt = Math.min(time - lastTime, 50);
+      lastTime = time;
+
+      if (!isPaused && el) {
+        const maxScroll = el.scrollWidth - el.clientWidth;
+        if (maxScroll > 10) {
+          const currentAbs = Math.abs(el.scrollLeft);
+
+          if (currentAbs >= maxScroll - 5) {
+            el.scrollLeft = 0;
+          } else {
+            if (dir === 'rtl') {
+              if (el.scrollLeft <= 0) {
+                el.scrollLeft -= speed * (dt / 16);
+              } else {
+                el.scrollLeft += speed * (dt / 16);
+              }
+            } else {
+              el.scrollLeft += speed * (dt / 16);
+            }
+          }
+        }
       }
-    }, 5000);
+      reqId = requestAnimationFrame(step);
+    };
 
-    return () => clearInterval(timer);
+    reqId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(reqId);
   }, [isPaused, displayNews.length, dir]);
 
   const ArrowIcon = dir === 'rtl' ? ArrowLeft : ArrowRight;
@@ -156,7 +179,7 @@ export default function NewsCarousel() {
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
       onTouchStart={() => setIsPaused(true)}
-      onTouchEnd={() => setIsPaused(false)}
+      onTouchEnd={() => setTimeout(() => setIsPaused(false), 2000)}
     >
       {/* خلفية بزخرفة مغربية ناعمة (Zellij Pattern Watermark) */}
       <div className="absolute inset-0 pointer-events-none opacity-5 bg-[radial-gradient(#c29b38_1.5px,transparent_1.5px)] [background-size:16px_16px] rounded-3xl" />
@@ -177,12 +200,12 @@ export default function NewsCarousel() {
                 <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-400"></span>
               </span>
               <h2 className="text-base sm:text-lg font-black text-white tracking-wide flex items-center gap-2">
-                <span>مستجدات الأخبار التربوية والتأهيلية</span>
+                <span>مستجدات الأخبار التربوية والتأهيلية بالقنيطرة</span>
                 <span className="text-amber-400 font-serif text-sm">✦ ۞ ✦</span>
               </h2>
             </div>
             <p className="text-xs text-emerald-200/90 font-medium mt-0.5">
-              رصد حي لبحوث التوحد، برامج الإدماج المدرسي، وأنشطة الجمعية بالمغرب
+              رصد حي لبحوث التوحد، برامج الإدماج المدرسي، وأنشطة الجمعية بالقنيطرة والمغرب
             </p>
           </div>
         </div>
@@ -219,21 +242,21 @@ export default function NewsCarousel() {
         </div>
       </div>
 
-      {/* مسار الكاروسيل الأفقي (Horizontal Carousel Track) */}
+      {/* مسار الكاروسيل الأفقي المتحرك تلقائياً */}
       <div
         ref={carouselRef}
         onScroll={handleScroll}
-        className="flex gap-4 sm:gap-5 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-3 pt-1 px-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden relative z-10"
+        className="flex gap-4 sm:gap-5 overflow-x-auto pb-3 pt-1 px-1 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden relative z-10"
         style={{ WebkitOverflowScrolling: 'touch' }}
       >
-        {displayNews.map((item, idx) => {
+        {loopedNews.map((item, idx) => {
           const title = getLocalized(item, 'title');
-          const isRobot = item.isInternal;
+          const isInternal = item.isInternal;
 
-          const CardWrapper = ({ children }) => isRobot ? (
+          const CardWrapper = ({ children }) => isInternal ? (
             <Link
               to={item.link}
-              className="w-[270px] sm:w-[320px] md:w-[350px] shrink-0 snap-start block group bg-gradient-to-b from-[#fdfbf7] via-white to-[#fbf8f0] rounded-2xl overflow-hidden border-2 border-amber-300/60 hover:border-amber-400 shadow-lg hover:shadow-2xl transition-all duration-300 text-slate-800 hover:-translate-y-1"
+              className="w-[270px] sm:w-[320px] md:w-[350px] shrink-0 block group bg-gradient-to-b from-[#fdfbf7] via-white to-[#fbf8f0] rounded-2xl overflow-hidden border-2 border-amber-300/60 hover:border-amber-400 shadow-lg hover:shadow-2xl transition-all duration-300 text-slate-800 hover:-translate-y-1"
             >
               {children}
             </Link>
@@ -242,7 +265,7 @@ export default function NewsCarousel() {
               href={item.link || '#announcements'}
               target={item.link?.startsWith('http') ? "_blank" : "_self"}
               rel="noopener noreferrer"
-              className="w-[270px] sm:w-[320px] md:w-[350px] shrink-0 snap-start block group bg-gradient-to-b from-[#fdfbf7] via-white to-[#fbf8f0] rounded-2xl overflow-hidden border-2 border-amber-300/60 hover:border-amber-400 shadow-lg hover:shadow-2xl transition-all duration-300 text-slate-800 hover:-translate-y-1"
+              className="w-[270px] sm:w-[320px] md:w-[350px] shrink-0 block group bg-gradient-to-b from-[#fdfbf7] via-white to-[#fbf8f0] rounded-2xl overflow-hidden border-2 border-amber-300/60 hover:border-amber-400 shadow-lg hover:shadow-2xl transition-all duration-300 text-slate-800 hover:-translate-y-1"
             >
               {children}
             </a>
@@ -263,11 +286,11 @@ export default function NewsCarousel() {
                 {/* الشارة التربوية العليا */}
                 <div className="absolute top-2.5 start-2.5 end-2.5 flex items-center justify-between">
                   <span className={`text-[10px] sm:text-[11px] font-extrabold px-2.5 py-0.5 rounded-full border shadow-sm backdrop-blur-md flex items-center gap-1 ${
-                    isRobot 
+                    isInternal 
                       ? 'bg-emerald-950/90 text-amber-300 border-amber-400/50' 
                       : 'bg-slate-950/80 text-cyan-200 border-cyan-400/40'
                   }`}>
-                    {isRobot ? <GraduationCap className="w-3 h-3 text-amber-400" /> : <Radio className="w-3 h-3 text-emerald-400 animate-pulse" />}
+                    {isInternal ? <GraduationCap className="w-3 h-3 text-amber-400" /> : <Radio className="w-3 h-3 text-emerald-400 animate-pulse" />}
                     <span>{item.pedagogyTag}</span>
                   </span>
 
@@ -304,12 +327,12 @@ export default function NewsCarousel() {
                 {/* تذييل البطاقة مع زر القراءة */}
                 <div className="mt-3 pt-2.5 border-t border-amber-100 flex items-center justify-between text-xs font-bold text-emerald-900 group-hover:text-amber-700">
                   <span className="border-b border-emerald-900/40 group-hover:border-amber-600 pb-0.5">
-                    {isRobot ? 'قراءة المقال التربوي' : 'متابعة تفاصيل الخبر'}
+                    {isInternal ? 'قراءة المقال التربوي' : 'متابعة تفاصيل الخبر'}
                   </span>
-                  {isRobot ? (
+                  {isInternal ? (
                     <ArrowIcon className="w-3.5 h-3.5 text-amber-600 group-hover:translate-x-1 transition-transform" />
                   ) : (
-                    <ExternalLink className="w-3 h-3 text-amber-600" />
+                    <ExternalLink className="w-3.5 h-3.5 text-amber-600" />
                   )}
                 </div>
               </div>

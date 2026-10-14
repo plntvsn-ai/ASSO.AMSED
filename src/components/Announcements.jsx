@@ -65,7 +65,7 @@ export const Announcements = () => {
     date: item.createdAt || '2026-10-13',
     category: 'robot',
     image: item.image || 'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=900&q=80',
-    source: item.author || '🤖 روبوت AMSED الذكي',
+    source: item.author && !item.author.includes('روبوت') ? item.author : 'أطر جمعية AMSED',
     pedagogyTag: 'تأهيل وتربية خاصة',
     readingTime: '3 دقائق قراءة',
     isRobot: true,
@@ -116,6 +116,9 @@ export const Announcements = () => {
     displayList = formattedAnnouncements.filter(item => item.category === activeFilter);
   }
 
+  // مضاعفة العناصر لضمان حركة مستمرة لا نهائية وسلسة بدون فراغ
+  const loopedDisplayList = displayList.length > 2 ? [...displayList, ...displayList] : displayList;
+
   // إعادة ضبط التمرير للبداية عند تغيير الفلتر
   useEffect(() => {
     if (carouselRef.current) {
@@ -127,11 +130,11 @@ export const Announcements = () => {
   // تحديث مؤشر السلايد النشط عند التمرير
   const handleScroll = useCallback(() => {
     if (!carouselRef.current) return;
-    const { scrollLeft, scrollWidth, clientWidth } = carouselRef.current;
-    const cardWidth = 380; // متوسط عرض البطاقة مع الهامش
+    const { scrollLeft } = carouselRef.current;
+    const cardWidth = 390; // متوسط عرض البطاقة مع الهامش
     const scrollPos = Math.abs(scrollLeft);
-    const index = Math.round(scrollPos / cardWidth);
-    setActiveSlideIndex(Math.min(Math.max(index, 0), displayList.length - 1));
+    const index = Math.round(scrollPos / cardWidth) % (displayList.length || 1);
+    setActiveSlideIndex(index);
   }, [displayList.length]);
 
   // التنقل: السابق والتالي مع مراعاة اتجاه اللغة RTL/LTR
@@ -157,25 +160,44 @@ export const Announcements = () => {
     setActiveSlideIndex(idx);
   };
 
-  // حركة كاروسيل تلقائية هادئة مع التوقف عند التحويم (Pause on Hover)
+  // حركة تلقائية حية ومستمرة تبدأ فور تحميل الصفحة وتتوقف عند التحويم
   useEffect(() => {
-    if (isPaused || displayList.length <= 1) return;
-    const interval = setInterval(() => {
-      if (!carouselRef.current) return;
-      const { scrollLeft, scrollWidth, clientWidth } = carouselRef.current;
-      const isEnd = dir === 'rtl' 
-        ? Math.abs(scrollLeft) + clientWidth >= scrollWidth - 40
-        : scrollLeft + clientWidth >= scrollWidth - 40;
+    const el = carouselRef.current;
+    if (!el || displayList.length <= 1) return;
 
-      if (isEnd) {
-        carouselRef.current.scrollTo({ left: 0, behavior: 'smooth' });
-      } else {
-        const delta = dir === 'rtl' ? -390 : 390;
-        carouselRef.current.scrollBy({ left: delta, behavior: 'smooth' });
+    let reqId;
+    let lastTime = performance.now();
+    const speed = 0.65; // بكسل في كل إطار - سرعة مريحة وانسيابية
+
+    const step = (time) => {
+      const dt = Math.min(time - lastTime, 50);
+      lastTime = time;
+
+      if (!isPaused && el) {
+        const maxScroll = el.scrollWidth - el.clientWidth;
+        if (maxScroll > 10) {
+          const currentAbs = Math.abs(el.scrollLeft);
+
+          if (currentAbs >= maxScroll - 5) {
+            el.scrollLeft = 0;
+          } else {
+            if (dir === 'rtl') {
+              if (el.scrollLeft <= 0) {
+                el.scrollLeft -= speed * (dt / 16);
+              } else {
+                el.scrollLeft += speed * (dt / 16);
+              }
+            } else {
+              el.scrollLeft += speed * (dt / 16);
+            }
+          }
+        }
       }
-    }, 5500);
+      reqId = requestAnimationFrame(step);
+    };
 
-    return () => clearInterval(interval);
+    reqId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(reqId);
   }, [isPaused, displayList.length, dir]);
 
   const getCategoryBadge = (category, source) => {
@@ -304,7 +326,7 @@ export const Announcements = () => {
               }`}
             >
               <GraduationCap className="w-4 h-4 text-amber-500" />
-              <span>مقالات تربوية وروبوتات ({formattedRobotItems.length})</span>
+              <span>مقالات وبحوث تربوية ({formattedRobotItems.length})</span>
             </button>
 
             <button
@@ -413,10 +435,10 @@ export const Announcements = () => {
           <div
             ref={carouselRef}
             onScroll={handleScroll}
-            className="flex gap-5 sm:gap-6 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-6 pt-2 px-1 sm:px-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+            className="flex gap-5 sm:gap-6 overflow-x-auto pb-6 pt-2 px-1 sm:px-2 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
             style={{ WebkitOverflowScrolling: 'touch' }}
           >
-            {displayList.map((item, idx) => {
+            {loopedDisplayList.map((item, idx) => {
               const badge = getCategoryBadge(item.category, item.source);
               const title = getLocalized(item, 'title');
               const desc = getLocalized(item, 'desc');
@@ -424,13 +446,13 @@ export const Announcements = () => {
               return (
                 <article
                   key={`${item.id}-${idx}`}
-                  className="w-[290px] sm:w-[340px] md:w-[370px] lg:w-[395px] shrink-0 snap-start group bg-gradient-to-b from-white via-[#fcfbf9] to-[#fbf8f2] rounded-[2rem] overflow-hidden border-2 border-amber-200/70 hover:border-amber-400/90 shadow-md hover:shadow-2xl transition-all duration-300 flex flex-col justify-between hover:-translate-y-1.5"
+                  className="w-[290px] sm:w-[340px] md:w-[370px] lg:w-[395px] shrink-0 group bg-gradient-to-b from-white via-[#fcfbf9] to-[#fbf8f2] rounded-[2rem] overflow-hidden border-2 border-amber-200/70 hover:border-amber-400/90 shadow-md hover:shadow-2xl transition-all duration-300 flex flex-col justify-between hover:-translate-y-1.5"
                 >
                   {/* رأس البطاقة مع صورة داخل قوس مغربي تقليدي (Moroccan Arched Image Frame) */}
                   <div>
                     <div className="relative aspect-[16/10] w-full overflow-hidden bg-slate-900 border-b-2 border-amber-300/60">
                       <img
-                        src={item.image || "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=900&q=80"}
+                        src={(item.image && !item.image.includes('542601906990-b4d3fb778b09') && !item.image.includes('picsum.photos')) ? item.image : "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=900&q=80"}
                         alt={title}
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-108"
                         loading="lazy"

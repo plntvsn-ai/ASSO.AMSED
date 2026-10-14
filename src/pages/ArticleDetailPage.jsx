@@ -80,7 +80,7 @@ export const ArticleDetailPage = () => {
                 <span>•</span>
                 <span className="flex items-center gap-1.5">
                   <User className="w-4 h-4 text-slate-400" />
-                  <span>بقلم: {article.author || 'إدارة الجمعية'}</span>
+                  <span>بقلم: {article.author && !article.author.includes('روبوت') ? article.author : 'أطر جمعية AMSED'}</span>
                 </span>
               </div>
 
