@@ -9,11 +9,11 @@ createRoot(document.getElementById('root')).render(
   </StrictMode>,
 );
 
-// Register Service Worker for offline capabilities and PWA installation
+// Register Service Worker with auto-update
 if ('serviceWorker' in navigator && (import.meta.env.PROD || window.location.protocol === 'https:')) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch((err) => {
-      console.warn('Service Worker registration skipped:', err);
-    });
+    navigator.serviceWorker.register('/sw.js').then((reg) => {
+      reg.update();
+    }).catch(() => {});
   });
 }

@@ -19,31 +19,15 @@ import { autoGenerateAndPublish } from '../services/autoPublisher';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Phone, MessageCircle } from 'lucide-react';
+import { getLocalSiteSettings } from '../services/siteSettingsService';
 
 export default function Home() {
   const { lang, dir } = useLanguage();
   const { cmsData, triggerAutoPublish } = useCms();
-  const [settings, setSettings] = useState(() => {
-    try {
-      const cached = localStorage.getItem('site_settings');
-      if (cached) return JSON.parse(cached);
-    } catch {}
-    return {
-      show_donation: false,
-      show_bank: false,
-      address_ar: 'SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM KENITRA',
-      phone: '06 54 24 05 23'
-    };
-  });
+  const [settings, setSettings] = useState(() => getLocalSiteSettings());
 
   useEffect(() => {
-    const reload = () => {
-      try {
-        const cached = localStorage.getItem('site_settings');
-        if (cached) setSettings(JSON.parse(cached));
-      } catch {}
-    };
-
+    const reload = () => setSettings(getLocalSiteSettings());
     window.addEventListener('storage', reload);
     window.addEventListener('cms-update', reload);
 
@@ -168,7 +152,7 @@ export default function Home() {
 
       {/* 13. Exact LTR Footer Strip */}
       <footer dir="ltr" style={{ unicodeBidi: 'isolate' }} className="bg-slate-950 text-slate-400 text-xs py-3 text-center border-t border-slate-900 font-mono">
-        {settings?.address_ar || 'SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM KENITRA'} | {settings?.phone || '06 54 24 05 23'}
+        {settings?.address || settings?.address_ar || 'SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM KENITRA'} | {settings?.phone1 || settings?.phone || '06 54 24 05 23'}
       </footer>
 
       {/* Floating Action Buttons */}

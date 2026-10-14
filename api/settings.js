@@ -47,6 +47,8 @@ function getSupabaseClient() {
   return null;
 }
 
+let inMemorySettings = null;
+
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
@@ -70,12 +72,21 @@ export default async function handler(req, res) {
           .single();
 
         if (!error && data) {
+          inMemorySettings = { ...DEFAULT_SETTINGS, ...data, _user_saved: true };
           return res.status(200).json({
             success: true,
             source: "supabase",
-            data: { ...DEFAULT_SETTINGS, ...data }
+            data: inMemorySettings
           });
         }
+      }
+
+      if (inMemorySettings) {
+        return res.status(200).json({
+          success: true,
+          source: "memory",
+          data: inMemorySettings
+        });
       }
 
       return res.status(200).json({
@@ -84,6 +95,13 @@ export default async function handler(req, res) {
         data: DEFAULT_SETTINGS
       });
     } catch (err) {
+      if (inMemorySettings) {
+        return res.status(200).json({
+          success: true,
+          source: "memory",
+          data: inMemorySettings
+        });
+      }
       return res.status(200).json({
         success: true,
         source: "fallback",
@@ -109,6 +127,9 @@ export default async function handler(req, res) {
       // Exclude id and created_at to avoid PGRST125
       const { id, created_at, ...dataToSave } = body;
       dataToSave.updated_at = new Date().toISOString();
+      dataToSave._user_saved = true;
+
+      inMemorySettings = { ...DEFAULT_SETTINGS, ...dataToSave };
 
       let synced = false;
       let warning = null;
@@ -117,17 +138,16 @@ export default async function handler(req, res) {
         try {
           const { error } = await supabase
             .from("site_settings")
-            .update(dataToSave)
-            .eq("id", 1);
+            .upsert({ id: 1, ...dataToSave });
 
           if (error) {
-            console.warn("Supabase server-side update warning:", error);
+            console.warn("Supabase server-side upsert warning:", error);
             warning = error.message;
           } else {
             synced = true;
           }
         } catch (dbErr) {
-          console.warn("Supabase server-side update exception:", dbErr);
+          console.warn("Supabase server-side upsert exception:", dbErr);
           warning = dbErr.message;
         }
       } else {
@@ -141,7 +161,7 @@ export default async function handler(req, res) {
         message: synced
           ? "تم الحفظ بنجاح في Supabase وقاعدة البيانات"
           : "تم الحفظ بنجاح في الخادم والمتصفح",
-        data: { ...DEFAULT_SETTINGS, ...dataToSave }
+        data: inMemorySettings
       });
     } catch (err) {
       console.error("api/settings handler error:", err);

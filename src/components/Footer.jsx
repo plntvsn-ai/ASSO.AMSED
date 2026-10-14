@@ -14,33 +14,20 @@ export const Footer = ({ siteSettings: propSettings }) => {
   const { lang, t } = useLanguage();
   const { data } = useData();
   const { cmsData } = useCms();
-  const [siteSettings, setSiteSettings] = useState(() => {
-    if (propSettings) return propSettings;
-    try {
-      const cached = localStorage.getItem('site_settings');
-      if (cached) return JSON.parse(cached);
-    } catch {}
-    return null;
-  });
+  const [siteSettings, setSiteSettings] = useState(() => propSettings || getLocalSiteSettings());
 
   useEffect(() => {
     if (propSettings) {
       setSiteSettings(propSettings);
       return;
     }
-    fetch('/api/settings')
-      .then(r => r.json())
-      .then(d => {
-        const cached = localStorage.getItem('site_settings');
-        const settingsData = d?.data || d;
-        if (d?.source === 'supabase' || (!cached && settingsData)) {
-          if (settingsData && typeof settingsData === 'object') {
-            setSiteSettings(settingsData);
-            try { localStorage.setItem('site_settings', JSON.stringify(settingsData)); } catch {}
-          }
-        }
-      })
-      .catch(() => {});
+    const reload = () => setSiteSettings(getLocalSiteSettings());
+    window.addEventListener('storage', reload);
+    window.addEventListener('cms-update', reload);
+    return () => {
+      window.removeEventListener('storage', reload);
+      window.removeEventListener('cms-update', reload);
+    };
   }, [propSettings]);
 
   const association = data.association;
@@ -164,12 +151,12 @@ export const Footer = ({ siteSettings: propSettings }) => {
             <div className="space-y-3 text-xs sm:text-sm text-slate-400">
               <div className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                <span>{siteSettings?.address_ar || "SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM KENITRA"}</span>
+                <span>{siteSettings?.address || siteSettings?.address_ar || "SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM KENITRA"}</span>
               </div>
               <div className="flex items-center gap-2.5">
                 <Phone className="w-4 h-4 text-emerald-400 shrink-0" />
-                <a href={`tel:${siteSettings?.phone || contact.phone1 || "06 54 24 05 23"}`} className="hover:text-white transition font-mono inline-block" dir="ltr" style={{ unicodeBidi: 'isolate' }}>
-                  {siteSettings?.phone || contact.phone1 || "06 54 24 05 23"}
+                <a href={`tel:${siteSettings?.phone1 || siteSettings?.phone || contact.phone1 || "06 54 24 05 23"}`} className="hover:text-white transition font-mono inline-block" dir="ltr" style={{ unicodeBidi: 'isolate' }}>
+                  {siteSettings?.phone1 || siteSettings?.phone || contact.phone1 || "06 54 24 05 23"}
                 </a>
               </div>
               {siteSettings?.phone2 && (
@@ -202,17 +189,17 @@ export const Footer = ({ siteSettings: propSettings }) => {
         {/* Bottom bar - 3 columns */}
         <div className="pt-8 grid md:grid-cols-3 gap-6 text-sm text-slate-400 items-center">
           <div>
-            {siteSettings?.address_ar || "SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM KENITRA"}
+            {siteSettings?.address || siteSettings?.address_ar || "SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM KENITRA"}
           </div>
           <div className="text-center font-bold text-white text-xs sm:text-sm">
             © {lang === 'ar'
-                ? (siteSettings?.association_full_display || "جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED")
+                ? (siteSettings?.association_full_display || siteSettings?.association_full_name || "جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED")
                 : lang === 'fr'
                 ? "Association Initiative Marocaine pour la Solidarité et la Coopération (AMSED Kénitra)"
                 : "Moroccan Initiative Association for Solidarity and Cooperation (AMSED Kenitra)"}
           </div>
           <div dir="ltr" className="text-left font-mono font-bold text-emerald-400" style={{ unicodeBidi: 'isolate' }}>
-            {siteSettings?.phone || "06 54 24 05 23"}
+            {siteSettings?.phone1 || siteSettings?.phone || "06 54 24 05 23"}
           </div>
         </div>
 

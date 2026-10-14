@@ -1,23 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import Logo from './Logo';
 import { useLanguage } from '../context/LanguageContext';
+import { getLocalSiteSettings } from '../services/siteSettingsService';
 
 export default function HeroVideo() {
   const { lang, t } = useLanguage();
-  const [siteSettings, setSiteSettings] = useState(() => {
-    try {
-      const cached = localStorage.getItem('site_settings');
-      if (cached) return JSON.parse(cached);
-    } catch {}
-    return {};
-  });
+  const [siteSettings, setSiteSettings] = useState(() => getLocalSiteSettings());
 
   useEffect(() => {
     const handleUpdate = () => {
-      try {
-        const cached = localStorage.getItem('site_settings');
-        if (cached) setSiteSettings(JSON.parse(cached));
-      } catch {}
+      setSiteSettings(getLocalSiteSettings());
     };
     window.addEventListener('storage', handleUpdate);
     window.addEventListener('cms-update', handleUpdate);
@@ -27,7 +19,7 @@ export default function HeroVideo() {
     };
   }, []);
 
-  const phone = siteSettings?.phone || '06 54 24 05 23';
+  const phone = siteSettings?.phone1 || siteSettings?.phone || '06 54 24 05 23';
   const cleanPhone = phone.replace(/\D/g, '');
 
   return (
@@ -53,7 +45,7 @@ export default function HeroVideo() {
 
         {/* شارة العنوان */}
         <div className="inline-block bg-white/15 backdrop-blur-sm text-emerald-100 text-xs px-4 py-1.5 rounded-full mb-5 border border-white/20">
-          📍 {siteSettings?.address_ar || 'SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM KENITRA'}
+          📍 {siteSettings?.address || siteSettings?.address_ar || 'SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM KENITRA'}
         </div>
 
         {/* الشعار الرسمي الشفاف - بدون دائرة بيضاء ولا إطار خارجي كطلب المستخدم */}

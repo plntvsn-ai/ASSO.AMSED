@@ -4,6 +4,7 @@ import Logo from './Logo';
 import { useLanguage } from '../context/LanguageContext';
 import { useCms } from '../context/CmsContext';
 import { Globe, Menu, X } from 'lucide-react';
+import { getLocalSiteSettings } from '../services/siteSettingsService';
 
 const NAME_STYLES = {
   andalusian: "font-black font-serif tracking-tight bg-gradient-to-r from-amber-700 via-amber-600 to-emerald-950 bg-clip-text text-transparent drop-shadow-sm",
@@ -18,20 +19,11 @@ export default function Header() {
   const { lang, setLanguage, dir, t } = useLanguage();
   const { cmsData } = useCms();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [siteSettings, setSiteSettings] = useState(() => {
-    try {
-      const cached = localStorage.getItem('site_settings');
-      if (cached) return JSON.parse(cached);
-    } catch {}
-    return {};
-  });
+  const [siteSettings, setSiteSettings] = useState(() => getLocalSiteSettings());
 
   useEffect(() => {
     const reloadSettings = () => {
-      try {
-        const cached = localStorage.getItem('site_settings');
-        if (cached) setSiteSettings(JSON.parse(cached));
-      } catch {}
+      setSiteSettings(getLocalSiteSettings());
     };
 
     window.addEventListener('storage', reloadSettings);
