@@ -58,8 +58,8 @@ export const Footer = ({ siteSettings: propSettings }) => {
           {/* Col 1: About & Logo (5 cols) */}
           <div className="lg:col-span-5 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="p-0.5 rounded-full border border-slate-700 shadow-md shrink-0 bg-transparent">
-                <Logo size={46} />
+              <div className="shrink-0 bg-transparent">
+                <Logo size={52} />
               </div>
               <div>
                 <span className="text-base font-bold text-white block leading-snug">
@@ -73,7 +73,7 @@ export const Footer = ({ siteSettings: propSettings }) => {
 
             <p className="text-xs sm:text-sm text-slate-400 leading-relaxed max-w-md">
               {lang === 'ar' 
-                ? (siteSettings?.association_full_name ? `${siteSettings.association_full_name}، رعاية وتأهيل متكامل لأطفال التوحد والإدماج المدرسي والمهني.` : 'جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة، رعاية وتأهيل متكامل لأطفال التوحد والإدماج المدرسي والمهني.')
+                ? (siteSettings?.association_full_name ? `${siteSettings.association_full_name}، رعاية وتأهيل متكامل لأطفال التوحد والإدماج المدرسي والمهني بالقنيطرة.` : 'جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED القنيطرة، رعاية وتأهيل متكامل لأطفال التوحد والإدماج المدرسي والمهني.')
                 : 'Association marocaine dédiée à la prise en charge, rééducation et inclusion scolaire des enfants autistes et en situation difficile.'}
             </p>
 
@@ -109,7 +109,7 @@ export const Footer = ({ siteSettings: propSettings }) => {
             <h4 className="text-sm font-bold text-white tracking-wider uppercase border-b border-slate-800 pb-2">
               {t('footer', 'quickLinks')}
             </h4>
-            <ul className="space-y-2.5 text-xs sm:text-sm">
+            <ul className="space-y-2 text-xs sm:text-sm">
               {footerMenus.map((item) => (
                 <li key={item.id}>
                   {item.link.startsWith('/') && !item.link.startsWith('/#') ? (
@@ -125,6 +125,18 @@ export const Footer = ({ siteSettings: propSettings }) => {
                   )}
                 </li>
               ))}
+              <li>
+                <Link to="/privacy" className="hover:text-emerald-400 transition flex items-center gap-1.5 text-slate-400 hover:text-emerald-300">
+                  <span>•</span>
+                  <span>سياسة الخصوصية وحماية المعطيات</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/terms" className="hover:text-emerald-400 transition flex items-center gap-1.5 text-slate-400 hover:text-emerald-300">
+                  <span>•</span>
+                  <span>الشروط والأحكام وميثاق الشفافية</span>
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -144,6 +156,22 @@ export const Footer = ({ siteSettings: propSettings }) => {
                   {siteSettings?.phone || contact.phone1 || "06 54 24 05 23"}
                 </a>
               </div>
+              {siteSettings?.phone2 && (
+                <div className="flex items-center gap-2.5">
+                  <Phone className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <a href={`tel:${siteSettings.phone2}`} className="hover:text-white transition font-mono inline-block" dir="ltr" style={{ unicodeBidi: 'isolate' }}>
+                    {siteSettings.phone2}
+                  </a>
+                </div>
+              )}
+              {siteSettings?.phone3 && (
+                <div className="flex items-center gap-2.5">
+                  <Phone className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <a href={`tel:${siteSettings.phone3}`} className="hover:text-white transition font-mono inline-block" dir="ltr" style={{ unicodeBidi: 'isolate' }}>
+                    {siteSettings.phone3}
+                  </a>
+                </div>
+              )}
               <div className="flex items-center gap-2.5">
                 <Mail className="w-4 h-4 text-emerald-400 shrink-0" />
                 <a href={`mailto:${contact.email || "asso.amsed@gmail.com"}`} className="hover:text-white transition font-mono">

@@ -14,10 +14,21 @@ export default function StatsSection() {
     s3_val: "+80",
     s3_label: "طفل مدمج بالمدارس مع مرافقة AVS",
     s4_val: "+85",
-    s4_label: "متطوع ومتطوعة وأطر تربوية"
+    s4_label: "متطوع ومتطوعة وأطر تربوية",
+    show_stats: true
   });
 
   useEffect(() => {
+    try {
+      const siteSet = localStorage.getItem('site_settings');
+      if (siteSet) {
+        const parsed = JSON.parse(siteSet);
+        if (parsed.show_stats !== undefined) {
+          setStats(prev => ({ ...prev, show_stats: Boolean(parsed.show_stats) }));
+        }
+      }
+    } catch {}
+
     if (db) {
       getDoc(doc(db, "siteStats", "main"))
         .then(snap => {
@@ -31,35 +42,51 @@ export default function StatsSection() {
     }
   }, [cmsData?.stats]);
 
+  if (stats.show_stats === false) {
+    return null;
+  }
+
   const items = [
-    { val: stats.s1_val, label: stats.s1_label, icon: Smile, color: "text-emerald-400 bg-emerald-950/60 border-emerald-800/60" },
-    { val: stats.s2_val, label: stats.s2_label, icon: Sparkles, color: "text-amber-400 bg-amber-950/60 border-amber-800/60" },
-    { val: stats.s3_val, label: stats.s3_label, icon: GraduationCap, color: "text-blue-400 bg-blue-950/60 border-blue-800/60" },
-    { val: stats.s4_val, label: stats.s4_label, icon: Users, color: "text-rose-400 bg-rose-950/60 border-rose-800/60" }
+    { val: stats.s1_val, label: stats.s1_label, icon: Smile, color: "text-amber-300 bg-emerald-950/80 border-amber-400/40" },
+    { val: stats.s2_val, label: stats.s2_label, icon: Sparkles, color: "text-amber-300 bg-emerald-950/80 border-amber-400/40" },
+    { val: stats.s3_val, label: stats.s3_label, icon: GraduationCap, color: "text-amber-300 bg-emerald-950/80 border-amber-400/40" },
+    { val: stats.s4_val, label: stats.s4_label, icon: Users, color: "text-amber-300 bg-emerald-950/80 border-amber-400/40" }
   ];
 
   return (
-    <div className="py-5 px-4 bg-slate-900/90 backdrop-blur text-white rounded-2xl border border-slate-800 shadow-xl">
-      <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 text-center">
+    <section className="relative py-10 px-4 bg-gradient-to-r from-emerald-950 via-[#0a4a3a] to-emerald-950 text-white border-y-2 border-amber-400/50 shadow-xl overflow-hidden">
+      {/* Moroccan Zellij Watermark */}
+      <div className="absolute inset-0 pointer-events-none opacity-5 bg-[radial-gradient(#d97706_1.5px,transparent_1.5px)] [background-size:24px_24px]" />
+      
+      <div className="max-w-7xl mx-auto relative z-10">
+        {/* Moroccan Heading */}
+        <div className="text-center mb-6">
+          <span className="inline-flex items-center gap-2 text-xs font-bold text-amber-300 bg-black/40 px-3.5 py-1 rounded-full border border-amber-400/40">
+            <span>۞</span>
+            <span>أرقام وإحصائيات الأثر الميداني • جمعية AMSED بالقنيطرة</span>
+            <span>۞</span>
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 text-center">
           {items.map((it, idx) => {
             const Icon = it.icon;
             return (
               <div 
                 key={idx} 
-                className={`p-3.5 sm:p-4 rounded-xl border ${it.color} shadow transition hover:scale-105`}
+                className={`p-5 sm:p-6 rounded-3xl border-2 ${it.color} shadow-lg transition-all duration-300 hover:scale-105 hover:border-amber-400 hover:shadow-2xl relative overflow-hidden group`}
               >
-                <div className="w-8 h-8 rounded-lg bg-slate-900/80 mx-auto flex items-center justify-center mb-1.5 shadow">
-                  <Icon className="w-4 h-4" />
+                <div className="w-12 h-12 rounded-2xl bg-amber-400 text-emerald-950 mx-auto flex items-center justify-center mb-3 shadow-md group-hover:rotate-6 transition-transform">
+                  <Icon className="w-6 h-6" />
                 </div>
-                <div className="text-xl sm:text-2xl font-black mb-0.5">{it.val}</div>
-                <div className="text-[11px] sm:text-xs text-slate-300 font-medium leading-tight">{it.label}</div>
+                <div className="text-2xl sm:text-3xl lg:text-4xl font-black text-amber-300 mb-1 font-mono tracking-tight">{it.val}</div>
+                <div className="text-xs sm:text-sm text-slate-200 font-bold leading-snug">{it.label}</div>
               </div>
             );
           })}
         </div>
       </div>
-    </div>
+    </section>
   );
 }
 export { StatsSection };

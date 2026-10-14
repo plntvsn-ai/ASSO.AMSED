@@ -21,13 +21,24 @@ export const StatsAdmin = () => {
     s1_val: "+650", s1_label: "طفل مستفيد سنوياً", s1_icon: "Smile",
     s2_val: "+45", s2_label: "مستفيد في ورشات المهارات المهنية", s2_icon: "Sparkles",
     s3_val: "+80", s3_label: "طفل مدمج بالمدارس مع مرافقة AVS", s3_icon: "GraduationCap",
-    s4_val: "+85", s4_label: "متطوع ومتطوعة وأطر تربوية", s4_icon: "Users"
+    s4_val: "+85", s4_label: "متطوع ومتطوعة وأطر تربوية", s4_icon: "Users",
+    show_stats: true
   });
 
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [loading, setLoading] = useState(true);
 
   React.useEffect(() => {
+    try {
+      const siteSet = localStorage.getItem('site_settings');
+      if (siteSet) {
+        const parsed = JSON.parse(siteSet);
+        if (parsed.show_stats !== undefined) {
+          setStats(prev => ({ ...prev, show_stats: Boolean(parsed.show_stats) }));
+        }
+      }
+    } catch {}
+
     if (cmsData?.stats) {
       setStats(prev => ({ ...prev, ...cmsData.stats }));
     }
@@ -40,6 +51,12 @@ export const StatsAdmin = () => {
 
   const handleSave = () => {
     updateStats(stats);
+    try {
+      const siteSet = localStorage.getItem('site_settings');
+      const parsed = siteSet ? JSON.parse(siteSet) : {};
+      parsed.show_stats = stats.show_stats !== false;
+      localStorage.setItem('site_settings', JSON.stringify(parsed));
+    } catch {}
     setSavedSuccess(true);
     setTimeout(() => setSavedSuccess(false), 3000);
   };
@@ -64,7 +81,7 @@ export const StatsAdmin = () => {
             <span>تعديل الأرقام والإحصائيات الأربعة (/admin/stats)</span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            إحصائيات الأثر الميداني: القيمة، النص التوضيحي، والأيقونة مع معاينة فورية وحفظ في Firestore
+            إحصائيات الأثر الميداني: القيمة، النص التوضيحي، والأيقونة مع زر الإخفاء والإظهار والمعاينة الفورية
           </p>
         </div>
 
@@ -73,8 +90,28 @@ export const StatsAdmin = () => {
           className="inline-flex items-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold px-6 py-3 rounded-2xl shadow-md transition transform hover:-translate-y-0.5 shrink-0"
         >
           <Save className="w-5 h-5" />
-          <span>حفظ الأرقام في Firestore</span>
+          <span>حفظ التعديلات في الموقع</span>
         </button>
+      </div>
+
+      {/* Show/Hide Toggle Card */}
+      <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm">
+        <label className="flex items-center gap-3 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={stats.show_stats !== false}
+            onChange={(e) => handleFieldChange('show_stats', e.target.checked)}
+            className="w-5 h-5 text-emerald-600 rounded"
+          />
+          <div>
+            <div className="font-extrabold text-sm text-slate-900">
+              {stats.show_stats !== false ? '✅ شريط الإحصائيات ظاهر في الصفحة' : '🚫 شريط الإحصائيات مخفي من الصفحة'}
+            </div>
+            <div className="text-xs text-slate-500">
+              يمكنك النقر هنا لإخفاء أو إظهار شريط الأرقام والإحصائيات الأربعة بالكامل من واجهة الموقع
+            </div>
+          </div>
+        </label>
       </div>
 
       {savedSuccess && (

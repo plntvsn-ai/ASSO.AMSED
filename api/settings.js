@@ -5,15 +5,20 @@ const DEFAULT_SETTINGS = {
   association_full_name: "جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة",
   association_short_name: "AMSED",
   site_title: "جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED",
+  association_subtitle: "لرعاية أطفال التوحد وفي وضعية صعبة • القنيطرة",
+  association_name_style: "andalusian",
   address: "SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM KENITRA",
   city: "Kenitra",
   email: "asso.amsed@gmail.com",
   phone1: "06 54 24 05 23",
-  phone2: "",
+  phone2: "06 63 78 01 07",
+  phone3: "",
+  working_hours: "الإثنين - الجمعة: 08:30 إلى 17:00 | السبت: 09:00 إلى 13:00",
   lat: "34.2610",
   lng: "-6.5802",
   show_donations: false,
-  show_bank: false
+  show_bank: false,
+  show_stats: true
 };
 
 function getSupabaseClient() {

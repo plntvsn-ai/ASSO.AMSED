@@ -5,14 +5,14 @@
   background-color: transparent !important;
   box-shadow: none !important;
   border: none !important;
-  border-radius: 9999px !important;
-  clip-path: circle(50%) !important;
+  border-radius: 0 !important;
+  clip-path: none !important;
   object-fit: contain !important;
 }
 
 .logo-wrapper {
   background: transparent !important;
-  border-radius: 9999px !important;
+  border-radius: 0 !important;
 }
 
 
@@ -74,6 +74,28 @@
   background-color: #095938;
   background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
   background-size: 24px 24px;
+}
+
+/* Authentic Moroccan Zellij mosaic pattern */
+.moroccan-zellij-bg {
+  background-color: #faf9f5;
+  background-image: 
+    radial-gradient(#c29b38 1px, transparent 1px),
+    radial-gradient(#0d7249 0.75px, #faf9f5 0.75px);
+  background-size: 32px 32px;
+  background-position: 0 0, 16px 16px;
+}
+
+.moroccan-royal-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(254, 253, 248, 0.96) 100%);
+  border: 1px solid rgba(212, 175, 55, 0.35);
+  box-shadow: 0 10px 25px -5px rgba(13, 114, 73, 0.07), 0 8px 10px -6px rgba(194, 155, 56, 0.04);
+}
+
+.moroccan-gold-heading {
+  background: linear-gradient(135deg, #1e3a8a 0%, #b45309 50%, #047857 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 /* Mandatory transparent logo styling */

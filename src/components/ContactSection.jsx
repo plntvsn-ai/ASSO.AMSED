@@ -12,7 +12,32 @@ export const ContactSection = () => {
   const { lang, dir, t, getLocalized } = useLanguage();
   const { data, addMessage } = useData();
   const { cmsData } = useCms();
-  const association = { ...data.association, ...(cmsData?.contact || {}) };
+  const [siteSettings, setSiteSettings] = useState(() => {
+    try {
+      const cached = localStorage.getItem('site_settings');
+      if (cached) return JSON.parse(cached);
+    } catch {}
+    return {};
+  });
+
+  React.useEffect(() => {
+    fetch('/api/settings')
+      .then(res => res.json())
+      .then(d => {
+        if (d?.data) setSiteSettings(d.data);
+      })
+      .catch(() => {});
+  }, []);
+
+  const association = { 
+    ...data.association, 
+    ...(cmsData?.contact || {}), 
+    ...siteSettings,
+    phone1: siteSettings.phone1 || cmsData?.contact?.phone1 || data.association?.phone1 || '06 54 24 05 23',
+    phone2: siteSettings.phone2 || cmsData?.contact?.phone2 || data.association?.phone2 || '06 63 78 01 07',
+    phone3: siteSettings.phone3 || '',
+    working_hours: siteSettings.working_hours || 'الإثنين - الجمعة: 08:30 إلى 17:00 | السبت: 09:00 إلى 13:00'
+  };
 
   const [formData, setFormData] = useState({
     name: '',
@@ -116,7 +141,7 @@ export const ContactSection = () => {
                 <span>{t('contact', 'phoneNumbers')}</span>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+              <div className={`grid grid-cols-1 ${association.phone3 ? 'sm:grid-cols-3' : 'sm:grid-cols-2'} gap-3 pt-2`}>
                 <a
                   href={`tel:${association.phone1}`}
                   className="p-3 bg-white hover:bg-emerald-50 rounded-2xl border border-slate-200 hover:border-emerald-300 transition block text-center"
@@ -129,17 +154,33 @@ export const ContactSection = () => {
                   </span>
                 </a>
 
-                <a
-                  href={`tel:${association.phone2}`}
-                  className="p-3 bg-white hover:bg-emerald-50 rounded-2xl border border-slate-200 hover:border-emerald-300 transition block text-center"
-                >
-                  <span className="text-xs text-slate-500 block mb-1">
-                    {lang === 'ar' ? 'الرقم الثاني' : 'Ligne 2'}
-                  </span>
-                  <span className="text-sm font-extrabold text-emerald-800 inline-block font-mono" dir="ltr" style={{ unicodeBidi: 'isolate' }}>
-                    {association.phone2}
-                  </span>
-                </a>
+                {association.phone2 && (
+                  <a
+                    href={`tel:${association.phone2}`}
+                    className="p-3 bg-white hover:bg-emerald-50 rounded-2xl border border-slate-200 hover:border-emerald-300 transition block text-center"
+                  >
+                    <span className="text-xs text-slate-500 block mb-1">
+                      {lang === 'ar' ? 'الرقم الثاني' : 'Ligne 2'}
+                    </span>
+                    <span className="text-sm font-extrabold text-emerald-800 inline-block font-mono" dir="ltr" style={{ unicodeBidi: 'isolate' }}>
+                      {association.phone2}
+                    </span>
+                  </a>
+                )}
+
+                {association.phone3 && (
+                  <a
+                    href={`tel:${association.phone3}`}
+                    className="p-3 bg-white hover:bg-emerald-50 rounded-2xl border border-slate-200 hover:border-emerald-300 transition block text-center"
+                  >
+                    <span className="text-xs text-slate-500 block mb-1">
+                      {lang === 'ar' ? 'الرقم الثالث' : 'Ligne 3'}
+                    </span>
+                    <span className="text-sm font-extrabold text-emerald-800 inline-block font-mono" dir="ltr" style={{ unicodeBidi: 'isolate' }}>
+                      {association.phone3}
+                    </span>
+                  </a>
+                )}
               </div>
 
               {/* Direct WhatsApp Action Button */}
@@ -188,6 +229,19 @@ export const ContactSection = () => {
                   </p>
                 </div>
               </div>
+            </div>
+
+            {/* Working Hours Card (أوقات وساعات العمل والاستقبال) */}
+            <div className="bg-slate-50 rounded-3xl p-6 border border-slate-200 shadow-sm space-y-3">
+              <div className="flex items-center gap-3 text-emerald-800 font-bold text-base">
+                <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center text-amber-700">
+                  <Clock className="w-5 h-5" />
+                </div>
+                <span>{lang === 'ar' ? 'أوقات العمل والاستقبال' : 'Horaires d\'ouverture'}</span>
+              </div>
+              <p className="text-xs sm:text-sm text-slate-800 font-semibold whitespace-pre-line leading-relaxed bg-white p-3.5 rounded-2xl border border-slate-200">
+                {association.working_hours || (lang === 'ar' ? 'الإثنين - الجمعة: 08:30 إلى 17:00\nالسبت: 09:00 إلى 13:00\nالأحد: مغلق' : 'Lundi - Vendredi: 08h30 - 17h00\nSamedi: 09h00 - 13h00')}
+              </p>
             </div>
 
             {/* Social Links Card */}

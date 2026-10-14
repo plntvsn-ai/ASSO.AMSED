@@ -1,14 +1,41 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Logo from './Logo';
 import { useLanguage } from '../context/LanguageContext';
 import { useCms } from '../context/CmsContext';
 import { Globe, Menu, X } from 'lucide-react';
 
+const NAME_STYLES = {
+  andalusian: "font-black font-serif tracking-tight bg-gradient-to-r from-amber-700 via-amber-600 to-emerald-950 bg-clip-text text-transparent drop-shadow-sm",
+  kufi: "font-black text-emerald-950 tracking-wider drop-shadow-sm",
+  thuluth: "font-black text-emerald-900 font-serif tracking-normal leading-snug drop-shadow-sm",
+  diwani: "font-black bg-gradient-to-r from-emerald-950 via-teal-900 to-amber-700 bg-clip-text text-transparent",
+  royal_green: "font-black text-[#044e3b] drop-shadow-[0_1px_2px_rgba(217,119,6,0.25)]",
+  modern_gold: "font-extrabold bg-gradient-to-r from-amber-600 via-yellow-600 to-amber-800 bg-clip-text text-transparent drop-shadow-sm"
+};
+
 export default function Header() {
   const { lang, setLanguage, dir, t } = useLanguage();
   const { cmsData } = useCms();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [siteSettings, setSiteSettings] = useState(() => {
+    try {
+      const cached = localStorage.getItem('site_settings');
+      if (cached) return JSON.parse(cached);
+    } catch {}
+    return {};
+  });
+
+  useEffect(() => {
+    fetch('/api/settings')
+      .then(res => res.json())
+      .then(data => {
+        if (data?.data) {
+          setSiteSettings(data.data);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const cmsHeaderMenus = cmsData?.menus?.headerMenus;
   const rawNavLinks = (cmsHeaderMenus && cmsHeaderMenus.length > 0)
@@ -36,17 +63,17 @@ export default function Header() {
     <header className="sticky top-0 z-40 w-full bg-white shadow-sm border-b border-slate-100 transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between py-2.5">
         
-        {/* Brand: Logo & Association Title */}
-        <Link to="/" className="flex items-center gap-3 group">
-          <div className="shrink-0 flex items-center justify-center p-0.5 rounded-full border border-slate-200/70">
-            <Logo size={46} />
+        {/* Brand: Standalone Clean Logo & Association Title */}
+        <Link to="/" className="flex items-center gap-3.5 group">
+          <div className="shrink-0 flex items-center justify-center">
+            <Logo size={58} />
           </div>
           <div className="flex flex-col">
-            <span className="text-xs sm:text-sm font-extrabold text-emerald-950 group-hover:text-emerald-700 transition leading-tight">
-              {lang === 'ar' ? 'جمعية المبادرة المغربية للتكافل والتعاون' : lang === 'fr' ? 'Association Initiative Marocaine' : 'Moroccan Initiative Association'}
+            <span className={`text-xs sm:text-sm lg:text-base leading-tight group-hover:opacity-90 transition ${NAME_STYLES[siteSettings.association_name_style || 'andalusian'] || NAME_STYLES.andalusian}`}>
+              {siteSettings.association_full_name || (lang === 'ar' ? 'جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة' : 'Association Initiative Marocaine')}
             </span>
-            <span className="text-[11px] text-amber-700 font-semibold">
-              {lang === 'ar' ? 'لرعاية الأطفال في وضعية صعبة بالقنيطرة' : 'Protection des Enfants en Situation Difficile'}
+            <span className="text-[11px] sm:text-xs text-amber-800/90 font-bold flex items-center gap-1.5 mt-0.5">
+              <span>{siteSettings.association_subtitle || (lang === 'ar' ? 'لرعاية أطفال التوحد وفي وضعية صعبة • القنيطرة' : 'Protection des Enfants en Situation Difficile')}</span>
             </span>
           </div>
         </Link>

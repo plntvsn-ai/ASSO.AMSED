@@ -23,9 +23,7 @@ export default function Logo({ size = 56, className = "" }) {
         justifyContent: "center",
         lineHeight: 0,
         padding: 0,
-        margin: 0,
-        borderRadius: "9999px",
-        overflow: "hidden"
+        margin: 0
       }}
       className={className}
     >
@@ -39,12 +37,10 @@ export default function Logo({ size = 56, className = "" }) {
           backgroundColor: "transparent",
           display: "block",
           objectFit: "contain",
-          borderRadius: "9999px",
-          clipPath: "circle(50%)",
           border: "none",
           boxShadow: "none"
         }}
-        className="logo-transparent rounded-full"
+        className="logo-transparent select-none drop-shadow-sm hover:scale-105 transition-transform"
       />
     </div>
   );

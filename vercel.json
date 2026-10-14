@@ -1,4 +1,10 @@
 {
+  "crons": [
+    {
+      "path": "/api/autonomous-publish",
+      "schedule": "0 9 * * *"
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/(.*)",

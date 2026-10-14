@@ -10,6 +10,15 @@ import {
 import { FacebookIcon, YoutubeIcon } from './SocialIcons';
 import Logo from './Logo';
 
+const NAME_STYLES = {
+  andalusian: "font-black font-serif tracking-tight bg-gradient-to-r from-amber-700 via-amber-600 to-emerald-950 bg-clip-text text-transparent drop-shadow-sm",
+  kufi: "font-black text-emerald-950 tracking-wider drop-shadow-sm",
+  thuluth: "font-black text-emerald-900 font-serif tracking-normal leading-snug drop-shadow-sm",
+  diwani: "font-black bg-gradient-to-r from-emerald-950 via-teal-900 to-amber-700 bg-clip-text text-transparent",
+  royal_green: "font-black text-[#044e3b] drop-shadow-[0_1px_2px_rgba(217,119,6,0.25)]",
+  modern_gold: "font-extrabold bg-gradient-to-r from-amber-600 via-yellow-600 to-amber-800 bg-clip-text text-transparent drop-shadow-sm"
+};
+
 export const Navbar = ({ onOpenAdmin }) => {
   const { lang, dir, setLanguage, t } = useLanguage();
   const { data } = useData();
@@ -18,7 +27,26 @@ export const Navbar = ({ onOpenAdmin }) => {
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
 
   const { cmsData } = useCms();
-  const association = cmsData.contact || data.association;
+  const [siteSettings, setSiteSettings] = useState(() => {
+    try {
+      const cached = localStorage.getItem('site_settings');
+      if (cached) return JSON.parse(cached);
+    } catch {}
+    return {};
+  });
+
+  useEffect(() => {
+    fetch('/api/settings')
+      .then(res => res.json())
+      .then(data => {
+        if (data?.data) {
+          setSiteSettings(data.data);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const association = { ...data.association, ...(cmsData?.contact || {}), ...siteSettings };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -69,23 +97,38 @@ export const Navbar = ({ onOpenAdmin }) => {
 
           {/* Quick Contact & Socials */}
           <div className="flex items-center gap-4">
-            <a 
-              href={`tel:${association.phone1}`} 
-              className="inline-flex items-center gap-1.5 hover:text-emerald-400 transition"
-              title="الهاتف الرئيسي"
-            >
-              <Phone className="w-3.5 h-3.5 text-emerald-400" />
-              <span dir="ltr">{association.phone1}</span>
-            </a>
+            {association.phone1 && (
+              <a 
+                href={`tel:${association.phone1}`} 
+                className="inline-flex items-center gap-1.5 hover:text-emerald-400 transition"
+                title="الهاتف الرئيسي"
+              >
+                <Phone className="w-3.5 h-3.5 text-emerald-400" />
+                <span dir="ltr">{association.phone1}</span>
+              </a>
+            )}
             
-            <a 
-              href={`tel:${association.phone2}`} 
-              className="hidden sm:inline-flex items-center gap-1.5 hover:text-emerald-400 transition"
-              title="الهاتف الثاني"
-            >
-              <Phone className="w-3.5 h-3.5 text-emerald-400" />
-              <span dir="ltr">{association.phone2}</span>
-            </a>
+            {association.phone2 && (
+              <a 
+                href={`tel:${association.phone2}`} 
+                className="hidden sm:inline-flex items-center gap-1.5 hover:text-emerald-400 transition"
+                title="الهاتف الثاني"
+              >
+                <Phone className="w-3.5 h-3.5 text-emerald-400" />
+                <span dir="ltr">{association.phone2}</span>
+              </a>
+            )}
+
+            {association.phone3 && (
+              <a 
+                href={`tel:${association.phone3}`} 
+                className="hidden md:inline-flex items-center gap-1.5 hover:text-emerald-400 transition"
+                title="الهاتف الثالث"
+              >
+                <Phone className="w-3.5 h-3.5 text-emerald-400" />
+                <span dir="ltr">{association.phone3}</span>
+              </a>
+            )}
 
             <a 
               href={`mailto:${association.email}`} 
@@ -132,20 +175,20 @@ export const Navbar = ({ onOpenAdmin }) => {
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between">
           
-          {/* Logo & Association Name */}
-          <Link to="/" className="flex items-center gap-3 group">
+          {/* Standalone Logo & Association Name */}
+          <Link to="/" className="flex items-center gap-3.5 group">
             <div className="shrink-0 flex items-center justify-center">
-              <Logo size={56} />
+              <Logo size={60} />
             </div>
             
             <div className="flex flex-col">
-              <span className="text-sm sm:text-base font-extrabold text-emerald-900 group-hover:text-emerald-700 transition leading-snug line-clamp-1 sm:line-clamp-none">
-                {lang === 'ar' ? association.nameAr : lang === 'fr' ? association.nameFr : association.nameEn}
+              <span className={`text-xs sm:text-sm lg:text-base leading-snug group-hover:opacity-90 transition ${NAME_STYLES[siteSettings.association_name_style || 'andalusian'] || NAME_STYLES.andalusian}`}>
+                {siteSettings.association_full_name || (lang === 'ar' ? association.nameAr : lang === 'fr' ? association.nameFr : association.nameEn)}
               </span>
-              <span className="text-xs text-amber-700 font-semibold flex items-center gap-1">
-                <span>{association.acronym}</span>
+              <span className="text-[11px] sm:text-xs text-amber-800/90 font-bold flex items-center gap-1.5 mt-0.5">
+                <span>{association.acronym || 'AMSED'}</span>
                 <span>•</span>
-                <span>{lang === 'ar' ? 'رعاية الأطفال في وضعية صعبة' : lang === 'fr' ? 'Protection des Enfants en Situation Difficile' : 'Caring for Children in Hardship'}</span>
+                <span>{siteSettings.association_subtitle || (lang === 'ar' ? 'رعاية أطفال التوحد وفي وضعية صعبة • القنيطرة' : 'Protection des Enfants en Situation Difficile')}</span>
               </span>
             </div>
           </Link>

@@ -9,6 +9,8 @@ import { Home } from './pages/Home';
 import { ArticlesPage } from './pages/ArticlesPage';
 import { ArticleDetailPage } from './pages/ArticleDetailPage';
 import { AboutPage } from './pages/AboutPage';
+import { PrivacyPage } from './pages/PrivacyPage';
+import { TermsPage } from './pages/TermsPage';
 
 // Researcher Portal Pages
 import { ResearcherLogin } from './pages/ResearcherLogin';
@@ -64,6 +66,8 @@ export default function App() {
               <Route path="/articles" element={<ArticlesPage />} />
               <Route path="/article/:id" element={<ArticleDetailPage />} />
               <Route path="/about" element={<AboutPage />} />
+              <Route path="/privacy" element={<PrivacyPage />} />
+              <Route path="/terms" element={<TermsPage />} />
 
               {/* Secure Login Entry */}
               <Route path="/am-ctrl-9k2l8x-2026-secure-panel-77/login" element={<SecureLogin />} />

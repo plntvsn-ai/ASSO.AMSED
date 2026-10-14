@@ -16,15 +16,20 @@ export default function SettingsPage() {
     association_full_name: 'جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة',
     association_short_name: 'AMSED',
     site_title: 'جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED',
+    association_subtitle: 'لرعاية أطفال التوحد وفي وضعية صعبة • القنيطرة',
+    association_name_style: 'andalusian',
     address: 'SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM KENITRA',
     city: 'Kenitra',
     email: 'asso.amsed@gmail.com',
     phone1: '06 54 24 05 23',
-    phone2: '',
+    phone2: '06 63 78 01 07',
+    phone3: '',
+    working_hours: 'الإثنين - الجمعة: 08:30 إلى 17:00 | السبت: 09:00 إلى 13:00',
     lat: '34.2610',
     lng: '-6.5802',
     show_donations: false,
-    show_bank: false
+    show_bank: false,
+    show_stats: true
   });
   
   const [loading, setLoading] = useState(true);
@@ -274,6 +279,48 @@ export default function SettingsPage() {
           />
         </div>
 
+        {/* Association Subtitle (العنوان تحت اسم الجمعية) */}
+        <div className="space-y-1.5">
+          <label className="block text-xs font-bold text-slate-700">📍 العنوان الفرعي تحت اسم الجمعية في الترويسة (association_subtitle)</label>
+          <input
+            name="association_subtitle"
+            value={form.association_subtitle || ''}
+            onChange={handleChange}
+            className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm transition font-medium"
+            placeholder="مثال: لرعاية أطفال التوحد وفي وضعية صعبة • القنيطرة"
+          />
+        </div>
+
+        {/* Association Name Font Styles (أنماط كتابة اسم الجمعية) */}
+        <div className="space-y-2 pt-1">
+          <label className="block text-xs font-bold text-slate-700">✨ نمط وخط كتابة اسم الجمعية في أعلى الموقع (الترويسة)</label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+            {[
+              { id: 'andalusian', name: '👑 أندلسي مغربي مذهب', preview: 'تدرج ذهبي ملكي فاخر', cls: 'bg-gradient-to-r from-amber-700 via-amber-600 to-emerald-900 bg-clip-text text-transparent font-black font-serif' },
+              { id: 'kufi', name: '🏛️ كوفي مغربي عريض', preview: 'خط هندسي أصيل ورصين', cls: 'text-emerald-950 font-black tracking-wider' },
+              { id: 'thuluth', name: '📜 ثلث أميري راقي', preview: 'خط تراثي كلاسيكي فخم', cls: 'text-emerald-900 font-black font-serif' },
+              { id: 'diwani', name: '✨ ديواني مزخرف', preview: 'انسيابي بألوان متدرجة', cls: 'bg-gradient-to-r from-emerald-900 via-teal-800 to-amber-700 bg-clip-text text-transparent font-bold' },
+              { id: 'royal_green', name: '🌿 أخضر ملكي مغربي', preview: 'أخضر موحد مع هيبة ملكية', cls: 'text-[#044e3b] font-black' },
+              { id: 'modern_gold', name: '💎 عصري تقني بظلال نحاسية', preview: 'خط عصري وواضح جداً', cls: 'bg-gradient-to-r from-amber-600 via-yellow-600 to-amber-800 bg-clip-text text-transparent font-extrabold' }
+            ].map(st => (
+              <div
+                key={st.id}
+                onClick={() => setForm(prev => ({ ...prev, association_name_style: st.id }))}
+                className={`p-3 rounded-2xl border-2 cursor-pointer transition text-center ${
+                  (form.association_name_style || 'andalusian') === st.id
+                    ? 'border-emerald-600 bg-emerald-50/50 shadow-md ring-2 ring-emerald-500/30'
+                    : 'border-slate-200 hover:border-slate-300 bg-white'
+                }`}
+              >
+                <div className="text-xs font-bold text-slate-800 mb-1">{st.name}</div>
+                <div className={`text-xs ${st.cls} truncate`}>
+                  {form.association_short_name || 'AMSED'} • {st.preview}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* Short Name & Site Title */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1.5">
@@ -324,7 +371,7 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Email & Phone 1 */}
+        {/* Email & Working Hours */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <label className="block text-xs font-bold text-slate-700">✉️ البريد الإلكتروني (email)</label>
@@ -339,6 +386,20 @@ export default function SettingsPage() {
           </div>
 
           <div className="space-y-1.5">
+            <label className="block text-xs font-bold text-slate-700">⏰ أوقات وساعات العمل والاستقبال (working_hours)</label>
+            <input
+              name="working_hours"
+              value={form.working_hours || ''}
+              onChange={handleChange}
+              className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm transition"
+              placeholder="الإثنين - الجمعة: 08:30 إلى 17:00 | السبت: 09:00 إلى 13:00"
+            />
+          </div>
+        </div>
+
+        {/* Phone Numbers (Phone 1, 2, 3) */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="space-y-1.5">
             <label className="block text-xs font-bold text-slate-700">📞 الهاتف 1 (phone1)</label>
             <input
               name="phone1"
@@ -349,10 +410,7 @@ export default function SettingsPage() {
               placeholder="الهاتف 1"
             />
           </div>
-        </div>
 
-        {/* Phone 2 & Location */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="space-y-1.5">
             <label className="block text-xs font-bold text-slate-700">📱 الهاتف 2 (phone2)</label>
             <input
@@ -365,6 +423,21 @@ export default function SettingsPage() {
             />
           </div>
 
+          <div className="space-y-1.5">
+            <label className="block text-xs font-bold text-slate-700">☎️ هاتف إضافي 3 (اختياري)</label>
+            <input
+              name="phone3"
+              value={form.phone3 || ''}
+              dir="ltr"
+              onChange={handleChange}
+              className="w-full border border-slate-300 p-3 rounded-xl focus:ring-2 focus:ring-emerald-500 outline-none text-sm font-mono transition"
+              placeholder="هاتف 3"
+            />
+          </div>
+        </div>
+
+        {/* Location Coordinates */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <label className="block text-xs font-bold text-slate-700">🌐 خط العرض (lat)</label>
             <input
@@ -391,7 +464,20 @@ export default function SettingsPage() {
         </div>
 
         {/* Toggles */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+          <label className="flex items-center gap-3 p-4 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition">
+            <input
+              type="checkbox"
+              name="show_stats"
+              checked={form.show_stats !== false}
+              onChange={handleChange}
+              className="w-5 h-5 text-emerald-600 rounded"
+            />
+            <span className="font-bold text-xs sm:text-sm text-slate-800">
+              {form.show_stats !== false ? '✅ شريط الإحصائيات ظاهر' : '🚫 إخفاء شريط الإحصائيات'}
+            </span>
+          </label>
+
           <label className="flex items-center gap-3 p-4 border border-slate-200 rounded-xl cursor-pointer hover:bg-slate-50 transition">
             <input
               type="checkbox"

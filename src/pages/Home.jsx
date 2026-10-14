@@ -41,25 +41,37 @@ export default function Home() {
       .catch(() => {});
   }, []);
 
-  useEffect(()=>{
-    const run=async()=>{
-      try{
-        const {doc,getDoc}=await import("firebase/firestore");
-        const {db}=await import("../firebase");
-        const s=await getDoc(doc(db,"autoSettings","main"));
-        if(!s.exists() ||!s.data().enabled) return;
-        const last=s.data().lastRun?.toDate();
-        const now=new Date();
-        if(!last || (now-last)/3600000 >= 24){
-          const {autoGenerateAndPublish}=await import("../services/autoPublisher");
+  useEffect(() => {
+    const runAutonomousDaily = async () => {
+      try {
+        const today = new Date().toISOString().split('T')[0];
+        const lastRun = localStorage.getItem('amsed_last_auto_publish');
+        
+        let needsPublish = (lastRun !== today);
+        if (!needsPublish) {
+          try {
+            const raw = localStorage.getItem('amsed_cms_database_v3');
+            if (raw) {
+              const cms = JSON.parse(raw);
+              const hasTodayArticle = (cms.articles || []).some(a => (a.createdAt || a.created_at || '').startsWith(today));
+              if (!hasTodayArticle) needsPublish = true;
+            }
+          } catch (e) {}
+        }
+
+        if (needsPublish) {
+          localStorage.setItem('amsed_last_auto_publish', today);
+          const { autoGenerateAndPublish } = await import("../services/autoPublisher");
           await autoGenerateAndPublish();
         }
-      }catch(e){console.error(e)}
+      } catch (e) {
+        console.error('Autonomous publish check notice:', e);
+      }
     };
-    run();
-    const id=setInterval(run,60*60*1000);
-    return ()=>clearInterval(id);
-  },[]);
+    runAutonomousDaily();
+    const id = setInterval(runAutonomousDaily, 60 * 60 * 1000);
+    return () => clearInterval(id);
+  }, []);
 
   // Sync siteSettings/main in Firestore with official YouTube channel information
   useEffect(() => {
@@ -84,16 +96,15 @@ export default function Home() {
   const whatsappUrl = `https://wa.me/${intlPhone}`;
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800 font-sans selection:bg-emerald-600 selection:text-white" dir="rtl">
+    <div className="min-h-screen flex flex-col moroccan-zellij-bg text-slate-800 font-sans selection:bg-emerald-600 selection:text-white" dir="rtl">
       {/* 1. Header with pure Logo only (no iframe/video inside) */}
       <Header />
 
-      {/* 2. Hero Area: HeroVideo & StatsSection */}
+      {/* 2. Hero Area: HeroVideo */}
       <section className="bg-[#0a4a3a] text-white pt-4 pb-8 border-b border-emerald-900">
         <div className="max-w-[1520px] mx-auto px-2 sm:px-4">
           <div className="max-w-5xl mx-auto flex flex-col gap-4">
             <HeroVideo />
-            <StatsSection />
           </div>
 
           {/* 3. شريط مستجدات الأخبار التربوية - كاروسيل أفقي بمظهر أنيق وطابع مغربي أصيل */}
@@ -105,6 +116,9 @@ export default function Home() {
 
       {/* 4. About Section */}
       <AboutSection />
+
+      {/* 4.5 Stats Section (الأثر الميداني والأرقام - تظهر أسفل نبذة الجمعية) */}
+      {settings.show_stats !== false && <StatsSection />}
 
       {/* 5. Services Section */}
       <Services />

@@ -86,7 +86,30 @@ export default async function handler(req, res) {
       ? createClient(supabaseUrl, supabaseKey) 
       : null;
 
-    let topic_ar = 'طرق تأهيل أطفال التوحد وتنمية مهارات النطق والتواصل';
+const DIVERSE_AUTISM_TOPICS = [
+  'طرق تأهيل أطفال التوحد وتنمية مهارات النطق والتواصل',
+  'العلامات المبكرة لطيف التوحد عند الرضع من 6 أشهر إلى سنتين',
+  'تمارين منزلية عملية لتطوير التواصل البصري والتفاعل الاجتماعي',
+  'التغذية الصحية ودور النظام الغذائي المتوازن في تحسين سلوك طفل التوحد',
+  'أهمية قسم التعليم الأولي المكيف وخطوات الإدماج المدرسي الناجح',
+  'دور مرافق الحياة المدرسية AVS في دعم استقلالية الطفل داخل الفصل',
+  'التكامل الحسي وأنشطة الغرفة الحسية للحد من التوتر وفرط الحركة',
+  'الورشات المهنية والتأهيل الحرفي لليافعين والشباب ذوي الاحتياجات الخاصة',
+  'استراتيجيات التعامل الإيجابي مع نوبات الغضب والاضطراب الحسي في البيت',
+  'أهمية الروتين اليومي والجداول البصرية المصورة PECS لأطفال التوحد',
+  'عظماء غيروا العالم: ألبرت أينشتاين وسيرة العبقرية والتغلب على الصعاب',
+  'عظماء غيروا العالم: قصة نجاح بيل غيتس وكيف حوّل الشغف إلى إمبراطورية',
+  'الأنشطة المائية والسباحة العلاجية وأثرها في الاسترخاء وتناسق الحركة',
+  'التربية الإيجابية والدعم النفسي لأولياء أمور وأمهات أطفال التوحد',
+  'الكشف المبكر عن صعوبات التعلم والنمو اللغوي عند الأطفال بالقنيطرة',
+  'تنمية المهارات الحركية الدقيقة واستخدام ألعاب التركيز والذكاء',
+  'العلاج بالفن التشكيلي والرسم كأداة للتعبير العاطفي وتفريغ الطاقة',
+  'أثر الموسيقى والإيقاعات الهادئة في تحفيز التواصل العصبي للطفل',
+  'التدريب على الاستقلالية اليومية: ارتداء الملابس، النظافة، وتناول الطعام',
+  'المستجدات العلمية والطبية الحديثة في أبحاث طيف التوحد 2026'
+];
+
+    let topic_ar = DIVERSE_AUTISM_TOPICS[0];
     let topicId = null;
 
     if (supabase) {
@@ -95,10 +118,19 @@ export default async function handler(req, res) {
         if (!tError && topics?.length) {
           topic_ar = topics[0].topic || topics[0].title || topic_ar;
           topicId = topics[0].id;
+        } else {
+          // If topics_bank is empty or all used, check recent articles to avoid repeating yesterday's topic
+          const { data: recentArticles } = await supabase.from('articles').select('title_ar').order('id', { ascending: false }).limit(20);
+          const usedTitles = new Set((recentArticles || []).map(a => a.title_ar));
+          const availableTopic = DIVERSE_AUTISM_TOPICS.find(t => !usedTitles.has(t)) || DIVERSE_AUTISM_TOPICS[Math.floor(Math.random() * DIVERSE_AUTISM_TOPICS.length)];
+          topic_ar = availableTopic;
         }
       } catch (err) {
         console.warn('Topics bank query notice:', err);
+        topic_ar = DIVERSE_AUTISM_TOPICS[Math.floor(Math.random() * DIVERSE_AUTISM_TOPICS.length)];
       }
+    } else {
+      topic_ar = DIVERSE_AUTISM_TOPICS[Math.floor(Math.random() * DIVERSE_AUTISM_TOPICS.length)];
     }
 
     let final_title_ar = topic_ar;
