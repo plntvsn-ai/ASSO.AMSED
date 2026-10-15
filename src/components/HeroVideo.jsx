@@ -96,10 +96,11 @@ export default function HeroVideo() {
             <a
               href={`tel:${cleanPhone1}`}
               className="inline-flex items-center gap-2 bg-white text-[#0a4a3a] hover:bg-emerald-50 font-bold px-6 py-2.5 rounded-full shadow-lg transition text-xs sm:text-sm hover:scale-105 border border-emerald-100"
-              title={lang === 'ar' ? 'اتصال بالرقم الرئيسي' : 'Appeler numéro principal'}
+              title={lang === 'ar' ? 'اتصال بالرقم الأول' : 'Appeler numéro 1'}
             >
-              <span>📞 {lang === 'ar' ? 'اتصلوا بنا: ' : lang === 'fr' ? 'Contact: ' : 'Call: '}</span>
-              <span dir="ltr" className="inline-block font-mono tracking-wider font-extrabold" style={{ unicodeBidi: 'isolate' }}>
+              <span className="text-emerald-700">📞</span>
+              <span>{lang === 'ar' ? 'الهاتف 1: ' : lang === 'fr' ? 'Tél 1: ' : 'Phone 1: '}</span>
+              <span dir="ltr" className="inline-block font-mono tracking-wider font-extrabold text-[#0a4a3a]" style={{ unicodeBidi: 'isolate' }}>
                 {phone1}
               </span>
             </a>
@@ -108,11 +109,12 @@ export default function HeroVideo() {
             {phone2 && (
               <a
                 href={`tel:${cleanPhone2}`}
-                className="inline-flex items-center gap-2 bg-emerald-800/90 hover:bg-emerald-700 text-amber-300 font-bold px-6 py-2.5 rounded-full shadow-lg transition text-xs sm:text-sm hover:scale-105 border border-amber-400/40"
-                title={lang === 'ar' ? 'اتصال بالرقم الثاني' : 'Appeler 2ème numéro'}
+                className="inline-flex items-center gap-2 bg-white text-[#0a4a3a] hover:bg-emerald-50 font-bold px-6 py-2.5 rounded-full shadow-lg transition text-xs sm:text-sm hover:scale-105 border border-emerald-100"
+                title={lang === 'ar' ? 'اتصال بالرقم الثاني' : 'Appeler numéro 2'}
               >
-                <span>📱 {lang === 'ar' ? 'هاتف 2: ' : lang === 'fr' ? 'Tél 2: ' : 'Phone 2: '}</span>
-                <span dir="ltr" className="inline-block font-mono tracking-wider font-extrabold" style={{ unicodeBidi: 'isolate' }}>
+                <span className="text-emerald-700">📱</span>
+                <span>{lang === 'ar' ? 'الهاتف 2: ' : lang === 'fr' ? 'Tél 2: ' : 'Phone 2: '}</span>
+                <span dir="ltr" className="inline-block font-mono tracking-wider font-extrabold text-[#0a4a3a]" style={{ unicodeBidi: 'isolate' }}>
                   {phone2}
                 </span>
               </a>
@@ -122,11 +124,12 @@ export default function HeroVideo() {
             {phone3 && (
               <a
                 href={`tel:${cleanPhone3}`}
-                className="inline-flex items-center gap-2 bg-slate-900/90 hover:bg-slate-800 text-white font-bold px-5 py-2.5 rounded-full shadow-lg transition text-xs sm:text-sm hover:scale-105 border border-slate-700"
-                title={lang === 'ar' ? 'اتصال بالرقم الثالث' : 'Appeler 3ème numéro'}
+                className="inline-flex items-center gap-2 bg-white text-[#0a4a3a] hover:bg-emerald-50 font-bold px-6 py-2.5 rounded-full shadow-lg transition text-xs sm:text-sm hover:scale-105 border border-emerald-100"
+                title={lang === 'ar' ? 'اتصال بالرقم الثالث' : 'Appeler numéro 3'}
               >
-                <span>☎️ {lang === 'ar' ? 'هاتف 3: ' : lang === 'fr' ? 'Tél 3: ' : 'Phone 3: '}</span>
-                <span dir="ltr" className="inline-block font-mono tracking-wider font-extrabold" style={{ unicodeBidi: 'isolate' }}>
+                <span className="text-emerald-700">☎️</span>
+                <span>{lang === 'ar' ? 'الهاتف 3: ' : lang === 'fr' ? 'Tél 3: ' : 'Phone 3: '}</span>
+                <span dir="ltr" className="inline-block font-mono tracking-wider font-extrabold text-[#0a4a3a]" style={{ unicodeBidi: 'isolate' }}>
                   {phone3}
                 </span>
               </a>
