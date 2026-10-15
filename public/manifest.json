@@ -1,8 +1,8 @@
 {
-  "name": "جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED",
-  "short_name": "AMSED Admin",
-  "description": "تطبيق إدارة وتحديث موقع جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة",
-  "start_url": "/portal-amsed-secure-x98k21/admin?key=amsed_vault_secure_987654",
+  "name": "جمعية AMSED - المبادرة المغربية للتكافل والتعاون لرعاية الأطفال",
+  "short_name": "جمعية AMSED",
+  "description": "جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED القنيطرة",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "background_color": "#0f172a",

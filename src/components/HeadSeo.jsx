@@ -29,8 +29,11 @@ export default function HeadSeo() {
       setMeta('name', 'keywords', settings.seo_keywords);
 
       setMeta('property', 'og:title', title);
+      setMeta('property', 'og:site_name', 'جمعية AMSED');
+      setMeta('name', 'application-name', 'جمعية AMSED');
+      setMeta('name', 'apple-mobile-web-app-title', 'جمعية AMSED');
       setMeta('property', 'og:description', description);
-      setMeta('property', 'og:image', settings.og_image || '/logo.jpg');
+      setMeta('property', 'og:image', settings.og_image || '/logo-512.png');
       setMeta('property', 'og:type', 'website');
       setMeta('property', 'og:locale', 'ar_MA');
 

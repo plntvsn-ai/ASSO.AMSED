@@ -2,12 +2,22 @@
 <html lang="ar" dir="rtl">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/logo.png" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/logo-512.png" />
+    <link rel="apple-touch-icon" href="/logo-512.png" />
     <link rel="manifest" href="/manifest.json" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#047857" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <!-- Google Site Name & Identity (Prevents Google from showing "Vercel") -->
+    <meta property="og:site_name" content="جمعية AMSED" />
+    <meta name="application-name" content="جمعية AMSED" />
+    <meta name="apple-mobile-web-app-title" content="جمعية AMSED" />
+    <meta name="description" content="جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED القنيطرة. رعاية وتأهيل أطفال التوحد، ترويض طبي، تقويم النطق، وإدماج مدرسي." />
+
     <title>جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED</title>
     <!-- Google Fonts: Cairo & Plus Jakarta Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -16,13 +26,41 @@
     <!-- Google Search Console Verification -->
     <meta name="google-site-verification" content="kjDkzRmJppvcCc_okAdKUPHcr9FoarzwnytGYEEng14" />
 
+    <!-- Google Search Official WebSite Schema for Site Name -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "جمعية AMSED",
+      "alternateName": [
+        "AMSED",
+        "جمعية المبادرة المغربية للتكافل والتعاون",
+        "جمعية المبادرة المغربية للتعاون والتكافل",
+        "Association AMSED"
+      ],
+      "url": "https://asso-amsed.vercel.app/"
+    }
+    </script>
+
     <!-- Organization Schema (NGO) -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@type": "NGO",
-      "name": "AMSED",
-      "url": "https://asso-amsed.vercel.app"
+      "name": "جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED",
+      "alternateName": "جمعية AMSED",
+      "url": "https://asso-amsed.vercel.app/",
+      "logo": "https://asso-amsed.vercel.app/logo-512.png",
+      "image": "https://asso-amsed.vercel.app/logo-512.png",
+      "telephone": "+212-654-240523",
+      "email": "asso.amsed@gmail.com",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM",
+        "addressLocality": "Kenitra",
+        "addressRegion": "Rabat-Salé-Kénitra",
+        "addressCountry": "MA"
+      }
     }
     </script>
 
