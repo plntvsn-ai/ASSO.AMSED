@@ -44,19 +44,15 @@ export default function SettingsPage() {
   const [testLoading, setTestLoading] = useState(false);
 
   // Supabase credentials management
-  const [dbConfigured, setDbConfigured] = useState(false);
+  const [dbConfigured, setDbConfigured] = useState(() => isSupabaseConfigured());
   const [showDbBox, setShowDbBox] = useState(false);
-  const [customSbUrl, setCustomSbUrl] = useState('');
-  const [customSbKey, setCustomSbKey] = useState('');
+  const [customSbUrl, setCustomSbUrl] = useState(() => getSupabaseConfig()?.url || '');
+  const [customSbKey, setCustomSbKey] = useState(() => getSupabaseConfig()?.key || '');
   const [sbCredMsg, setSbCredMsg] = useState('');
 
   useEffect(() => {
-    // 1. Initial config check
-    const isConfig = isSupabaseConfigured();
-    setDbConfigured(isConfig);
-    const cfg = getSupabaseConfig();
-    setCustomSbUrl(cfg.url || '');
-    setCustomSbKey(cfg.key || '');
+    // 1. Initial config sync
+    setDbConfigured(isSupabaseConfigured());
 
     // 2. Load from cache immediately for instant display
     const cached = getLocalSiteSettings();

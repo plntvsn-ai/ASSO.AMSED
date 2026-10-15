@@ -1,7 +1,4 @@
-// AMSED Service Worker - Dynamic Cache Invalidation & Network First
-const CACHE_VERSION = 'amsed-v2-live';
-
-self.addEventListener('install', (event) => {
+self.addEventListener('install', () => {
   self.skipWaiting();
 });
 

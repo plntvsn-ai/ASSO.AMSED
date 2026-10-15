@@ -37,10 +37,13 @@ export async function runBoss() {
     const master = robots.find(r => r.id === 'master');
     if (master && master.enabled !== false) {
       try {
-        const res = await fetch('/api/cron/master', { method: 'POST' });
+        let res = await fetch('/api/cron/master', { method: 'POST' });
+        if (!res.ok) {
+          res = await fetch('/api/autonomous-publish', { method: 'POST' });
+        }
         const resJson = await res.json();
         if (resJson.success) {
-          logs.push(`✅ الماستر أنتج مقال جديد: ${resJson.article || 'بنجاح'}`);
+          logs.push(`✅ الماستر أنتج مقال جديد: ${resJson.article || resJson.published || 'بنجاح'}`);
         } else {
           logs.push(`⚠️ الماستر: ${resJson.error || resJson.skipped || 'لم يُنتج مقالاً'}`);
         }

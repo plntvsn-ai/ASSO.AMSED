@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Sparkles, ArrowLeft, ArrowRight, ShieldCheck, Heart, Award } from 'lucide-react';
+import { Sparkles, ArrowLeft, ArrowRight, ShieldCheck, Award } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { useCms } from '../context/CmsContext';
 
