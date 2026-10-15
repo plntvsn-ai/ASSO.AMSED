@@ -17,7 +17,7 @@ export const DEFAULT_SITE_SETTINGS = {
   association_short_name: 'AMSED',
   site_title: 'جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED',
   association_subtitle: 'لرعاية أطفال التوحد وفي وضعية صعبة • القنيطرة',
-  association_name_style: 'andalusian',
+  association_name_style: 'royal_3d_red_gold',
   address: 'SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM KENITRA',
   address_ar: 'SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM KENITRA',
   city: 'Kenitra',

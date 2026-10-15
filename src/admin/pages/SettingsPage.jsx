@@ -15,6 +15,7 @@ import {
   saveSiteSettingsAsync, 
   getLocalSiteSettings 
 } from '@/services/siteSettingsService';
+import { ASSOCIATION_NAME_STYLES } from '../../data/associationNameStyles';
 
 export default function SettingsPage() {
   const [form, setForm] = useState({
@@ -22,7 +23,7 @@ export default function SettingsPage() {
     association_short_name: 'AMSED',
     site_title: 'جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED',
     association_subtitle: 'لرعاية أطفال التوحد وفي وضعية صعبة • القنيطرة',
-    association_name_style: 'andalusian',
+    association_name_style: 'royal_3d_red_gold',
     address: 'SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM KENITRA',
     city: 'Kenitra',
     email: 'asso.amsed@gmail.com',
@@ -266,33 +267,56 @@ export default function SettingsPage() {
           />
         </div>
 
-        {/* Association Name Font Styles (أنماط كتابة اسم الجمعية) */}
-        <div className="space-y-2 pt-1">
-          <label className="block text-xs font-bold text-slate-700">✨ نمط وخط كتابة اسم الجمعية في أعلى الموقع (الترويسة)</label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-            {[
-              { id: 'andalusian', name: '👑 أندلسي مغربي مذهب', preview: 'تدرج ذهبي ملكي فاخر', cls: 'bg-gradient-to-r from-amber-700 via-amber-600 to-emerald-900 bg-clip-text text-transparent font-black font-serif' },
-              { id: 'kufi', name: '🏛️ كوفي مغربي عريض', preview: 'خط هندسي أصيل ورصين', cls: 'text-emerald-950 font-black tracking-wider' },
-              { id: 'thuluth', name: '📜 ثلث أميري راقي', preview: 'خط تراثي كلاسيكي فخم', cls: 'text-emerald-900 font-black font-serif' },
-              { id: 'diwani', name: '✨ ديواني مزخرف', preview: 'انسيابي بألوان متدرجة', cls: 'bg-gradient-to-r from-emerald-900 via-teal-800 to-amber-700 bg-clip-text text-transparent font-bold' },
-              { id: 'royal_green', name: '🌿 أخضر ملكي مغربي', preview: 'أخضر موحد مع هيبة ملكية', cls: 'text-[#044e3b] font-black' },
-              { id: 'modern_gold', name: '💎 عصري تقني بظلال نحاسية', preview: 'خط عصري وواضح جداً', cls: 'bg-gradient-to-r from-amber-600 via-yellow-600 to-amber-800 bg-clip-text text-transparent font-extrabold' }
-            ].map(st => (
-              <div
-                key={st.id}
-                onClick={() => setForm(prev => ({ ...prev, association_name_style: st.id }))}
-                className={`p-3 rounded-2xl border-2 cursor-pointer transition text-center ${
-                  (form.association_name_style || 'andalusian') === st.id
-                    ? 'border-emerald-600 bg-emerald-50/50 shadow-md ring-2 ring-emerald-500/30'
-                    : 'border-slate-200 hover:border-slate-300 bg-white'
-                }`}
-              >
-                <div className="text-xs font-bold text-slate-800 mb-1">{st.name}</div>
-                <div className={`text-xs ${st.cls} truncate`}>
-                  {form.association_short_name || 'AMSED'} • {st.preview}
+        {/* Association Name Font Styles (أنماط كتابة اسم الجمعية - 18 نمطاً متنوعاً وثلاثي الأبعاد) */}
+        <div className="space-y-3 pt-2">
+          <div className="flex items-center justify-between">
+            <label className="block text-sm font-bold text-slate-800">
+              ✨ نمط وتصميم كتابة اسم الجمعية في واجهة الموقع (18 خياراً ثلاثي الأبعاد وملكي)
+            </label>
+            <span className="text-xs bg-amber-100 text-amber-900 font-bold px-2.5 py-0.5 rounded-full border border-amber-300">
+              {ASSOCIATION_NAME_STYLES.length} نمطاً متاحاً
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[480px] overflow-y-auto p-2.5 border border-slate-200 rounded-2xl bg-slate-50/70">
+            {ASSOCIATION_NAME_STYLES.map(st => {
+              const isSelected = (form.association_name_style || 'royal_3d_red_gold') === st.id;
+              return (
+                <div
+                  key={st.id}
+                  onClick={() => setForm(prev => ({ ...prev, association_name_style: st.id }))}
+                  className={`p-3.5 rounded-2xl border-2 cursor-pointer transition flex flex-col justify-between text-center relative ${
+                    isSelected
+                      ? 'border-emerald-600 bg-white shadow-lg ring-2 ring-emerald-500/30 scale-[1.01]'
+                      : 'border-slate-200 hover:border-slate-300 bg-white hover:bg-slate-50/80 shadow-sm'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                      {st.tag}
+                    </span>
+                    {isSelected && (
+                      <span className="text-[11px] font-black text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-300 flex items-center gap-1">
+                        ✓ محدد
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="text-xs font-bold text-slate-800 mb-2">{st.name}</div>
+
+                  <div 
+                    style={st.heroStyle || {}} 
+                    className="p-2.5 rounded-xl bg-slate-900/90 text-sm font-bold my-1 text-center select-none"
+                  >
+                    {form.association_short_name || 'AMSED'} • المبادرة المغربية
+                  </div>
+
+                  <div className="text-[11px] text-slate-500 mt-2 truncate">
+                    {st.preview}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 

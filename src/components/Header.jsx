@@ -5,15 +5,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useCms } from '../context/CmsContext';
 import { Globe, Menu, X } from 'lucide-react';
 import { getLocalSiteSettings } from '../services/siteSettingsService';
-
-const NAME_STYLES = {
-  andalusian: "font-black font-serif tracking-tight bg-gradient-to-r from-amber-700 via-amber-600 to-emerald-950 bg-clip-text text-transparent drop-shadow-sm",
-  kufi: "font-black text-emerald-950 tracking-wider drop-shadow-sm",
-  thuluth: "font-black text-emerald-900 font-serif tracking-normal leading-snug drop-shadow-sm",
-  diwani: "font-black bg-gradient-to-r from-emerald-950 via-teal-900 to-amber-700 bg-clip-text text-transparent",
-  royal_green: "font-black text-[#044e3b] drop-shadow-[0_1px_2px_rgba(217,119,6,0.25)]",
-  modern_gold: "font-extrabold bg-gradient-to-r from-amber-600 via-yellow-600 to-amber-800 bg-clip-text text-transparent drop-shadow-sm"
-};
+import { getStyleById } from '../data/associationNameStyles';
 
 export default function Header() {
   const { lang, setLanguage, dir, t } = useLanguage();
@@ -79,13 +71,13 @@ export default function Header() {
         {/* Brand: Standalone Clean Logo & Association Title */}
         <Link to="/" className="flex items-center gap-3.5 group">
           <div className="shrink-0 flex items-center justify-center">
-            <Logo size={62} />
+            <Logo size={74} />
           </div>
           <div className="flex flex-col">
             <span className="text-[10px] text-amber-700 font-bold tracking-wide uppercase">
               {siteSettings.top_bar_title || (lang === 'ar' ? 'مصلحة عمومية وطنية ذات أهداف إنسانية وتضامنية' : lang === 'fr' ? "Organisation Nationale d'Intérêt Public" : 'National Public Benefit Organization')}
             </span>
-            <span className={`text-xs sm:text-sm lg:text-base leading-tight group-hover:opacity-90 transition ${NAME_STYLES[siteSettings.association_name_style || 'andalusian'] || NAME_STYLES.andalusian}`}>
+            <span className={`text-xs sm:text-sm lg:text-base leading-tight group-hover:opacity-90 transition ${getStyleById(siteSettings.association_name_style || 'royal_3d_red_gold').headerClass}`}>
               {lang === 'ar' 
                 ? (siteSettings.association_full_name || 'جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة')
                 : lang === 'fr'

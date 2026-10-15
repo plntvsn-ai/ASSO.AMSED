@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Logo from './Logo';
 import { useLanguage } from '../context/LanguageContext';
 import { getLocalSiteSettings } from '../services/siteSettingsService';
+import { getStyleById } from '../data/associationNameStyles';
 
 export default function HeroVideo() {
   const { lang, t } = useLanguage();
@@ -34,13 +35,17 @@ export default function HeroVideo() {
       : 'Mon - Fri: 8:30 AM to 5:00 PM | Sat: 9:00 AM to 1:00 PM'
   );
   const city = lang === 'ar' ? (siteSettings?.city_ar || 'القنيطرة') : (siteSettings?.city || 'Kénitra');
+  const activeStyle = getStyleById(siteSettings?.association_name_style || 'royal_3d_red_gold');
 
   return (
     <div className="text-white pt-2 pb-6 text-center">
       <div className="max-w-4xl mx-auto px-2 sm:px-4 flex flex-col items-center">
         
-        {/* 1. اسم الجمعية في الأعلى */}
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-white tracking-tight leading-tight mb-2">
+        {/* 1. اسم الجمعية في الأعلى بتأثير بارز ثلاثي الأبعاد */}
+        <h1 
+          style={lang === 'ar' ? activeStyle.heroStyle : {}} 
+          className={`text-2xl sm:text-3xl md:text-4xl leading-tight mb-2 select-none ${lang === 'ar' ? activeStyle.heroClass : 'font-black text-white'}`}
+        >
           {lang === 'ar' 
             ? (siteSettings?.association_full_display || siteSettings?.association_full_name || 'جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED')
             : lang === 'fr'
@@ -61,9 +66,9 @@ export default function HeroVideo() {
           📍 {siteSettings?.address || siteSettings?.address_ar || 'SAKNIA 30 LOT EL HIZAM LOTISSEMENT EL HIZAM KENITRA'}
         </div>
 
-        {/* الشعار الرسمي الشفاف - بدون دائرة بيضاء ولا إطار خارجي كطلب المستخدم */}
+        {/* الشعار الرسمي الشفاف الأكبر وبدون أي دائرة سوداء */}
         <div className="mb-6 flex justify-center py-2">
-          <Logo size={120} />
+          <Logo size={170} />
         </div>
 
         {/* 2. الفيديو الخاص بتقديم الجمعية */}
