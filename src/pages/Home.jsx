@@ -96,7 +96,7 @@ export default function Home() {
     })();
   }, []);
 
-  const phoneForCall = settings?.phone || cmsData?.contact?.phone1 || '06 54 24 05 23';
+  const phoneForCall = settings?.phone1 || settings?.phone || cmsData?.contact?.phone1 || '06 54 24 05 23';
   const rawPhone = phoneForCall.replace(/\D/g, '');
   const intlPhone = rawPhone.startsWith('0') ? '212' + rawPhone.substring(1) : (rawPhone || '212654240523');
   const whatsappUrl = `https://wa.me/${intlPhone}`;

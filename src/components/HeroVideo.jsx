@@ -19,8 +19,21 @@ export default function HeroVideo() {
     };
   }, []);
 
-  const phone = siteSettings?.phone1 || siteSettings?.phone || '06 54 24 05 23';
-  const cleanPhone = phone.replace(/\D/g, '');
+  const phone1 = siteSettings?.phone1 || siteSettings?.phone || '06 54 24 05 23';
+  const phone2 = siteSettings?.phone2 || '06 63 78 01 07';
+  const phone3 = siteSettings?.phone3 || '';
+  const cleanPhone1 = phone1.replace(/\D/g, '');
+  const cleanPhone2 = phone2.replace(/\D/g, '');
+  const cleanPhone3 = phone3.replace(/\D/g, '');
+
+  const workingHours = siteSettings?.working_hours || (
+    lang === 'ar' 
+      ? 'الإثنين - الجمعة: 08:30 إلى 17:00 | السبت: 09:00 إلى 13:00' 
+      : lang === 'fr' 
+      ? 'Lun - Ven: 08h30 à 17h00 | Sam: 09h00 à 13h00' 
+      : 'Mon - Fri: 8:30 AM to 5:00 PM | Sat: 9:00 AM to 1:00 PM'
+  );
+  const city = lang === 'ar' ? (siteSettings?.city_ar || 'القنيطرة') : (siteSettings?.city || 'Kénitra');
 
   return (
     <div className="text-white pt-2 pb-6 text-center">
@@ -76,24 +89,57 @@ export default function HeroVideo() {
           </div>
         </div>
 
-        {/* زر اتصال مباشر بلا تبرع */}
-        <div className="mt-2 flex flex-col items-center gap-2">
-          <a
-            href={`tel:${cleanPhone}`}
-            className="inline-flex items-center gap-2 bg-white text-[#0a4a3a] hover:bg-emerald-50 font-bold px-7 py-3 rounded-full shadow-lg transition text-sm hover:scale-105"
-          >
-            <span>📞 {lang === 'ar' ? 'اتصلوا بنا - ' : lang === 'fr' ? 'Contactez-nous - ' : 'Call Us - '}</span>
-            <span dir="ltr" className="inline-block font-mono tracking-wider" style={{ unicodeBidi: 'isolate' }}>
-              {phone}
-            </span>
-          </a>
-          <p className="text-xs text-emerald-200/80">
-            {lang === 'ar' 
-              ? 'يفتح من الإثنين إلى السبت ابتداءً من 9:00 صباحاً - القنيطرة' 
-              : lang === 'fr' 
-              ? 'Ouvert du lundi au samedi dès 09h00 - Kénitra' 
-              : 'Open Monday to Saturday from 9:00 AM - Kenitra'}
-          </p>
+        {/* أزرار الاتصال المباشر وأوقات العمل المحدثة */}
+        <div className="mt-4 flex flex-col items-center gap-3 w-full">
+          <div className="flex flex-wrap items-center justify-center gap-3">
+            {/* الرقم الأول الرئيسي */}
+            <a
+              href={`tel:${cleanPhone1}`}
+              className="inline-flex items-center gap-2 bg-white text-[#0a4a3a] hover:bg-emerald-50 font-bold px-6 py-2.5 rounded-full shadow-lg transition text-xs sm:text-sm hover:scale-105 border border-emerald-100"
+              title={lang === 'ar' ? 'اتصال بالرقم الرئيسي' : 'Appeler numéro principal'}
+            >
+              <span>📞 {lang === 'ar' ? 'اتصلوا بنا: ' : lang === 'fr' ? 'Contact: ' : 'Call: '}</span>
+              <span dir="ltr" className="inline-block font-mono tracking-wider font-extrabold" style={{ unicodeBidi: 'isolate' }}>
+                {phone1}
+              </span>
+            </a>
+
+            {/* الرقم الثاني إذا وُجد */}
+            {phone2 && (
+              <a
+                href={`tel:${cleanPhone2}`}
+                className="inline-flex items-center gap-2 bg-emerald-800/90 hover:bg-emerald-700 text-amber-300 font-bold px-6 py-2.5 rounded-full shadow-lg transition text-xs sm:text-sm hover:scale-105 border border-amber-400/40"
+                title={lang === 'ar' ? 'اتصال بالرقم الثاني' : 'Appeler 2ème numéro'}
+              >
+                <span>📱 {lang === 'ar' ? 'هاتف 2: ' : lang === 'fr' ? 'Tél 2: ' : 'Phone 2: '}</span>
+                <span dir="ltr" className="inline-block font-mono tracking-wider font-extrabold" style={{ unicodeBidi: 'isolate' }}>
+                  {phone2}
+                </span>
+              </a>
+            )}
+
+            {/* الرقم الثالث إذا وُجد */}
+            {phone3 && (
+              <a
+                href={`tel:${cleanPhone3}`}
+                className="inline-flex items-center gap-2 bg-slate-900/90 hover:bg-slate-800 text-white font-bold px-5 py-2.5 rounded-full shadow-lg transition text-xs sm:text-sm hover:scale-105 border border-slate-700"
+                title={lang === 'ar' ? 'اتصال بالرقم الثالث' : 'Appeler 3ème numéro'}
+              >
+                <span>☎️ {lang === 'ar' ? 'هاتف 3: ' : lang === 'fr' ? 'Tél 3: ' : 'Phone 3: '}</span>
+                <span dir="ltr" className="inline-block font-mono tracking-wider font-extrabold" style={{ unicodeBidi: 'isolate' }}>
+                  {phone3}
+                </span>
+              </a>
+            )}
+          </div>
+
+          {/* أوقات وساعات العمل المحدثة من الإعدادات */}
+          <div className="flex items-center gap-2 text-xs text-emerald-100 bg-emerald-950/60 px-4 py-1.5 rounded-full border border-emerald-700/60 shadow-sm max-w-full text-center">
+            <span>⏰</span>
+            <span>{workingHours}</span>
+            <span>•</span>
+            <span className="text-amber-300 font-semibold">{city}</span>
+          </div>
         </div>
 
       </div>
