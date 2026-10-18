@@ -10,12 +10,15 @@ import {
 } from 'lucide-react';
 import { getTopicMatchedImage } from '../services/topicImageService';
 
+import { AutismScreeningModal } from '../components/AutismScreeningModal';
+
 export const ArticlesPage = () => {
   const { cmsData } = useCms();
   const { lang, dir, getLocalized } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [rssArticles, setRssArticles] = useState([]);
+  const [screeningOpen, setScreeningOpen] = useState(false);
 
   useEffect(() => {
     fetch('/api/news')
@@ -150,6 +153,37 @@ export const ArticlesPage = () => {
               })}
             </div>
           </div>
+
+          {/* Interactive Screening Callout Banner */}
+          <div className="bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 rounded-3xl p-6 sm:p-8 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl border border-emerald-700/40 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+            <div className="space-y-2 text-center md:text-start relative z-10">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-400/20 text-amber-300 text-xs font-bold border border-amber-400/30">
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                <span>{lang === 'ar' ? 'خدمة توجيهية مجانية للأسر' : lang === 'fr' ? 'Service d\'orientation gratuit' : 'Free Guidance Service'}</span>
+              </div>
+              <h2 className="text-xl sm:text-2xl font-black text-white">
+                {lang === 'ar' ? 'هل تلاحظ تصرفات غير مألوفة لدى طفلك؟' : lang === 'fr' ? 'Remarquez-vous des signes chez votre enfant ?' : 'Notice unusual signs in your child?'}
+              </h2>
+              <p className="text-xs sm:text-sm text-emerald-100 max-w-2xl leading-relaxed">
+                {lang === 'ar' 
+                  ? 'أجب على 5 أسئلة استبيانية بسيطة واكتشف المؤشرات الأولية لطيف التوحد مع إمكانية التواصل الفوري مع أخصائيي AMSED بالقنيطرة عبر واتساب.' 
+                  : lang === 'fr' 
+                  ? 'Répondez à 5 questions rapides pour identifier les premiers signes et contactez nos spécialistes à Kénitra via WhatsApp.' 
+                  : 'Answer 5 quick screening questions and connect immediately with AMSED Kenitra specialists on WhatsApp.'}
+              </p>
+            </div>
+            <button
+              onClick={() => setScreeningOpen(true)}
+              className="bg-amber-400 hover:bg-amber-500 text-slate-950 font-black px-6 py-3.5 rounded-2xl shadow-lg hover:shadow-xl transition cursor-pointer text-xs sm:text-sm shrink-0 flex items-center gap-2 group relative z-10"
+            >
+              <span>{lang === 'ar' ? 'بدء استبيان المؤشرات (5 أسئلة)' : lang === 'fr' ? 'Lancer le test (5 questions)' : 'Start Screening (5 Questions)'}</span>
+              <span className="group-hover:translate-x-1 transition">←</span>
+            </button>
+          </div>
+
+          {/* Autism Screening Modal */}
+          <AutismScreeningModal isOpen={screeningOpen} onClose={() => setScreeningOpen(false)} />
 
           {/* Articles Grid */}
           {filtered.length === 0 ? (

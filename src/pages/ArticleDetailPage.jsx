@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useCms } from '../context/CmsContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -6,10 +6,12 @@ import { Navbar } from '../components/Navbar';
 import { Footer } from '../components/Footer';
 import { 
   Calendar, User, Tag, ArrowRight, Share2, 
-  MessageCircle, Clock, ArrowLeft 
+  MessageCircle, Clock, ArrowLeft, Sparkles, BookOpen 
 } from 'lucide-react';
 import { FacebookIcon } from '../components/SocialIcons';
 import { ArticleSchema } from '../components/seo/ArticleSchema';
+import { ArticleAudioPlayer } from '../components/ArticleAudioPlayer';
+import { SocialCardGenerator } from '../components/SocialCardGenerator';
 
 export const ArticleDetailPage = () => {
   const { id } = useParams();
@@ -19,6 +21,19 @@ export const ArticleDetailPage = () => {
 
   const article = (cmsData.articles || []).find(a => a.id === id || a.slug === id || String(a.id) === String(id));
   const otherArticles = (cmsData.articles || []).filter(a => a.id !== id && a.published !== false).slice(0, 3);
+
+  const [scrollProgress, setScrollProgress] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+      if (totalHeight > 0) {
+        setScrollProgress((window.scrollY / totalHeight) * 100);
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   if (!article) {
     return (
@@ -48,6 +63,14 @@ export const ArticleDetailPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col moroccan-zellij-bg font-sans text-slate-800" dir={dir}>
+      {/* 1. Reading Progress Bar */}
+      <div className="fixed top-0 left-0 right-0 h-1.5 bg-slate-200 z-50">
+        <div
+          className="h-full bg-gradient-to-r from-emerald-600 via-amber-400 to-emerald-700 transition-all duration-150"
+          style={{ width: `${scrollProgress}%` }}
+        />
+      </div>
+
       <Navbar />
 
       <main className="flex-1 py-10">
@@ -110,6 +133,13 @@ export const ArticleDetailPage = () => {
             </div>
           </div>
 
+          {/* 2. Smart Audio Player */}
+          <ArticleAudioPlayer 
+            text={getLocalized(article, 'content') || article.content} 
+            title={getLocalized(article, 'title')} 
+            lang={lang} 
+          />
+
           {/* Featured Image */}
           {(() => {
             const displayImg = (article.image && !article.image.includes('photo-1503676260728'))
@@ -133,6 +163,35 @@ export const ArticleDetailPage = () => {
               dangerouslySetInnerHTML={{ __html: getLocalized(article, 'content') || article.content }}
             />
           </article>
+
+          {/* 3. WhatsApp Community CTA Banner */}
+          <div className="bg-gradient-to-r from-emerald-800 to-teal-800 rounded-3xl p-6 sm:p-8 text-white shadow-lg flex flex-col sm:flex-row items-center justify-between gap-5 border border-emerald-700" dir="rtl">
+            <div className="space-y-1.5 text-center sm:text-right">
+              <span className="text-xs font-black uppercase tracking-wider text-amber-300">
+                {lang === 'ar' ? 'مجتمع أولياء الأمور والمربين' : 'Communauté Parents & Éducateurs'}
+              </span>
+              <h3 className="text-lg sm:text-xl font-black">
+                {lang === 'ar' ? 'انضم لقناة واتساب جمعية AMSED القنيطرة 📲' : 'Rejoignez la chaîne WhatsApp AMSED 📲'}
+              </h3>
+              <p className="text-xs sm:text-sm text-emerald-100">
+                {lang === 'ar' 
+                  ? 'توصل بجديد النصائح والتمارين اليومية لأطفال التوحد مباشرة على هاتفك مجاناً.'
+                  : 'Recevez nos conseils et exercices quotidiens directement sur votre mobile.'}
+              </p>
+            </div>
+            <a
+              href={`https://wa.me/212654240523?text=${encodeURIComponent('السلام عليكم، أرغب في الانضمام لقناة ومجتمع واتساب جمعية AMSED للتوصل بجديد نصائح ودلائل التوحد.')}`}
+              target="_blank"
+              rel="noreferrer"
+              className="bg-amber-400 hover:bg-amber-500 text-slate-950 font-black px-6 py-3.5 rounded-2xl transition shadow-md shrink-0 text-xs sm:text-sm cursor-pointer flex items-center gap-2"
+            >
+              <MessageCircle className="w-4 h-4" />
+              <span>{lang === 'ar' ? 'انضم الآن مجاناً' : 'Rejoindre'}</span>
+            </a>
+          </div>
+
+          {/* 4. Social Media Infographic Card Generator */}
+          <SocialCardGenerator article={article} lang={lang} />
 
           {/* Other Articles Recommendation */}
           {otherArticles.length > 0 && (

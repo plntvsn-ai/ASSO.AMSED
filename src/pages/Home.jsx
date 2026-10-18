@@ -18,13 +18,15 @@ import { useLanguage } from '../context/LanguageContext';
 import { autoGenerateAndPublish } from '../services/autoPublisher';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Phone, MessageCircle } from 'lucide-react';
+import { Phone, MessageCircle, Sparkles } from 'lucide-react';
 import { getLocalSiteSettings } from '../services/siteSettingsService';
+import { AutismScreeningModal } from '../components/AutismScreeningModal';
 
 export default function Home() {
   const { lang, dir } = useLanguage();
   const { cmsData, triggerAutoPublish } = useCms();
   const [settings, setSettings] = useState(() => getLocalSiteSettings());
+  const [screeningOpen, setScreeningOpen] = useState(false);
 
   useEffect(() => {
     const reload = () => setSettings(getLocalSiteSettings());
@@ -128,6 +130,41 @@ export default function Home() {
 
       {/* 5. Services Section */}
       <Services />
+
+      {/* 5.5 Interactive Autism Screening Banner (المستشار التوجيهي السريع للأولياء) */}
+      <section className="py-8 px-4 max-w-6xl mx-auto w-full" dir={dir}>
+        <div className="bg-gradient-to-r from-emerald-950 via-teal-900 to-slate-900 border-2 border-amber-400/50 rounded-3xl p-6 sm:p-10 text-white shadow-2xl flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-80 h-80 bg-amber-400/10 rounded-full blur-3xl pointer-events-none"></div>
+          
+          <div className="space-y-3 text-center md:text-right relative z-10">
+            <div className="inline-flex items-center gap-2 bg-amber-400 text-slate-950 px-3.5 py-1.5 rounded-full text-xs font-black shadow-sm">
+              <Sparkles className="w-4 h-4" />
+              <span>{lang === 'ar' ? 'خدمة تفاعلية استرشادية مجانية للأسر' : lang === 'fr' ? 'Évaluation d\'orientation gratuite' : 'Free Guidance Screening Tool'}</span>
+            </div>
+            <h3 className="text-xl sm:text-3xl font-black text-white leading-tight">
+              {lang === 'ar' ? 'هل تلاحظ علامات تثير انتباهك في سلوك أو تواصل طفلك؟' : lang === 'fr' ? 'Remarquez-vous des signes inhabituels chez votre enfant ?' : 'Noticing developmental differences in your child?'}
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
+              {lang === 'ar' 
+                ? 'اجتز استبيان المؤشرات النمائية المبكرة المكون من 5 أسئلة استرشادية، واكتشف توجيهات أخصائيي جمعية AMSED القنيطرة في أقل من دقيقتين.'
+                : lang === 'fr'
+                ? 'Passez notre test d\'orientation précoce en 5 questions simples et obtenez les recommandations de nos spécialistes.'
+                : 'Take our 5-question early signs questionnaire and receive immediate guidance from AMSED Kenitra professionals.'}
+            </p>
+          </div>
+
+          <button
+            onClick={() => setScreeningOpen(true)}
+            className="bg-amber-400 hover:bg-amber-500 text-slate-950 font-black px-7 py-4 rounded-2xl shadow-xl hover:shadow-2xl transition cursor-pointer text-sm sm:text-base shrink-0 flex items-center gap-2 group relative z-10"
+          >
+            <span>{lang === 'ar' ? 'بدء الاستبيان التوجيهي (5 أسئلة)' : lang === 'fr' ? 'Commencer le questionnaire' : 'Start Screening (5 Questions)'}</span>
+            <span className="group-hover:translate-x-1 transition">←</span>
+          </button>
+        </div>
+      </section>
+
+      {/* Autism Screening Modal */}
+      <AutismScreeningModal isOpen={screeningOpen} onClose={() => setScreeningOpen(false)} />
 
       {/* 6. Articles & Announcements */}
       <Announcements />
