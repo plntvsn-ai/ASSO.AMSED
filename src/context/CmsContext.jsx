@@ -12,6 +12,7 @@ import { getTopicMatchedImage } from '../services/topicImageService';
 import { db, isFirebaseConfigured, initFirebase, getStoredFirebaseConfig } from '../services/firebase';
 import { doc, getDoc, setDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 import { deduplicateArticlesList, superviseAndDeduplicateAllArticles } from '../services/aiManagerSupervisor';
+import { initAutonomousPublisher } from '../services/bossOrchestrator';
 
 const CmsContext = createContext();
 
@@ -19,6 +20,11 @@ export const CmsProvider = ({ children }) => {
   const [cmsData, setCmsData] = useState(() => loadLocalCmsData());
   const [firebaseStatus, setFirebaseStatus] = useState(isFirebaseConfigured);
   const [loading, setLoading] = useState(false);
+
+  // Initialize Autonomous Boss Orchestrator Engine for background publishing and supervision
+  useEffect(() => {
+    initAutonomousPublisher();
+  }, []);
 
   // Real-time synchronization with Firestore (Online & Offline cache)
   useEffect(() => {

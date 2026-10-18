@@ -162,6 +162,51 @@ export async function superviseAndDeduplicateAllArticles() {
       }
     }
 
+    // 4. فحص الروبوتات وإصلاح أي عطب أو توقف تلقائياً (Self-Healing)
+    let healedRobots = 0;
+    try {
+      const rawRobots = localStorage.getItem('amsed_robot_settings');
+      if (rawRobots) {
+        let robotsList = JSON.parse(rawRobots);
+        if (Array.isArray(robotsList)) {
+          let changed = false;
+          robotsList = robotsList.map(r => {
+            if (r.status === 'error') {
+              healedRobots++;
+              changed = true;
+              return { ...r, status: 'idle', last_error: null, auto_healed_at: new Date().toISOString() };
+            }
+            return r;
+          });
+          if (changed) {
+            localStorage.setItem('amsed_robot_settings', JSON.stringify(robotsList));
+          }
+        }
+      }
+
+      if (db) {
+        const { collection, getDocs, updateDoc, doc: fsDoc } = await import('firebase/firestore');
+        const rSnap = await getDocs(collection(db, 'robot_settings'));
+        if (rSnap && !rSnap.empty) {
+          for (const rd of rSnap.docs) {
+            const rData = rd.data();
+            if (rData.status === 'error') {
+              healedRobots++;
+              await updateDoc(fsDoc(db, 'robot_settings', rd.id), {
+                status: 'idle',
+                last_error: null,
+                auto_healed_at: new Date().toISOString()
+              }).catch(() => {});
+            }
+          }
+        }
+      }
+    } catch (rErr) {
+      console.warn('Robot self-healing notice:', rErr);
+    }
+
+    report.healedRobots = healedRobots;
+
     console.log('👔 تقرير مراقبة المدير العام:', report);
     return report;
   } catch (err) {

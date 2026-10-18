@@ -26,6 +26,7 @@ function getSupabaseClient() {
 }
 
 const DEFAULT_ROBOTS = [
+  { id: 'boss', name: 'boss', name_ar: '👔 المدير العام - الشاف', enabled: true, cron_time: '*/30 * * * *', prompt_template: 'مراقبة كافة الروبوتات وتنسيق النشر التلقائي ومنع التكرار', status: 'idle', is_boss: true },
   { id: 'master', name: 'master', name_ar: '🤖 الماستر - القائد', enabled: true, cron_time: '09:00', prompt_template: 'كتب مقال عن التوحد عند الأطفال لجمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED القنيطرة', status: 'idle' },
   { id: 'seo_linking', name: 'seo_linking', name_ar: '🔗 روبوت الربط الداخلي', enabled: true, cron_time: '09:00', prompt_template: 'اختار 3 مقالات مشابهة للربط', status: 'idle' },
   { id: 'seo_schema', name: 'seo_schema', name_ar: '⭐ روبوت النجوم والـ Schema', enabled: true, cron_time: '09:00', prompt_template: 'schema with aggregateRating 4.8', status: 'idle' },

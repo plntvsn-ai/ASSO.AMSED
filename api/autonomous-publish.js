@@ -15,22 +15,51 @@ function makeFallbackArticle(topic) {
   return {
     ar: `# ${topic}
 
-في جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED نستقبل يومياً أمهات وأطفال...
+في جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED بالقنيطرة، نضع بين أيدي الأسر الكريمة هذا الدليل العملي والتوجيهي لمواكبة أطفالنا خطوة بخطوة وتوفير بيئة تربوية وتأهيلية محفزة.
 
-## ما هو ${topic}؟
-يشكل موضوع ${topic} ركيزة أساسية في فهم عالم الطفولة وتطوير قدرات أطفال التوحد وفي وضعية صعبة.
+## أهمية هذا الموضوع في مسار الطفل
+إن الرعاية المتخصصة والتفهم العميق لخصائص كل طفل يشكلان الركيزة الأساسية للنجاح. يؤكد فريقنا في جمعية AMSED بالقنيطرة أن كل خطوة تأهيلية يتم تطبيقها داخل الأسرة بالتنسيق مع الأخصائيين تسهم بشكل مباشر في تعزيز ثقة الطفل بنفسه وتطوير استقلاليته اليومية.
 
-## كيف نساعد في جمعية AMSED؟
-لدينا خدمات تأهيلية متكاملة: ترويض طبي، تقويم النطق، دعم مدرسي AVS، ورشات مهنية، مواكبة نفسية وإدماج مدرسي.
+## خمس خطوات عملية وتطبيقية للأسر
+1. **التهيئة البصرية والروتين اليومي المنظم:** استخدام الجداول المصورة (PECS) يساعد الطفل على توقع الأحداث القادمة وتنظيم وقته بسلاسة.
+2. **التشجيع الإيجابي الفوري:** مكافأة كل إنجاز، مهما بدا بسيطاً، بالثناء والابتسامة والتعزيز المعنوي.
+3. **تبسيط المهام وتقسيمها:** تجزئة كل نشاط إلى خطوات صغيرة متتالية يسهل على الطفل إتقان المهارة والشعور بالإنجاز.
+4. **مراعاة الحساسيات الحسية:** توفير بيئة هادئة ومريحة تحد من المثيرات المربكة.
+5. **التواصل والتنسيق الدائم مع المركز:** توحيد لغة التعامل بين المركز التأهيلي والبيت لضمان استمرارية المكتسبات.
 
-## نصائح عملية اليوم
-1. الروتين اليومي المنظم يوفر الأمان للطفل
-2. التشجيع الإيجابي والصبر في التدريب
-3. تواصلوا مع جمعية AMSED: 06 54 24 05 23
+> 💙 "الطفل التوحدي يحمل طاقات فريدة تنتظر الاحتضان والتوجيه السليم. بتضافر جهودنا جميعاً، نصنع غداً أفضل لأطفالنا الأبطال."
 
--- جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED`,
-    fr: `Guide pratique AMSED: ${topic} - Prise en charge des enfants autistes. Contact: 06 54 24 05 23`,
-    en: `AMSED Practical Guide: ${topic} - Caring for children with autism. Contact: 06 54 24 05 23`
+📍 للمزيد من المعلومات، تواصلوا مع جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED بالقنيطرة: 06 54 24 05 23`,
+    fr: `# Guide AMSED: ${topic}
+
+Au sein de l'Association Marocaine pour l'Initiative de Coopération et de Solidarité Sociale pour la Protection de l'Enfance en Situation Difficile (AMSED) à Kénitra, nous accompagnons les enfants autistes et leurs familles à travers un encadrement médico-éducatif spécialisé.
+
+## Importance de l'accompagnement précoce
+L'enfant avec un trouble du spectre de l'autisme a besoin d'un cadre structuré, sécurisant et bienveillant pour s'épanouir. Une approche personnalisée respectant son rythme favorise grandement sa communication avec son environnement familial et scolaire.
+
+## 5 Recommandations pratiques de l'équipe AMSED :
+1. **Routine visuelle et structuration du temps :** Utilisation de pictogrammes PECS pour anticiper les étapes de la journée.
+2. **Renforcement positif immédiat :** Encourager et valoriser chaque progrès pour consolider la confiance en soi.
+3. **Décomposition des tâches :** Découper les activités en petites étapes faciles à assimiler.
+4. **Aménagement d'un espace sensoriel apaisant :** Limiter les bruits forts et les stimuli visuels excessifs.
+5. **Collaboration étroite entre la famille et les éducateurs :** Assurer la continuité des apprentissages à la maison.
+
+📍 Contact et orientation AMSED Kénitra : 06 54 24 05 23`,
+    en: `# AMSED Guide: ${topic}
+
+At AMSED Association in Kenitra, Morocco, we are dedicated to supporting children with autism and special needs through specialized therapeutic, educational, and vocational programs.
+
+## Key Insights for Parents and Educators
+Children on the autism spectrum thrive in supportive, predictable, and sensory-friendly environments. Early intervention tailored to the child's individual pace builds confidence and independence.
+
+## 5 Practical Strategies from AMSED:
+1. **Visual Schedules & Routines:** Visual cues reduce anxiety and offer clear structure throughout the day.
+2. **Positive Reinforcement:** Immediate praise and encouragement motivate children to develop positive behaviors.
+3. **Breaking Down Tasks:** Simplifying daily activities into manageable steps fosters a sense of accomplishment.
+4. **Sensory Regulation:** Creating quiet spaces helps prevent sensory overload and emotional stress.
+5. **Center & Family Alignment:** Close collaboration between therapists and parents reinforces lasting skills.
+
+📍 For guidance and support, contact AMSED Kenitra: +212 654-240523`
   };
 }
 
@@ -220,8 +249,8 @@ const DIVERSE_AUTISM_TOPICS = [
       final_title_en = await translateFree(topic_ar, 'en');
       const fallback = makeFallbackArticle(topic_ar);
       final_content_ar = fallback.ar;
-      final_content_fr = `Guide AMSED: ${final_title_fr} - Contact 06 54 24 05 23`;
-      final_content_en = `AMSED Guide: ${final_title_en} - Contact 06 54 24 05 23`;
+      final_content_fr = fallback.fr;
+      final_content_en = fallback.en;
     }
 
     if (supabase) {
@@ -245,6 +274,21 @@ const DIVERSE_AUTISM_TOPICS = [
         } catch (updateErr) {
           console.warn('Topic status update notice:', updateErr);
         }
+      }
+
+      // Update robot settings & boss logs in Supabase
+      try {
+        const nowIso = new Date().toISOString();
+        await supabase.from('robot_settings').upsert([
+          { id: 'master', status: 'idle', last_run: nowIso },
+          { id: 'boss', status: 'idle', last_run: nowIso }
+        ]);
+        await supabase.from('boss_logs').insert({
+          logs: [`✅ نشر آلي عبر الكرون: ${final_title_ar}`],
+          created_at: nowIso
+        });
+      } catch (logErr) {
+        console.warn('Supabase robot settings log notice:', logErr);
       }
     }
 

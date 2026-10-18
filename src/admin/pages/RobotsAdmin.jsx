@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 
 const DEFAULT_ROBOTS = [
+  { id: 'boss', name: 'boss', name_ar: '👔 المدير العام - الشاف', enabled: true, cron_time: '*/30 * * * *', prompt_template: 'مراقبة كافة الروبوتات وتنسيق النشر التلقائي ومنع التكرار', status: 'idle', is_boss: true },
   { id: 'master', name: 'master', name_ar: '🤖 الماستر - القائد', enabled: true, cron_time: '09:00', prompt_template: 'كتب مقال عن التوحد عند الأطفال لجمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED القنيطرة', status: 'idle' },
   { id: 'seo_linking', name: 'seo_linking', name_ar: '🔗 روبوت الربط الداخلي', enabled: true, cron_time: '09:00', prompt_template: 'اختار 3 مقالات مشابهة للربط', status: 'idle' },
   { id: 'seo_schema', name: 'seo_schema', name_ar: '⭐ روبوت النجوم والـ Schema', enabled: true, cron_time: '09:00', prompt_template: 'schema with aggregateRating 4.8', status: 'idle' },
@@ -86,18 +87,33 @@ export const RobotsAdmin = () => {
     setTestingId(id);
     setMessage(null);
     try {
-      let res = await fetch('/api/cron/master', { method: 'POST' });
-      if (!res.ok) {
-        res = await fetch('/api/autonomous-publish', { method: 'POST' });
-      }
-      const data = await res.json();
-      if (data.success || data.published) {
-        const title = data.article || data.published || data.ar || 'مقال متخصص جديد';
-        setMessage({ text: `🚀 تم تشغيل الروبوت بنجاح! المقال المُنشأ: ${title}`, type: 'success' });
-        fetchRobots();
+      const { runBossOrchestrator, runMasterRobot, runImageAltRobot, runSeoSchemaRobot, runSeoLinkingRobot } = await import('../../services/bossOrchestrator');
+      let resultTitle = '';
+
+      if (id === 'boss') {
+        const res = await runBossOrchestrator({ forcePublish: true });
+        resultTitle = res.published || 'جولة فحص وتنسيق متكاملة';
+      } else if (id === 'master') {
+        const res = await runMasterRobot({ force: true });
+        resultTitle = res.topic || res.published;
+      } else if (id === 'image_alt') {
+        await runImageAltRobot();
+        resultTitle = 'تحديث نصوص ALT لجميع الصور';
+      } else if (id === 'seo_schema') {
+        await runSeoSchemaRobot();
+        resultTitle = 'إضافة بيانات السكيما الطبية وتقييم 4.8';
+      } else if (id === 'seo_linking') {
+        await runSeoLinkingRobot();
+        resultTitle = 'ربط المقالات شبكياً';
       } else {
-        setMessage({ text: `فشل التشغيل: ${data.error || data.skipped || 'خطأ غير معروف'}`, type: 'error' });
+        let res = await fetch('/api/cron/master', { method: 'POST' });
+        if (!res.ok) res = await fetch('/api/autonomous-publish', { method: 'POST' });
+        const data = await res.json();
+        resultTitle = data.article || data.published || data.ar || 'مقال متخصص جديد';
       }
+
+      setMessage({ text: `🚀 تم تشغيل الروبوت بنجاح! النتيجة: ${resultTitle}`, type: 'success' });
+      fetchRobots();
     } catch (e) {
       setMessage({ text: `فشل التشغيل: ${e.message}`, type: 'error' });
     } finally {

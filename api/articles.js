@@ -82,37 +82,56 @@ export default async function handler(req, res) {
       }
       body = body || {};
 
-      const articlePayload = {
+      const fullArticlePayload = {
         title_ar: body.title_ar || body.title || "مقال جديد",
         title_fr: body.title_fr || "",
         title_en: body.title_en || "",
         content_ar: body.content_ar || body.content || "",
         content_fr: body.content_fr || "",
         content_en: body.content_en || "",
+        excerpt: body.excerpt || body.excerpt_ar || "",
+        image: body.image || body.imageUrl || "",
+        imageUrl: body.imageUrl || body.image || "",
+        image_alt: body.image_alt || "",
+        category: body.category || "التوحد والطفولة",
+        author: body.author || "أطر جمعية AMSED",
+        slug: body.slug || `article-${Date.now()}`,
         status: body.status || "published"
       };
 
       if (supabase) {
-        const { data, error } = await supabase
+        let { data, error } = await supabase
           .from("articles")
-          .insert(articlePayload)
+          .insert(fullArticlePayload)
           .select();
 
         if (error) {
-          console.warn("Supabase insert article notice:", error);
+          // If schema has fewer columns, fallback to core columns
+          const basicPayload = {
+            title_ar: fullArticlePayload.title_ar,
+            title_fr: fullArticlePayload.title_fr,
+            title_en: fullArticlePayload.title_en,
+            content_ar: fullArticlePayload.content_ar,
+            content_fr: fullArticlePayload.content_fr,
+            content_en: fullArticlePayload.content_en,
+            status: fullArticlePayload.status
+          };
+          const fallbackRes = await supabase.from("articles").insert(basicPayload).select().catch(() => ({}));
+          data = fallbackRes?.data;
+          error = fallbackRes?.error;
         }
 
         return res.status(200).json({
           success: true,
           synced: !error,
-          article: data?.[0] || articlePayload
+          article: data?.[0] || fullArticlePayload
         });
       }
 
       return res.status(200).json({
         success: true,
         synced: false,
-        article: articlePayload
+        article: fullArticlePayload
       });
     } catch (err) {
       return res.status(500).json({ success: false, error: err.message });

@@ -142,15 +142,16 @@ export default function SettingsPage() {
       try {
         const { autoGenerateAndPublish } = await import("../../services/autoPublisher");
         const resClient = await autoGenerateAndPublish();
-        if (resClient?.success) {
-          alert(`✅ تم النشر بنجاح من خزان المواضيع: ${resClient.topic || 'مقال جديد'}`);
+        if (resClient?.success || typeof resClient === 'string') {
+          const publishedTitle = resClient?.topic || resClient?.published || resClient || 'مقال جديد';
+          alert(`✅ تم النشر بنجاح من خزان المواضيع: ${publishedTitle}`);
           window.location.reload();
           return;
         }
       } catch (clientErr) {
         console.error("Client auto publish fallback notice:", clientErr);
       }
-      alert('❌ تعذر الاتصال بالخادم، يرجى المحاولة بعد قليل.');
+      alert('❌ تعذر إكمال النشر، يرجى المحاولة بعد قليل.');
     } finally {
       setTestLoading(false);
     }

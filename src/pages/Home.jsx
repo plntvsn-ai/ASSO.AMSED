@@ -67,8 +67,8 @@ export default function Home() {
 
         if (needsPublish) {
           localStorage.setItem('amsed_last_auto_publish', today);
-          const { autoGenerateAndPublish } = await import("../services/autoPublisher");
-          await autoGenerateAndPublish();
+          const { runBossOrchestrator } = await import("../services/bossOrchestrator");
+          await runBossOrchestrator({ forcePublish: false });
         }
       } catch (e) {
         console.error('Autonomous publish check notice:', e);

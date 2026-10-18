@@ -9,6 +9,16 @@ import {
   normalizeTitleForComparison, 
   extractCoreTopicTag 
 } from '../../services/aiManagerSupervisor.js';
+import { 
+  runBossOrchestrator, 
+  runMasterRobot, 
+  runImageAltRobot, 
+  runSeoSchemaRobot, 
+  runSeoLinkingRobot, 
+  runSeoRefresherRobot, 
+  runFacebookRobot, 
+  runInstagramRobot 
+} from '../../services/bossOrchestrator.js';
 
 const MASTER_AUTISM_PROMPT = `أنت كاتب طبي متخصص في التوحد عند الأطفال لجمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED - متخصصة في التوحد والطفولة - القنيطرة - المغرب.
 
@@ -283,7 +293,7 @@ export default function RobotSettings() {
   const upd = (id, f, v) => setRobots(p => p.map(r => r.id === id ? { ...r, [f]: v } : r));
   const updConfig = (id, k, v) => setRobots(p => p.map(r => r.id === id ? { ...r, config: { ...(r.config || {}), [k]: v } } : r));
 
-  // REAL RUN ROBOT LOGIC (TASK 2 & 3)
+  // REAL RUN ROBOT LOGIC USING UNIFIED BOSS ORCHESTRATOR
   const runRobot = async (robotId, isSubTask = false) => {
     setRobots(prev => prev.map(r => r.id === robotId ? { ...r, status: 'running', last_error: null } : r));
     if (db) {
@@ -291,256 +301,34 @@ export default function RobotSettings() {
     }
 
     try {
-      if (robotId === 'master') {
-        const masterRobot = robots.find(r => r.id === 'master');
-        const prompt = masterRobot?.prompt_template || MASTER_AUTISM_PROMPT;
-        const geminiKey = (import.meta.env.VITE_GEMINI_KEY || import.meta.env.VITE_GEMINI_API_KEY || "").trim();
-
-        // 1. Get topics bank from local storage or defaults to avoid topic repetition
-        let topicsList = [];
-        let existingArticles = [];
-        try {
-          const rawCms = localStorage.getItem('amsed_cms_database_v3');
-          if (rawCms) {
-            const parsed = JSON.parse(rawCms);
-            if (Array.isArray(parsed.autoTopics) && parsed.autoTopics.length > 0) {
-              topicsList = parsed.autoTopics;
-            }
-            if (Array.isArray(parsed.articles)) {
-              existingArticles = parsed.articles;
-            }
-          }
-        } catch (e) {}
-
-        if (topicsList.length === 0) {
-          topicsList = getDefaultTopicsObjects();
-        }
-
-        const existingTags = new Set(existingArticles.map(a => extractCoreTopicTag(a.title || a.title_ar || '')));
-        const existingNorms = new Set(existingArticles.map(a => normalizeTitleForComparison(a.title || a.title_ar || '')));
-
-        // Pick unused topic whose core concept hasn't been published yet
-        let chosenTopic = topicsList.find(t => {
-          if (t.used) return false;
-          const tag = extractCoreTopicTag(t.title);
-          const norm = normalizeTitleForComparison(t.title);
-          return !existingTags.has(tag) && !existingNorms.has(norm);
-        });
-
-        if (!chosenTopic) {
-          // If all used or matched, reset used flag and find an unpublished core concept
-          topicsList.forEach(t => { t.used = false; });
-          chosenTopic = topicsList.find(t => {
-            const tag = extractCoreTopicTag(t.title);
-            return !existingTags.has(tag);
-          }) || topicsList[0];
-        }
-
-        const todayTopic = chosenTopic ? chosenTopic.title : "طرق تأهيل أطفال التوحد وتنمية مهارات النطق والتواصل";
-        if (chosenTopic) {
-          chosenTopic.used = true;
-          chosenTopic.usedAt = new Date().toISOString();
-        }
-
-        // Persist updated topics bank
-        try {
-          const rawCms = localStorage.getItem('amsed_cms_database_v3');
-          const cmsObj = rawCms ? JSON.parse(rawCms) : {};
-          cmsObj.autoTopics = topicsList;
-          localStorage.setItem('amsed_cms_database_v3', JSON.stringify(cmsObj));
-        } catch (e) {}
-
-        const fullPromptWithTopic = prompt + "\n\nموضوع اليوم المطلوب: " + todayTopic + "\nإذا كان الموضوع عن عظماء التوحد اكتب سيرة كاملة مفصلة كما هو مطلوب في النقطة 9. أرجع JSON فقط وبدون علامات كود: {title, slug, excerpt, content, keywords, category}";
-
-        let article = null;
-
-        if (geminiKey) {
-          try {
-            console.log('Calling Gemini API for Autism Article:', todayTopic);
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                contents: [{
-                  parts: [{ text: fullPromptWithTopic }]
-                }]
-              })
-            });
-
-            if (response.ok) {
-              const data = await response.json();
-              let text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
-              text = text.replace(/```json|```/g, '').trim();
-              article = JSON.parse(text);
-            } else {
-              console.warn('Gemini response not ok:', response.status);
-            }
-          } catch (apiErr) {
-            console.warn('Direct Gemini call error, using rich original autism generator fallback:', apiErr);
-          }
-        }
-
-        // Rich fallback tailored to today's topic
-        if (!article || !article.title) {
-          article = {
-            title: todayTopic,
-            slug: `amsed-article-${Date.now()}`,
-            excerpt: `مقال تطبيقي وتوجيهي من جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED القنيطرة حول ${todayTopic}.`,
-            category: "التوحد والطفولة",
-            keywords: ["توحد", "أطفال التوحد", "جمعية AMSED", "القنيطرة", todayTopic],
-            content: `<div style='text-align:center; background:#f0f9ff; padding:10px; border-radius:10px; margin-bottom:15px;'><strong>🧩 جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED | دعم أطفال التوحد - القنيطرة</strong></div>
-
-<h2>🧩 ${todayTopic}</h2>
-<p>في جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED بالقنيطرة، نضع بين أيدي الأسر الكريمة هذا الدليل العملي والتوجيهي حول <strong>"${todayTopic}"</strong> لمواكبة أطفالنا خطوة بخطوة وتوفير بيئة تربوية وتأهيلية محفزة تساعدهم على التطور والتواصل الفعال.</p>
-
-<h3>أهمية هذا الموضوع في مسار الطفل</h3>
-<p>إن الرعاية المتخصصة والتفهم العميق لخصائص كل طفل يشكلان الركيزة الأساسية للنجاح. يؤكد فريقنا في جمعية AMSED بالقنيطرة أن كل خطوة تأهيلية يتم تطبيقها داخل الأسرة بالتنسيق مع الأخصائيين تسهم بشكل مباشر في تعزيز ثقة الطفل بنفسه وتطوير استقلاليته اليومية.</p>
-
-<h3>إرشادات وخطوات عملية للأسر</h3>
-<ol>
-  <li><strong>الملاحظة الدقيقة والتسجيل:</strong> متابعة استجابات الطفل وتدوين المحفزات الإيجابية التي تثير انتباهه.</li>
-  <li><strong>التكرار والصبر:</strong> التعلم لدى الطفل التوحدي يحتاج وقتاً وتكراراً بنبرة هادئة ومحبة.</li>
-  <li><strong>استخدام الوسائل البصرية:</strong> دعم التعليم بالصور والرموز الملموسة لتسهيل الفهم والاستيعاب.</li>
-  <li><strong>التعزيز الإيجابي:</strong> مكافأة السلوكيات الإيجابية والتشجيع المستمر لبناء الثقة.</li>
-</ol>
-
-<blockquote style='background:#f0fdf4; border-right:4px solid #16a34a; padding:12px; margin:15px 0; border-radius:8px;'>
-  💙 من جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED القنيطرة: يد التكافل ممدودة دائماً لكل الأسر لمواكبة أطفالنا الأبطال نحو غد مشرق.
-</blockquote>
-
-<p style='text-align:center; font-weight:bold; margin-top:20px; color:#1e3a8a;'>
-  📍 للمزيد تواصلوا مع جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED القنيطرة.
-</p>`
-          };
-        }
-
-        const matchedImg = getTopicMatchedImage(article.title || todayTopic, article.keywords);
-
-        // Complete article object
-        const articleDoc = {
-          id: `article-${Date.now()}`,
-          title: article.title,
-          title_ar: article.title,
-          slug: article.slug || `amsed-autism-article-${Date.now()}`,
-          excerpt: article.excerpt || `مقال طبي وتأهيلي متخصص من جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED القنيطرة.`,
-          content: article.content,
-          content_ar: article.content,
-          keywords: article.keywords || ['توحد', 'أطفال التوحد', 'جمعية AMSED', 'القنيطرة'],
-          category: article.category || 'التوحد والطفولة',
-          status: 'published',
-          published: true,
-          autoGenerated: true,
-          auto_published: true,
-          createdAt: new Date().toISOString().split('T')[0],
-          created_at: new Date().toISOString(),
-          author: 'أطر جمعية AMSED',
-          source: 'original_amsed_ai',
-          is_ai: true,
-          image: matchedImg.url,
-          imageUrl: matchedImg.url,
-          image_alt: matchedImg.alt,
-          views: 0
-        };
-
-        // 1. SAVE TO CMS DATABASE (LOCALSTORAGE) IMMEDIATELY
-        try {
-          const stored = localStorage.getItem('amsed_cms_database_v3');
-          const cmsObj = stored ? JSON.parse(stored) : { articles: [] };
-          if (!Array.isArray(cmsObj.articles)) cmsObj.articles = [];
-          cmsObj.articles.unshift(articleDoc);
-          cmsObj.articles = deduplicateArticlesList(cmsObj.articles);
-          localStorage.setItem('amsed_cms_database_v3', JSON.stringify(cmsObj));
-          window.dispatchEvent(new Event('cms-update'));
-          window.dispatchEvent(new Event('storage'));
-        } catch (e) {
-          console.warn('LocalStorage save error:', e);
-        }
-
-        // 2. SAVE TO FIRESTORE
-        if (db) {
-          try {
-            await addDoc(collection(db, 'articles'), articleDoc);
-            console.log('✅ Real Autism Article published to Firestore articles collection:', articleDoc.title);
-          } catch (fsErr) {
-            console.warn('Firestore article save error:', fsErr);
-          }
-        }
-
-        // 3. SAVE TO SUPABASE (via /api/articles)
-        try {
-          await fetch('/api/articles', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(articleDoc)
-          });
-        } catch (sbErr) {
-          console.warn('Supabase article API save error:', sbErr);
-        }
+      if (robotId === 'boss') {
+        await runBossNow();
+        return;
+      } else if (robotId === 'master') {
+        await runMasterRobot({ force: true });
       } else if (robotId === 'image_alt') {
-        if (db) {
-          const snap = await getDocs(query(collection(db, 'articles'), limit(5)));
-          for (const d of snap.docs) {
-            await updateDoc(doc(db, 'articles', d.id), {
-              image_alt: 'جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED لدعم أطفال التوحد القنيطرة - نشاط تأهيلي أصلي'
-            }).catch(() => {});
-          }
-        }
+        await runImageAltRobot();
       } else if (robotId === 'seo_schema') {
-        if (db) {
-          const snap = await getDocs(query(collection(db, 'articles'), limit(5)));
-          for (const d of snap.docs) {
-            await updateDoc(doc(db, 'articles', d.id), {
-              rating: 4.8,
-              review_count: 24,
-              schema_type: 'MedicalArticle',
-              medical_specialty: 'Autism Pediatric Care'
-            }).catch(() => {});
-          }
-        }
+        await runSeoSchemaRobot();
       } else if (robotId === 'seo_linking') {
-        if (db) {
-          const snap = await getDocs(query(collection(db, 'articles'), limit(4)));
-          const list = snap.docs.map(d => ({ id: d.id, title: d.data().title }));
-          for (const d of snap.docs) {
-            const related = list.filter(x => x.id !== d.id).slice(0, 2);
-            await updateDoc(doc(db, 'articles', d.id), {
-              related_internal_links: related
-            }).catch(() => {});
-          }
-        }
+        await runSeoLinkingRobot();
       } else if (robotId === 'seo_refresher') {
-        if (db) {
-          const snap = await getDocs(query(collection(db, 'articles'), limit(1)));
-          if (!snap.empty) {
-            await updateDoc(doc(db, 'articles', snap.docs[0].id), {
-              updated_at: new Date().toISOString(),
-              refreshed_year: 2026,
-              medical_reviewed: true
-            }).catch(() => {});
-          }
-        }
+        await runSeoRefresherRobot();
+      } else if (robotId === 'facebook') {
+        await runFacebookRobot();
+      } else if (robotId === 'instagram') {
+        await runInstagramRobot();
       }
 
-      const successTime = new Date().toLocaleTimeString('ar-MA');
-      const resultMessage = `نجح ✅ - ${successTime}`;
-
-      if (db) {
-        await updateDoc(doc(db, 'robot_settings', robotId), {
-          status: 'idle',
-          last_run: new Date().toISOString(),
-          last_result: resultMessage
-        }).catch(() => {});
+      // Reload fresh robots list from LocalStorage / Firestore
+      const saved = localStorage.getItem('amsed_robot_settings');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) setRobots(parsed);
       }
-
-      setRobots(prev => prev.map(r => r.id === robotId ? {
-        ...r,
-        status: 'idle',
-        last_run: new Date().toISOString(),
-        last_result: resultMessage
-      } : r));
 
       if (!isSubTask) {
-        alert(`✅ ${robotId} خدم بنجاح وتم نشر المحتوى مباشرة!`);
+        alert(`✅ ${robotId} خدم بنجاح وتم تحديث ونشر المحتوى مباشرة!`);
       }
     } catch (e) {
       console.error('Run robot error:', e);
@@ -563,54 +351,25 @@ export default function RobotSettings() {
 
   const runBossNow = async () => {
     setRobots(prev => prev.map(r => r.id === 'boss' ? { ...r, status: 'running' } : r));
-    if (db) {
-      await updateDoc(doc(db, 'robot_settings', 'boss'), { status: 'running' }).catch(() => {});
-    }
-
-    let logs = [];
-    logs.push(`👔 انطلاق جولة المدير العام AMSED المتخصصة في التوحد - ${new Date().toLocaleTimeString('ar-MA')}`);
-
-    // AI Agent Watchdog: تصفية وتدقيق المقالات ومنع أي تكرار
     try {
-      const cleanRep = await superviseAndDeduplicateAllArticles();
-      logs.push(`🛡️ رقابة المدير العام: فحص ${cleanRep.scannedCount} مقال، حذف ${cleanRep.duplicatesRemoved} مكرر، المتبقي النظيف ${cleanRep.uniqueRemaining}`);
-    } catch (supErr) {
-      console.warn('Supervisor check notice:', supErr);
-    }
+      await runBossOrchestrator({ forcePublish: true });
+      
+      // Reload logs
+      const savedLogs = JSON.parse(localStorage.getItem('amsed_boss_logs') || '[]');
+      setBossLogs(savedLogs);
 
-    const activeRobots = robots.filter(r => r.enabled && r.id !== 'boss');
-
-    for (let robot of activeRobots) {
-      logs.push(`⚡ تشغيل ${robot.name_ar}...`);
-      await runRobot(robot.id, true);
-      await new Promise(res => setTimeout(res, 1500));
-    }
-
-    logs.push(`✅ تمت مراقبة ونشر مقالات التوحد الحصرية لـ AMSED بنجاح!`);
-    const newLog = { logs, created_at: new Date().toISOString() };
-
-    if (db) {
-      try {
-        await addDoc(collection(db, 'boss_logs'), newLog);
-        await updateDoc(doc(db, 'robot_settings', 'boss'), {
-          last_run: new Date().toISOString(),
-          status: 'idle',
-          last_result: `نجح ✅ - أتم فحص وتنسيق ${activeRobots.length} روبوتات`
-        });
-      } catch (e) {
-        console.warn('Boss save error:', e);
+      // Reload robots state
+      const saved = localStorage.getItem('amsed_robot_settings');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) setRobots(parsed);
       }
+
+      alert('👔 المدير العام دار الجولة ونفذ مراقبة ونشر مقالات التوحد بنجاح!');
+    } catch (e) {
+      console.error('runBossNow error:', e);
+      alert(`❌ خطأ في جولة المدير: ${e.message}`);
     }
-
-    setBossLogs([newLog, ...bossLogs]);
-    setRobots(prev => prev.map(r => r.id === 'boss' ? {
-      ...r,
-      last_run: new Date().toISOString(),
-      status: 'idle',
-      last_result: `نجح ✅ - ${new Date().toLocaleTimeString('ar-MA')}`
-    } : r));
-
-    alert('👔 المدير العام دار الجولة ونفذ نشر مقالات التوحد بنجاح!');
   };
 
   const boss = robots.find(r => r.id === 'boss');
@@ -680,12 +439,8 @@ export default function RobotSettings() {
 
         <button
           onClick={async () => {
-            if (confirm('واش بغيتي تشغل كاع الروبوتات دابا واحد مورا واحد؟')) {
-              for (let r of robots.filter(x => x.enabled && x.id !== 'boss')) {
-                await runRobot(r.id, true);
-                await new Promise(res => setTimeout(res, 2000));
-              }
-              alert('✅ تم تشغيل وربط جميع الروبوتات بنجاح!');
+            if (confirm('واش بغيتي تشغل كاع الروبوتات دابا واحد مورا واحد تحت إشراف المدير؟')) {
+              await runBossNow();
             }
           }}
           className="bg-black hover:bg-neutral-800 text-white px-6 py-3 rounded-xl font-bold transition shadow cursor-pointer text-sm flex items-center gap-2"
