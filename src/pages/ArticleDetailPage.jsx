@@ -12,6 +12,8 @@ import { FacebookIcon } from '../components/SocialIcons';
 import { ArticleSchema } from '../components/seo/ArticleSchema';
 import { ArticleAudioPlayer } from '../components/ArticleAudioPlayer';
 import { SocialCardGenerator } from '../components/SocialCardGenerator';
+import { defaultCmsData } from '../services/cmsService';
+import { getTopicMatchedImage } from '../services/topicImageService';
 
 export const ArticleDetailPage = () => {
   const { id } = useParams();
@@ -19,8 +21,19 @@ export const ArticleDetailPage = () => {
   const { cmsData } = useCms();
   const { lang, dir, getLocalized } = useLanguage();
 
-  const article = (cmsData.articles || []).find(a => a.id === id || a.slug === id || String(a.id) === String(id));
-  const otherArticles = (cmsData.articles || []).filter(a => a.id !== id && a.published !== false).slice(0, 3);
+  const allArticlesPool = [
+    ...(cmsData.articles || []),
+    ...defaultCmsData.articles
+  ];
+  const article = allArticlesPool.find(a => 
+    a.id === id || 
+    a.slug === id || 
+    String(a.id) === String(id) || 
+    (a.slug && a.slug.toLowerCase() === String(id).toLowerCase())
+  );
+  const otherArticles = allArticlesPool
+    .filter(a => a.id !== article?.id && a.slug !== article?.slug && a.published !== false)
+    .slice(0, 3);
 
   const [scrollProgress, setScrollProgress] = useState(0);
 
@@ -142,15 +155,20 @@ export const ArticleDetailPage = () => {
 
           {/* Featured Image */}
           {(() => {
-            const displayImg = (article.image && !article.image.includes('photo-1503676260728'))
+            const matchedImg = getTopicMatchedImage(article.title || article.title_ar || '', article.keywords);
+            const displayImg = (article.image && !article.image.includes('photo-1503676260728-1c00da094a0b'))
               ? article.image
-              : 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&w=1000&q=80';
+              : matchedImg.url;
             return (
               <div className="rounded-3xl overflow-hidden shadow-xl border border-slate-200 bg-slate-100 max-h-[500px]">
                 <img
                   src={displayImg}
                   alt={getLocalized(article, 'title')}
                   className="w-full h-full object-cover max-h-[500px]"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = matchedImg.url;
+                  }}
                 />
               </div>
             );
@@ -159,7 +177,7 @@ export const ArticleDetailPage = () => {
           {/* Content Body */}
           <article className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-sm">
             <div 
-              className="prose prose-slate max-w-none text-slate-800 text-sm sm:text-base leading-loose whitespace-pre-line"
+              className="prose prose-slate max-w-none text-slate-800 text-sm sm:text-base leading-relaxed"
               dangerouslySetInnerHTML={{ __html: getLocalized(article, 'content') || article.content }}
             />
           </article>

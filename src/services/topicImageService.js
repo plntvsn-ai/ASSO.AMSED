@@ -142,6 +142,16 @@ export const TOPIC_IMAGE_LIBRARY = {
   ]
 };
 
+function getDeterministicIndex(str = '', length = 1) {
+  if (!length || length <= 1) return 0;
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash) + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return Math.abs(hash) % length;
+}
+
 /**
  * اختيار ذكي لصورة مطابقة لموضوع المقال
  * @param {string} topicOrTitle عنوان أو موضوع المقال
@@ -157,7 +167,7 @@ export function getTopicMatchedImage(topicOrTitle = '', keywords = []) {
       combined.includes('غيتس') || combined.includes('ماسك') || combined.includes('تيسلا') || 
       combined.includes('موزارت') || combined.includes('تاجيري') || combined.includes('genius')) {
     const list = TOPIC_IMAGE_LIBRARY.einstein_genius;
-    return list[Math.floor(Math.random() * list.length)];
+    return list[getDeterministicIndex(topicOrTitle, list.length)];
   }
 
   // 2. السباحة العلاجية والأنشطة المائية
@@ -169,60 +179,60 @@ export function getTopicMatchedImage(topicOrTitle = '', keywords = []) {
   if (combined.includes('نطق') || combined.includes('تخاطب') || combined.includes('تواصل') || 
       combined.includes('كلام') || combined.includes('صوت') || combined.includes('speech') || combined.includes('pecs')) {
     const list = TOPIC_IMAGE_LIBRARY.speech_communication;
-    return list[Math.floor(Math.random() * list.length)];
+    return list[getDeterministicIndex(topicOrTitle, list.length)];
   }
 
   // 4. الدعم النفسي للأسرة والآباء والأمهات
   if (combined.includes('أسرة') || combined.includes('أم') || combined.includes('أب') || combined.includes('والد') || 
       combined.includes('نفسي') || combined.includes('دعم')) {
     const list = TOPIC_IMAGE_LIBRARY.family_support;
-    return list[Math.floor(Math.random() * list.length)];
+    return list[getDeterministicIndex(topicOrTitle, list.length)];
   }
 
   // 5. التغذية، الأكل، الحمية، الطعام، الهضم، الفيتامين
   if (combined.includes('تغذي') || combined.includes('أكل') || combined.includes('حمية') || 
       combined.includes('طعام') || combined.includes('غلوتين') || combined.includes('nutrition') || combined.includes('diet')) {
     const list = TOPIC_IMAGE_LIBRARY.nutrition_health;
-    return list[Math.floor(Math.random() * list.length)];
+    return list[getDeterministicIndex(topicOrTitle, list.length)];
   }
 
   // 6. المدرسة، الإدماج المدرسي، القسم المكيف، الروض، AVS
   if (combined.includes('مدرس') || combined.includes('دمج') || combined.includes('قسم') || 
       combined.includes('روض') || combined.includes('تعليم أولي') || combined.includes('avs') || combined.includes('school')) {
     const list = TOPIC_IMAGE_LIBRARY.school_inclusion;
-    return list[Math.floor(Math.random() * list.length)];
+    return list[getDeterministicIndex(topicOrTitle, list.length)];
   }
 
   // 7. الورشات المهنية، الحلويات، الخياطة، الرسم، الطبخ
   if (combined.includes('ورش') || combined.includes('حرف') || combined.includes('حلويات') || 
       combined.includes('طبخ') || combined.includes('خياط') || combined.includes('رسم') || combined.includes('فن') || combined.includes('مهارات')) {
     const list = TOPIC_IMAGE_LIBRARY.vocational_skills;
-    return list[Math.floor(Math.random() * list.length)];
+    return list[getDeterministicIndex(topicOrTitle, list.length)];
   }
 
   // 8. الحواس، حركي، sensory، ترويض، توازن
   if (combined.includes('حس') || combined.includes('حرك') || combined.includes('ترويض') || 
       combined.includes('توازن') || combined.includes('غرفة') || combined.includes('sensory') || combined.includes('motor')) {
     const list = TOPIC_IMAGE_LIBRARY.sensory_motor;
-    return list[Math.floor(Math.random() * list.length)];
+    return list[getDeterministicIndex(topicOrTitle, list.length)];
   }
 
   // 9. مستجدات علمية، أبحاث، دواء، مخ، علاج
   if (combined.includes('علم') || combined.includes('بحث') || combined.includes('علاج') || 
       combined.includes('دماغ') || combined.includes('طبي') || combined.includes('medical')) {
     const list = TOPIC_IMAGE_LIBRARY.medical_science;
-    return list[Math.floor(Math.random() * list.length)];
+    return list[getDeterministicIndex(topicOrTitle, list.length)];
   }
 
   // 10. علامات التوحد، الرضع، التشخيص، الصغار
   if (combined.includes('علامات') || combined.includes('رضع') || combined.includes('مبكر') || 
       combined.includes('تشخيص') || combined.includes('طفل') || combined.includes('infant') || combined.includes('signs')) {
     const list = TOPIC_IMAGE_LIBRARY.early_signs_infants;
-    return list[Math.floor(Math.random() * list.length)];
+    return list[getDeterministicIndex(topicOrTitle, list.length)];
   }
 
   // الافتراضي الأكثر ملاءمة لأطفال التوحد (صورة طفل حقيقية سعيدة)
-  return TOPIC_IMAGE_LIBRARY.early_signs_infants[0];
+  return TOPIC_IMAGE_LIBRARY.early_signs_infants[getDeterministicIndex(topicOrTitle, TOPIC_IMAGE_LIBRARY.early_signs_infants.length)];
 }
 
 export default getTopicMatchedImage;

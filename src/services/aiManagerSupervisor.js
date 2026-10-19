@@ -65,20 +65,19 @@ export function deduplicateArticlesList(articles = []) {
 
   const seenIds = new Set();
   const seenNormTitles = new Set();
-  const seenCoreTopics = new Set();
   const uniqueArticles = [];
 
   for (const art of articles) {
     if (!art) continue;
 
     // 1. تحقق من المعرف ID
-    const artId = String(art.id || art._id || '');
+    const artId = String(art.id || art._id || '').trim();
     if (artId && seenIds.has(artId)) {
       continue; // مكرر بنفس المعرف
     }
 
     // 2. تحقق من العنوان بعد التطبيع
-    const title = art.title || art.title_ar || art.titleAr || '';
+    const title = (art.title || art.title_ar || art.titleAr || '').trim();
     const normTitle = normalizeTitleForComparison(title);
     if (!normTitle) continue;
 
@@ -86,16 +85,9 @@ export function deduplicateArticlesList(articles = []) {
       continue; // مكرر بنفس العنوان الحرفي
     }
 
-    // 3. تحقق من الموضوع الجوهري (منع كتابة مقالين عن نفس الفكرة)
-    const coreTopic = extractCoreTopicTag(title);
-    if (coreTopic && seenCoreTopics.has(coreTopic)) {
-      continue; // مكرر لنفس الموضوع الجوهري
-    }
-
     // مقال فريد وغير مكرر
     if (artId) seenIds.add(artId);
     seenNormTitles.add(normTitle);
-    if (coreTopic) seenCoreTopics.add(coreTopic);
     uniqueArticles.push(art);
   }
 
