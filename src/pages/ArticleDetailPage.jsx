@@ -71,7 +71,33 @@ export const ArticleDetailPage = () => {
     );
   }
 
-  const shareUrl = window.location.href;
+  const formatArticleDate = (val, fallback = '2026-10-19') => {
+    if (!val) return fallback;
+    if (typeof val === 'string') return val.split('T')[0];
+    if (typeof val === 'number') return new Date(val).toISOString().split('T')[0];
+    if (typeof val === 'object') {
+      if (typeof val.toDate === 'function') {
+        try { return val.toDate().toISOString().split('T')[0]; } catch {}
+      }
+      if (val.seconds) {
+        try { return new Date(val.seconds * 1000).toISOString().split('T')[0]; } catch {}
+      }
+    }
+    return fallback;
+  };
+
+  const articleAuthor = (() => {
+    const a = article?.author;
+    const str = typeof a === 'string' ? a : (a?.name || '');
+    if (!str || str.includes('روبوت')) {
+      return lang === 'ar' ? 'أطر جمعية AMSED' : lang === 'fr' ? 'Équipe AMSED' : 'AMSED Team';
+    }
+    return str;
+  })();
+
+  const articleDate = formatArticleDate(article.createdAt || article.created_at);
+
+  const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
   const whatsappShareUrl = `https://wa.me/?text=${encodeURIComponent(article.title + ' ' + shareUrl)}`;
 
   return (
@@ -115,17 +141,17 @@ export const ArticleDetailPage = () => {
               <div className="flex items-center gap-4">
                 <span className="flex items-center gap-1.5">
                   <Calendar className="w-4 h-4 text-slate-400" />
-                  <span>{lang === 'ar' ? `تاريخ النشر: ${article.createdAt}` : lang === 'fr' ? `Publié le: ${article.createdAt}` : `Published on: ${article.createdAt}`}</span>
+                  <span>{lang === 'ar' ? `تاريخ النشر: ${articleDate}` : lang === 'fr' ? `Publié le: ${articleDate}` : `Published on: ${articleDate}`}</span>
                 </span>
                 <span>•</span>
                 <span className="flex items-center gap-1.5">
                   <User className="w-4 h-4 text-slate-400" />
                   <span>
                     {lang === 'ar' 
-                      ? `بقلم: ${article.author && !article.author.includes('روبوت') ? article.author : 'أطر جمعية AMSED'}` 
+                      ? `بقلم: ${articleAuthor}` 
                       : lang === 'fr' 
-                      ? `Par: ${article.author && !article.author.includes('روبوت') ? article.author : 'Équipe AMSED'}` 
-                      : `By: ${article.author && !article.author.includes('روبوت') ? article.author : 'AMSED Team'}`}
+                      ? `Par: ${articleAuthor}` 
+                      : `By: ${articleAuthor}`}
                   </span>
                 </span>
               </div>
@@ -237,7 +263,7 @@ export const ArticleDetailPage = () => {
                         {other.title}
                       </h4>
                     </div>
-                    <span className="text-[11px] text-slate-400 font-mono mt-3 block">{other.createdAt}</span>
+                    <span className="text-[11px] text-slate-400 font-mono mt-3 block">{formatArticleDate(other.createdAt || other.created_at)}</span>
                   </Link>
                 ))}
               </div>

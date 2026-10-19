@@ -9,19 +9,31 @@ import {
   Shield, ExternalLink 
 } from 'lucide-react';
 import { FacebookIcon, YoutubeIcon } from './SocialIcons';
+import { getLocalSiteSettings } from '../services/siteSettingsService';
 
 export const Footer = ({ siteSettings: propSettings }) => {
   const { lang, t } = useLanguage();
   const { data } = useData();
   const { cmsData } = useCms();
-  const [siteSettings, setSiteSettings] = useState(() => propSettings || getLocalSiteSettings());
+  const [siteSettings, setSiteSettings] = useState(() => {
+    if (propSettings) return propSettings;
+    try {
+      return getLocalSiteSettings();
+    } catch {
+      return {};
+    }
+  });
 
   useEffect(() => {
     if (propSettings) {
       setSiteSettings(propSettings);
       return;
     }
-    const reload = () => setSiteSettings(getLocalSiteSettings());
+    const reload = () => {
+      try {
+        setSiteSettings(getLocalSiteSettings());
+      } catch {}
+    };
     window.addEventListener('storage', reload);
     window.addEventListener('cms-update', reload);
     return () => {

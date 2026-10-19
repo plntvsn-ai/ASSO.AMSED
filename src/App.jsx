@@ -48,18 +48,53 @@ import { ServicesAdmin } from './admin/pages/ServicesAdmin';
 import { SettingsPage } from './admin/pages/SettingsPage';
 import HeadSeo from './components/HeadSeo';
 
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  componentDidCatch(error, errorInfo) {
+    console.warn("ErrorBoundary caught error:", error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex items-center justify-center p-6 text-center moroccan-zellij-bg" dir="rtl">
+          <div className="bg-white/95 backdrop-blur-md p-8 rounded-3xl border border-slate-200 shadow-xl max-w-md w-full space-y-4">
+            <h2 className="text-xl font-bold text-slate-800">حدث خطأ أثناء تحميل الصفحة</h2>
+            <p className="text-sm text-slate-600">نعتذر عن هذا العطب الطارئ. يرجى إعادة تحديث الصفحة أو العودة للرئيسية.</p>
+            <div className="flex items-center justify-center gap-3 pt-2">
+              <button onClick={() => window.location.reload()} className="px-5 py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-xs font-bold transition cursor-pointer">
+                إعادة التحديث
+              </button>
+              <a href="/" className="px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">
+                الصفحة الرئيسية
+              </a>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 export default function App() {
   useEffect(() => {
     console.log("ADMIN URL: /am-ctrl-9k2l8x-2026-secure-panel-77");
   }, []);
 
   return (
-    <BrowserRouter>
-      <HeadSeo />
-      <LanguageProvider>
-        <DataProvider>
-          <CmsProvider>
-            <Routes>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <HeadSeo />
+        <LanguageProvider>
+          <DataProvider>
+            <CmsProvider>
+              <Routes>
               {/* Public Website Routes */}
               <Route path="/" element={<Home />} />
               <Route path="/settings" element={<SettingsPage />} />
@@ -120,5 +155,6 @@ export default function App() {
         </DataProvider>
       </LanguageProvider>
     </BrowserRouter>
-  );
+  </ErrorBoundary>
+);
 }

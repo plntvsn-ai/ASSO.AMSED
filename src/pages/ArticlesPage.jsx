@@ -37,17 +37,41 @@ export const ArticlesPage = () => {
       .catch(err => console.warn('RSS news fetch notice:', err));
   }, []);
 
-  const pool = (cmsData.articles && cmsData.articles.length > 0)
+  const formatArticleDate = (val, fallback = '2026-10-19') => {
+    if (!val) return fallback;
+    if (typeof val === 'string') return val.split('T')[0];
+    if (typeof val === 'number') return new Date(val).toISOString().split('T')[0];
+    if (typeof val === 'object') {
+      if (typeof val.toDate === 'function') {
+        try { return val.toDate().toISOString().split('T')[0]; } catch {}
+      }
+      if (val.seconds) {
+        try { return new Date(val.seconds * 1000).toISOString().split('T')[0]; } catch {}
+      }
+    }
+    return fallback;
+  };
+
+  const formatArticleAuthor = (authorVal, currentLang) => {
+    if (!authorVal) return currentLang === 'ar' ? 'أطر جمعية AMSED' : currentLang === 'fr' ? 'Équipe AMSED' : 'AMSED Team';
+    const str = typeof authorVal === 'string' ? authorVal : (authorVal.name || '');
+    if (!str || str.includes('روبوت')) {
+      return currentLang === 'ar' ? 'أطر جمعية AMSED' : currentLang === 'fr' ? 'Équipe AMSED' : 'AMSED Team';
+    }
+    return str;
+  };
+
+  const pool = (Array.isArray(cmsData?.articles) && cmsData.articles.length > 0)
     ? cmsData.articles
     : defaultCmsData.articles;
-  const localArticles = pool.filter(a => a.published !== false);
+  const localArticles = (pool || []).filter(a => a && a.published !== false);
 
-  const formattedRssArticles = rssArticles.map(item => ({
-    id: item.id,
-    title: item.title,
-    excerpt: item.summary || item.rawTitle || item.title,
-    content: item.summary || item.rawTitle || item.title,
-    createdAt: item.formattedDate || item.pubDate,
+  const formattedRssArticles = (rssArticles || []).map(item => ({
+    id: item.id || 'rss-' + Math.random(),
+    title: item.title || '',
+    excerpt: item.summary || item.rawTitle || item.title || '',
+    content: item.summary || item.rawTitle || item.title || '',
+    createdAt: formatArticleDate(item.formattedDate || item.pubDate),
     author: item.source || 'Google News RSS',
     category: 'أخبار وطنية (RSS)',
     image: item.image,
@@ -288,16 +312,12 @@ export const ArticlesPage = () => {
                         <div className="flex items-center gap-3 text-xs text-slate-400">
                           <span className="flex items-center gap-1">
                             <Calendar className="w-3.5 h-3.5" />
-                            <span>{art.createdAt || art.created_at?.split('T')?.[0]}</span>
+                            <span>{formatArticleDate(art.createdAt || art.created_at)}</span>
                           </span>
                           <span>•</span>
                           <span className="flex items-center gap-1">
                             <User className="w-3.5 h-3.5" />
-                            <span>
-                              {art.author && !art.author.includes('روبوت') 
-                                ? art.author 
-                                : (lang === 'ar' ? 'أطر جمعية AMSED' : lang === 'fr' ? 'Équipe AMSED' : 'AMSED Team')}
-                            </span>
+                            <span>{formatArticleAuthor(art.author, lang)}</span>
                           </span>
                         </div>
 
