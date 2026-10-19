@@ -678,56 +678,98 @@ export const fetchYouTubeInfo = async (youtubeUrl) => {
   };
 };
 
+export const ROBOT_ARTICLES_VAULT_KEY = 'amsed_robot_articles_vault';
+
+export const getPersistedRobotArticles = () => {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(ROBOT_ARTICLES_VAULT_KEY);
+    if (!raw) return [];
+    const list = JSON.parse(raw);
+    return Array.isArray(list) ? list : [];
+  } catch (e) {
+    return [];
+  }
+};
+
+export const savePersistedRobotArticle = (articleDoc) => {
+  if (typeof window === 'undefined' || !articleDoc) return;
+  try {
+    const current = getPersistedRobotArticles();
+    const updated = deduplicateArticlesList([articleDoc, ...current]);
+    localStorage.setItem(ROBOT_ARTICLES_VAULT_KEY, JSON.stringify(updated));
+  } catch (e) {
+    console.warn('Failed to save to robot articles vault:', e);
+  }
+};
+
+export const savePersistedRobotArticles = (articlesList) => {
+  if (typeof window === 'undefined' || !Array.isArray(articlesList)) return;
+  try {
+    const current = getPersistedRobotArticles();
+    const updated = deduplicateArticlesList([...articlesList, ...current]);
+    localStorage.setItem(ROBOT_ARTICLES_VAULT_KEY, JSON.stringify(updated));
+  } catch (e) {
+    console.warn('Failed to batch save to robot articles vault:', e);
+  }
+};
+
 // Local storage storage loader/saver
 export const loadLocalCmsData = () => {
   try {
     const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
+    const vaultArticles = getPersistedRobotArticles();
+
+    let userArticles = [];
+    let parsed = {};
     if (stored) {
-      const parsed = JSON.parse(stored);
-      const userArticles = Array.isArray(parsed.articles) ? parsed.articles : [];
-      const defaultMap = new Map(defaultCmsData.articles.map(a => [a.id, a]));
-      const updatedUserArticles = userArticles.map(a => {
-        const def = defaultMap.get(a.id);
-        if (def && (!a.excerpt || (a.content && a.content.length < 300 && def.content.length > 400))) {
-          return { ...a, ...def };
-        }
-        return a;
-      });
-      const userKeys = new Set(updatedUserArticles.map(a => a.slug || a.id || a.title));
-      const missingDefaults = defaultCmsData.articles.filter(a => !userKeys.has(a.slug) && !userKeys.has(a.id) && !userKeys.has(a.title));
-      const mergedArticles = [...updatedUserArticles, ...missingDefaults];
-      const cleanUniqueArticles = deduplicateArticlesList(mergedArticles);
-      const sanitizedArticles = cleanUniqueArticles.map(a => {
-        let author = a.author || 'أطر جمعية AMSED';
-        if (author.includes('روبوت')) author = 'أطر جمعية AMSED';
-        
-        let img = a.image || a.imageUrl;
-        if (!img || img.includes('542601906990-b4d3fb778b09') || img.includes('picsum.photos') || img.includes('photo-1503676260728')) {
-          img = "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=1000&q=80";
-        }
-        
-        const title = (a.title || '').replace(/الدار البيضاء/g, 'القنيطرة');
-        const excerpt = (a.excerpt || '').replace(/الدار البيضاء/g, 'القنيطرة');
-        const content = (a.content || '').replace(/الدار البيضاء/g, 'القنيطرة');
-
-        return {
-          ...a,
-          title,
-          excerpt,
-          content,
-          author,
-          image: img,
-          imageUrl: img
-        };
-      });
-
-      return { 
-        ...defaultCmsData, 
-        ...parsed,
-        articles: sanitizedArticles,
-        services: (parsed.services && parsed.services.length > 0) ? parsed.services : defaultCmsData.services
-      };
+      parsed = JSON.parse(stored);
+      userArticles = Array.isArray(parsed.articles) ? parsed.articles : [];
     }
+
+    const defaultMap = new Map(defaultCmsData.articles.map(a => [a.id, a]));
+    const updatedUserArticles = userArticles.map(a => {
+      const def = defaultMap.get(a.id);
+      if (def && (!a.excerpt || (a.content && a.content.length < 300 && def.content.length > 400))) {
+        return { ...a, ...def };
+      }
+      return a;
+    });
+
+    // Resilient union: Vault articles (permanent robot articles) + user articles + default baseline articles
+    const mergedArticles = [...vaultArticles, ...updatedUserArticles, ...defaultCmsData.articles];
+    const cleanUniqueArticles = deduplicateArticlesList(mergedArticles);
+    const sanitizedArticles = cleanUniqueArticles.map(a => {
+      let author = a.author || 'أطر جمعية AMSED';
+      if (author.includes('روبوت')) author = 'أطر جمعية AMSED';
+      
+      let img = a.image || a.imageUrl;
+      if (!img || img.includes('542601906990-b4d3fb778b09') || img.includes('picsum.photos') || img.includes('photo-1503676260728')) {
+        img = "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=1000&q=80";
+      }
+      
+      const title = (a.title || '').replace(/الدار البيضاء/g, 'القنيطرة');
+      const excerpt = (a.excerpt || '').replace(/الدار البيضاء/g, 'القنيطرة');
+      const content = (a.content || '').replace(/الدار البيضاء/g, 'القنيطرة');
+
+      return {
+        ...a,
+        title,
+        excerpt,
+        content,
+        author,
+        image: img,
+        imageUrl: img,
+        published: a.published !== false
+      };
+    });
+
+    return { 
+      ...defaultCmsData, 
+      ...parsed,
+      articles: sanitizedArticles,
+      services: (parsed.services && parsed.services.length > 0) ? parsed.services : defaultCmsData.services
+    };
   } catch (e) {
     console.error('Error loading local CMS data', e);
   }

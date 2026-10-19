@@ -4,7 +4,9 @@ import {
   loadLocalCmsData, 
   saveLocalCmsData, 
   extractYouTubeId, 
-  fetchYouTubeInfo 
+  fetchYouTubeInfo,
+  getPersistedRobotArticles,
+  savePersistedRobotArticles
 } from '../services/cmsService';
 import { executeAutoPublish } from '../services/autoPublisher';
 import { smartTranslate } from '../services/translator';
@@ -31,13 +33,30 @@ export const CmsProvider = ({ children }) => {
     if (!db || !firebaseStatus) return;
 
     setLoading(true);
-    const unsubscribe = onSnapshot(
+    const unsubscribeConfig = onSnapshot(
       doc(db, "settings", "cmsConfig"),
       (snapshot) => {
         if (snapshot.exists()) {
           const remoteData = snapshot.data();
           setCmsData(prev => {
-            const merged = { ...prev, ...remoteData };
+            const vaultArticles = getPersistedRobotArticles();
+            const currentArticles = Array.isArray(prev.articles) ? prev.articles : [];
+            const incomingArticles = Array.isArray(remoteData.articles) ? remoteData.articles : [];
+
+            // Resilient deduplicated union: Vault (permanent) + Current state + Remote + Default baseline
+            const mergedArticles = deduplicateArticlesList([
+              ...vaultArticles,
+              ...currentArticles,
+              ...incomingArticles,
+              ...defaultCmsData.articles
+            ]);
+
+            const { articles: _ignored, ...cleanRemote } = remoteData;
+            const merged = { 
+              ...prev, 
+              ...cleanRemote, 
+              articles: mergedArticles 
+            };
             saveLocalCmsData(merged);
             return merged;
           });
@@ -50,13 +69,50 @@ export const CmsProvider = ({ children }) => {
       }
     );
 
-    return () => unsubscribe();
+    // Real-time listener for Firestore collection('articles') where robots write!
+    let unsubscribeArticles = () => {};
+    import('firebase/firestore').then(({ collection, onSnapshot: onCollSnapshot, limit }) => {
+      try {
+        const q = limit(collection(db, 'articles'), 100);
+        unsubscribeArticles = onCollSnapshot(q, (snap) => {
+          if (snap && !snap.empty) {
+            const remoteArticles = snap.docs.map(d => ({ 
+              id: d.id, 
+              ...d.data(), 
+              published: d.data().published !== false 
+            }));
+            
+            // Anchor them into the permanent robot vault!
+            savePersistedRobotArticles(remoteArticles);
+
+            setCmsData(prev => {
+              const currentList = Array.isArray(prev.articles) ? prev.articles : [];
+              const vaultArticles = getPersistedRobotArticles();
+              const merged = deduplicateArticlesList([
+                ...remoteArticles, 
+                ...vaultArticles, 
+                ...currentList, 
+                ...defaultCmsData.articles
+              ]);
+              const updated = { ...prev, articles: merged };
+              saveLocalCmsData(updated);
+              return updated;
+            });
+          }
+        }, err => console.warn('Articles collection snapshot notice:', err));
+      } catch (e) {}
+    });
+
+    return () => {
+      unsubscribeConfig();
+      unsubscribeArticles();
+    };
   }, [firebaseStatus]);
 
   // Synchronize across open windows / tabs on the same device or custom events
   useEffect(() => {
     const handleStorage = (e) => {
-      if (!e.key || e.key === 'amsed_cms_database_v3') {
+      if (!e.key || e.key === 'amsed_cms_database_v3' || e.key === 'amsed_robot_articles_vault') {
         try {
           const fresh = loadLocalCmsData();
           setCmsData(fresh);
@@ -71,33 +127,8 @@ export const CmsProvider = ({ children }) => {
     };
   }, []);
 
-  // Fetch articles created by Robots in Firestore and Supabase with AI Watchdog deduplication
+  // Fetch articles from /api/articles (Supabase) and anchor into vault
   useEffect(() => {
-    // 1. Fetch from Firestore collection('articles') where robots write
-    const syncFirestoreArticles = async () => {
-      if (!db) return;
-      try {
-        const { collection, getDocs, limit } = await import('firebase/firestore');
-        const snap = await getDocs(limit(collection(db, 'articles'), 50));
-        if (snap && !snap.empty) {
-          const remoteArticles = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-          setCmsData(prev => {
-            const currentList = Array.isArray(prev.articles) ? prev.articles : [];
-            const merged = deduplicateArticlesList([...remoteArticles, ...currentList]);
-            if (merged.length !== currentList.length) {
-              const updated = { ...prev, articles: merged };
-              saveLocalCmsData(updated);
-              return updated;
-            }
-            return prev;
-          });
-        }
-      } catch (e) {
-        console.warn('Sync firestore articles notice:', e);
-      }
-    };
-
-    // 2. Fetch from /api/articles (Supabase)
     const syncSupabaseArticles = async () => {
       try {
         const res = await fetch('/api/articles');
@@ -122,24 +153,23 @@ export const CmsProvider = ({ children }) => {
                 : getTopicMatchedImage(a.title_ar || a.title || '').url
             }));
 
+            savePersistedRobotArticles(mapped);
+
             setCmsData(prev => {
               const currentList = Array.isArray(prev.articles) ? prev.articles : [];
-              const merged = deduplicateArticlesList([...mapped, ...currentList]);
-              if (merged.length !== currentList.length) {
-                const updated = { ...prev, articles: merged };
-                saveLocalCmsData(updated);
-                return updated;
-              }
-              return prev;
+              const vaultArticles = getPersistedRobotArticles();
+              const merged = deduplicateArticlesList([...mapped, ...vaultArticles, ...currentList, ...defaultCmsData.articles]);
+              const updated = { ...prev, articles: merged };
+              saveLocalCmsData(updated);
+              return updated;
             });
           }
         }
       } catch (e) {}
     };
 
-    syncFirestoreArticles();
     syncSupabaseArticles();
-  }, [firebaseStatus]);
+  }, []);
 
   // Helper to persist updates to both state, local storage, and Firestore
   const persistUpdate = async (key, value) => {

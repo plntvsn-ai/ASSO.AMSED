@@ -17,6 +17,7 @@ import {
 import { getTopicMatchedImage } from './topicImageService';
 import { smartTranslate } from './translator';
 import { COMPREHENSIVE_AUTISM_TOPICS_50, getDefaultTopicsObjects } from '../data/topicsBank';
+import { savePersistedRobotArticle } from './cmsService';
 
 // دالة توليد مقال متخصص غني وشامل عن التوحد باللغات الثلاث
 export async function generateAutismArticle(topicTitle) {
@@ -191,7 +192,12 @@ export async function generateAutismArticle(topicTitle) {
 export async function publishArticleLocallyAndRemotely(articleDoc) {
   if (!articleDoc) return false;
 
-  // 1. الحفظ في التخزين المحلي (LocalStorage)
+  // 1. الحفظ في الخزنة الدائمة للمقالات المستقلة (Robot Articles Vault)
+  savePersistedRobotArticle(articleDoc);
+
+  let currentAllArticles = [articleDoc];
+
+  // 2. الحفظ في التخزين المحلي العام (LocalStorage)
   try {
     const rawCms = localStorage.getItem('amsed_cms_database_v3');
     const cmsObj = rawCms ? JSON.parse(rawCms) : { articles: [] };
@@ -200,6 +206,7 @@ export async function publishArticleLocallyAndRemotely(articleDoc) {
     // إضافة المقال في البداية وتصفية أي تكرار
     cmsObj.articles.unshift(articleDoc);
     cmsObj.articles = deduplicateArticlesList(cmsObj.articles);
+    currentAllArticles = cmsObj.articles;
     localStorage.setItem('amsed_cms_database_v3', JSON.stringify(cmsObj));
 
     // إشعار باقي واجهات الموقع
@@ -209,18 +216,26 @@ export async function publishArticleLocallyAndRemotely(articleDoc) {
     console.warn('LocalStorage save notice:', err);
   }
 
-  // 2. الحفظ في Firestore
+  // 3. الحفظ في Firestore في كافة الحاويات لضمان عدم المحو نهائياً
   if (db) {
     try {
-      const { collection, addDoc } = await import('firebase/firestore');
-      await addDoc(collection(db, 'articles'), articleDoc);
-      console.log('✅ Article saved to Firestore articles collection:', articleDoc.title);
+      const { collection, addDoc, doc: fsDoc, setDoc } = await import('firebase/firestore');
+      // أ) حفظ وثيقة منفصلة في مجموعة articles
+      await addDoc(collection(db, 'articles'), articleDoc).catch(() => {});
+      
+      // ب) تحديث قائمة المقالات في وثيقة الإعدادات cmsConfig حتى لا تُمسح عند المزامنة
+      await setDoc(fsDoc(db, 'settings', 'cmsConfig'), { articles: currentAllArticles }, { merge: true }).catch(() => {});
+      
+      // ج) حفظ نسخة احتياطية في content/articles
+      await setDoc(fsDoc(db, 'content', 'articles'), { list: currentAllArticles }, { merge: true }).catch(() => {});
+      
+      console.log('✅ Article permanently anchored to Firestore:', articleDoc.title);
     } catch (fsErr) {
       console.warn('Firestore article save notice:', fsErr);
     }
   }
 
-  // 3. الحفظ في Supabase عبر API
+  // 4. الحفظ في Supabase عبر API
   try {
     await fetch('/api/articles', {
       method: 'POST',
