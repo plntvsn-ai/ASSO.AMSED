@@ -65,45 +65,132 @@ Children on the autism spectrum thrive in supportive, predictable, and sensory-f
 
 function getTopicMatchedImage(topic = '') {
   const t = topic.toLowerCase();
-  if (t.includes('أينشتاين') || t.includes('اينشتاين') || t.includes('einstein') || t.includes('عبقر') || t.includes('فيزياء')) {
+
+  // 1. العظماء والشخصيات التاريخية (صور شخصية تاريخية حقيقية ومطابقة 100%)
+  if (t.includes('أينشتاين') || t.includes('اينشتاين') || t.includes('einstein')) {
     return {
-      url: "https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=1000&q=80",
-      alt: "أبحاث علمية وعبقرية أينشتاين والتوحد - AMSED"
+      url: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d3/Albert_Einstein_Head.jpg/800px-Albert_Einstein_Head.jpg",
+      alt: "بورتريه ألبرت أينشتاين وسيرة العبقرية والتغلب على تأخر النطق - AMSED"
     };
   }
-  if (t.includes('نطق') || t.includes('تخاطب') || t.includes('تواصل') || t.includes('كلام') || t.includes('صوت') || t.includes('speech')) {
+  if (t.includes('غيتس') || t.includes('بيل غيتس') || t.includes('gates')) {
     return {
-      url: "https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=1000&q=80",
-      alt: "تأهيل النطق والتخاطب لأطفال التوحد - AMSED"
+      url: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/Bill_Gates_2017_%28cropped%29.jpg/800px-Bill_Gates_2017_%28cropped%29.jpg",
+      alt: "صورة بيل غيتس وثورة البرمجة والشغف الفائق - AMSED"
     };
   }
-  if (t.includes('تغذي') || t.includes('أكل') || t.includes('حمية') || t.includes('طعام') || t.includes('nutrition')) {
+  if (t.includes('ماسك') || t.includes('إيلون ماسك') || t.includes('ايلون ماسك') || t.includes('musk')) {
     return {
-      url: "https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=1000&q=80",
-      alt: "تغذية صحية ومتوازنة للطفل التوحدي - AMSED"
+      url: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/Elon_Musk_Royal_Society_%28crop1%29.jpg/800px-Elon_Musk_Royal_Society_%28crop1%29.jpg",
+      alt: "صورة إيلون ماسك والتفكير الاستثنائي وطيف التوحد أسبرجر - AMSED"
     };
   }
-  if (t.includes('مدرس') || t.includes('دمج') || t.includes('قسم') || t.includes('avs') || t.includes('school')) {
+  if (t.includes('تيسلا') || t.includes('نيكولا تيسلا') || t.includes('tesla')) {
     return {
-      url: "https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=1000&q=80",
-      alt: "الإدماج المدرسي والتعليم الأولي المكيف - AMSED"
+      url: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d4/N.Tesla.JPG/800px-N.Tesla.JPG",
+      alt: "صورة المخترع نيكولا تيسلا وقوة التفكير البصري الخارق - AMSED"
     };
   }
-  if (t.includes('ورش') || t.includes('حلويات') || t.includes('طبخ') || t.includes('رسم') || t.includes('خياط')) {
+  if (t.includes('نيوتن') || t.includes('إسحاق نيوتن') || t.includes('newton')) {
     return {
-      url: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=1000&q=80",
-      alt: "ورشات مهنية وحرفية لأطفال التوحد - AMSED"
+      url: "https://upload.wikimedia.org/wikipedia/commons/thumb/3/39/GodfreyKneller-IsaacNewton-1689.jpg/800px-GodfreyKneller-IsaacNewton-1689.jpg",
+      alt: "بورتريه العالم إسحاق نيوتن ومكتشف الجاذبية والانعزال العلمي - AMSED"
     };
   }
-  if (t.includes('علامات') || t.includes('رضع') || t.includes('مبكر') || t.includes('تشخيص')) {
+  if (t.includes('موزارت') || t.includes('موتسارت') || t.includes('mozart')) {
     return {
-      url: "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=1000&q=80",
-      alt: "العلامات المبكرة للتوحد عند الأطفال - AMSED"
+      url: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Wolfgang-amadeus-mozart_1.jpg/800px-Wolfgang-amadeus-mozart_1.jpg",
+      alt: "بورتريه الموسيقار العالمي ولفغانغ أماديوس موزارت والعبقرية السمعية - AMSED"
     };
   }
+  if (t.includes('تاجيري') || t.includes('بوكيمون') || t.includes('tajiri')) {
+    return {
+      url: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/87/Satoshi_Tajiri_2006.jpg/800px-Satoshi_Tajiri_2006.jpg",
+      alt: "صورة ساتوشي تاجيري مبتكر البوكيمون - AMSED"
+    };
+  }
+  if (t.includes('غريتا') || t.includes('ثونبرغ') || t.includes('thunberg')) {
+    return {
+      url: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/47/Greta_Thunberg_urged_MEPs%2C_2019_%28cropped%29.jpg/800px-Greta_Thunberg_urged_MEPs%2C_2019_%28cropped%29.jpg",
+      alt: "صورة الناشطة غريتا ثونبرغ والتوحد كقوة خارقة - AMSED"
+    };
+  }
+
+  // 2. التغذية الصحية والخضار والفواكه والحمية
+  if (t.includes('تغذي') || t.includes('أكل') || t.includes('حمية') || t.includes('غلوتين') || t.includes('كازين') || t.includes('طعام') || t.includes('فواكه') || t.includes('خضر') || t.includes('nutrition')) {
+    return {
+      url: "https://images.unsplash.com/photo-1610832958506-aa56368176cf?auto=format&fit=crop&w=1200&q=85",
+      alt: "خضار وفواكه طازجة وتغذية صحية متوازنة لأطفال التوحد - AMSED"
+    };
+  }
+
+  // 3. النطق والتخاطب وتطوير الكلام
+  if (t.includes('نطق') || t.includes('تخاطب') || t.includes('كلام') || t.includes('صوت') || t.includes('مصاداة') || t.includes('echolalia') || t.includes('orthophonie') || t.includes('speech')) {
+    return {
+      url: "https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=1200&q=85",
+      alt: "جلسات تأهيل النطق والتخاطب والتواصل التفاعلي - AMSED"
+    };
+  }
+
+  // 4. التعليم والإدماج المدرسي ومرافقة الحياة المدرسية
+  if (t.includes('مدرس') || t.includes('دمج') || t.includes('قسم') || t.includes('avs') || t.includes('تعليم أولي') || t.includes('school')) {
+    return {
+      url: "https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=1200&q=85",
+      alt: "الإدماج المدرسي والتعليم الأولي المكيف لأطفال التوحد - AMSED"
+    };
+  }
+
+  // 5. الأنشطة المائية والسباحة العلاجية
+  if (t.includes('ماء') || t.includes('مائي') || t.includes('سباح') || t.includes('hydro') || t.includes('swim')) {
+    return {
+      url: "https://images.unsplash.com/photo-1530549387789-4c1017266635?auto=format&fit=crop&w=1200&q=85",
+      alt: "السباحة العلاجية والأنشطة المائية لأطفال التوحد - AMSED"
+    };
+  }
+
+  // 6. العلاج بالخيول
+  if (t.includes('خيل') || t.includes('خيول') || t.includes('فروسية') || t.includes('حصان') || t.includes('equitherapie') || t.includes('horse')) {
+    return {
+      url: "https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?auto=format&fit=crop&w=1200&q=85",
+      alt: "العلاج بالخيول والفروسية العلاجية للأطفال - AMSED"
+    };
+  }
+
+  // 7. الورشات الحرفية والنجارة والطبخ
+  if (t.includes('ورش') || t.includes('حلويات') || t.includes('طبخ') || t.includes('نجار') || t.includes('خياط') || t.includes('حرف')) {
+    return {
+      url: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=1200&q=85",
+      alt: "الورشات المهنية والتأهيل الحرفي لليافعين - AMSED"
+    };
+  }
+
+  // 8. الروتين والجداول البصرية PECS
+  if (t.includes('روتين') || t.includes('جدول') || t.includes('pecs') || t.includes('بصري')) {
+    return {
+      url: "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=1200&q=85",
+      alt: "الجداول البصرية المصورة PECS والروتين اليومي المنظم - AMSED"
+    };
+  }
+
+  // 9. العلامات والتشخيص المبكر
+  if (t.includes('علامات') || t.includes('رضع') || t.includes('مبكر') || t.includes('تشخيص') || t.includes('أعراض')) {
+    return {
+      url: "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=1200&q=85",
+      alt: "العلامات المبكرة والتشخيص الدقيق لطيف التوحد - AMSED"
+    };
+  }
+
+  // 10. التكامل الحسي والغرفة الحسية
+  if (t.includes('حسي') || t.includes('غرفة حسية') || t.includes('توتر') || t.includes('meltdown') || t.includes('sensory')) {
+    return {
+      url: "https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&w=1200&q=85",
+      alt: "الغرفة الحسية وتقنيات الاسترخاء وضبط السلوك - AMSED"
+    };
+  }
+
   return {
-    url: "https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&w=1000&q=80",
-    alt: "رعاية وتأهيل أطفال التوحد - AMSED"
+    url: "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?auto=format&fit=crop&w=1200&q=85",
+    alt: "رعاية وتأهيل أطفال التوحد في بيئة دافئة ومحفزة - AMSED"
   };
 }
 

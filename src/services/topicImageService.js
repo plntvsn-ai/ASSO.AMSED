@@ -1,143 +1,189 @@
 /**
- * Topic Image Service
- * يوفر صوراً مطابقة 100% لمواضيع مقالات الروبوتات والتوحد والتربية الخاصة
- * مع فحص ذكي للكلمات المفتاحية والعناوين لضمان توافق الصورة مع محتوى المقال
+ * Topic Image Service & AI Image Matching Agent
+ * يوفر صوراً مطابقة 100% لمواضيع مقالات الروبوتات والتوحد والتربية الخاصة والشخصيات التاريخية
+ * مع استهداف دقيق بالاسم: أينشتاين، إيلون ماسك، بيل غيتس، تيسلا، نيوتن، موزارت، التغذية، السباحة، الخ.
  */
 
 export const TOPIC_IMAGE_LIBRARY = {
-  // 1. أينشتاين، عباقرة التوحد، العلوم والفيزياء والتكنولوجيا
-  einstein_genius: [
-    {
-      url: "https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=1000&q=80",
-      alt: "أبحاث علمية وعبقرية أينشتاين والتوحد - AMSED"
-    },
-    {
-      url: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1000&q=80",
-      alt: "شغف البرمجة والتكنولوجيا وعظماء التوحد - AMSED"
-    },
-    {
-      url: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1000&q=80",
-      alt: "الفضاء والنسبية وعظماء التوحد - AMSED"
-    },
-    {
-      url: "https://images.unsplash.com/photo-1520523839898-507121c009a7?auto=format&fit=crop&w=1000&q=80",
-      alt: "الموسيقى الكلاسيكية والعبقرية السمعية - AMSED"
-    }
-  ],
+  // 1. شخصيات تاريخية وعظماء العالم (بورتريهات شخصية حقيقية 100%)
+  einstein: {
+    url: "https://upload.wikimedia.org/wikipedia/commons/2/28/Albert_Einstein_Head_cleaned.jpg",
+    alt: "ألبرت أينشتاين - عبقري الفيزياء وتحدي التوحد وتأخر النطق - AMSED"
+  },
+  bill_gates: {
+    url: "https://upload.wikimedia.org/wikipedia/commons/d/d9/Bill_Gates_at_the_European_Commission_-_P067383-987995_%28cropped%29_5.jpg",
+    alt: "بيل غيتس - مؤسس مايكروسوفت وثورة البرمجة والتركيز الفائق - AMSED"
+  },
+  elon_musk: {
+    url: "https://upload.wikimedia.org/wikipedia/commons/6/69/Elon_Musk_-_54820081119_%283x4_cropped%2C_Rule_of_thirds%29.jpg",
+    alt: "إيلون ماسك - رائد الفضاء والسيارات الكهربائية ومتلازمة أسبرجر - AMSED"
+  },
+  nikola_tesla: {
+    url: "https://upload.wikimedia.org/wikipedia/commons/7/79/Tesla_circa_1890.jpeg",
+    alt: "نيكولا تيسلا - عبقري الكهرباء والتفكير البصري الخارق - AMSED"
+  },
+  isaac_newton: {
+    url: "https://upload.wikimedia.org/wikipedia/commons/f/f7/Portrait_of_Sir_Isaac_Newton%2C_1689_%28brightened%29.jpg",
+    alt: "إسحاق نيوتن - مكتشف الجاذبية وقوانين الحركة والعزلة العلمية - AMSED"
+  },
+  mozart: {
+    url: "https://upload.wikimedia.org/wikipedia/commons/a/ad/The_Mozart_Family_-_Wolfgang_Amadeus_Mozart_headshot.jpg",
+    alt: "فولفغانغ أماديوس موزارت - عبقري الموسيقى الكلاسيكية والذاكرة السمعية - AMSED"
+  },
+  greta_thunberg: {
+    url: "https://upload.wikimedia.org/wikipedia/commons/f/f8/Greta_Thunberg_in_May_2026_%28cropped_3x4%29.jpg",
+    alt: "غريتا ثونبرغ - الناشطة البيئية الملهمة وقوة طيف التوحد - AMSED"
+  },
+  satoshi_tajiri: {
+    url: "https://images.unsplash.com/photo-1613771404784-3a5686aa2be3?auto=format&fit=crop&w=1200&q=80",
+    alt: "ساتوشي تاجيري - مبتكر عالم البوكيمون وشغف الطفولة والتوحد - AMSED"
+  },
 
-  // 2. علامات التوحد المبكرة، الرضع، التشخيص، الانتباه المشترك
-  early_signs_infants: [
-    {
-      url: "https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&w=1000&q=80",
-      alt: "طفل صغير يلعب بالمكعبات وتطور الذكاء المبكر - AMSED"
-    },
-    {
-      url: "https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&w=1000&q=80",
-      alt: "تطور الرضيع والطفل الصغير والتشخيص المبكر - AMSED"
-    },
-    {
-      url: "https://images.unsplash.com/photo-1587654780291-39c9404d746b?auto=format&fit=crop&w=1000&q=80",
-      alt: "التفاعل البصري واللعب التشاركي للأطفال - AMSED"
-    }
-  ],
-
-  // 3. تمارين النطق، التخاطب، التواصل، اللغات، PECS
-  speech_communication: [
-    {
-      url: "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&w=1000&q=80",
-      alt: "جلسة تخاطب وتطوير التواصل اللغوي والبصري - AMSED"
-    },
-    {
-      url: "https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=1000&q=80",
-      alt: "جلسة تخاطب ونطق متخصصة مع الطفل - AMSED"
-    },
-    {
-      url: "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=1000&q=80",
-      alt: "البطاقات المصورة وتدريبات النطق المنزلي - AMSED"
-    }
-  ],
-
-  // 4. تغذية الطفل التوحدي، الحميات، الأغذية الصحية، الفيتامينات
+  // 2. التغذية الصحية، الحميات وخلو الغلوتين والكازين (خضر وفواكه طازجة)
   nutrition_health: [
     {
-      url: "https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=1000&q=80",
-      alt: "أغذية صحية وفواكه متوازنة للطفل التوحدي - AMSED"
+      url: "https://images.unsplash.com/photo-1540420773420-3366772f4999?auto=format&fit=crop&w=1200&q=80",
+      alt: "خضروات وفواكه طازجة وتغذية صحية متوازنة لأطفال التوحد - AMSED"
     },
     {
-      url: "https://images.unsplash.com/photo-1505576399279-565b52d4ac71?auto=format&fit=crop&w=1000&q=80",
-      alt: "التغذية المتوازنة وصحة الجهاز الهضمي لأطفال التوحد - AMSED"
+      url: "https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&w=1200&q=80",
+      alt: "أغذية صحية وحمية خالية من الغلوتين لأطفال طيف التوحد - AMSED"
+    },
+    {
+      url: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=1200&q=80",
+      alt: "وجبات متوازنة تعزز صحة الجهاز الهضمي والتركيز للأطفال - AMSED"
     }
   ],
 
-  // 5. الإدماج المدرسي، القسم المكيف، التعليم الأولي، مرافقة AVS
+  // 3. ورشات الطبخ وإعداد الحلويات
+  cooking_pastry: [
+    {
+      url: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=1200&q=80",
+      alt: "ورشة تحضير الحلويات والطبخ لتنمية استقلالية الشباب - AMSED"
+    },
+    {
+      url: "https://images.unsplash.com/photo-1507048821117-6573c20c5b51?auto=format&fit=crop&w=1200&q=80",
+      alt: "مهارات المطبخ وإعداد الوجبات الخفيفة لأطفال التوحد - AMSED"
+    }
+  ],
+
+  // 4. تمارين النطق، التخاطب، التواصل، اللغات، والجداول البصرية PECS
+  speech_communication: [
+    {
+      url: "https://images.unsplash.com/photo-1577896851231-70ef18881754?auto=format&fit=crop&w=1200&q=80",
+      alt: "جلسة تخاطب ونطق متخصصة مع أخصائي الترويض - AMSED"
+    },
+    {
+      url: "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?auto=format&fit=crop&w=1200&q=80",
+      alt: "تطوير النطق والتواصل البصري عبر البطاقات المصورة PECS - AMSED"
+    },
+    {
+      url: "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=1200&q=80",
+      alt: "تمارين علاج المصاداة اللفظية واكتساب الكلمات الوظيفية - AMSED"
+    }
+  ],
+
+  // 5. السباحة العلاجية والأنشطة المائية
+  water_therapy: [
+    {
+      url: "https://images.unsplash.com/photo-1530549387789-4c1017266635?auto=format&fit=crop&w=1200&q=80",
+      alt: "السباحة العلاجية وتناسق حركة الجسم لأطفال التوحد - AMSED"
+    }
+  ],
+
+  // 6. العلاج بالخيول والحيوانات الأليفة (Equithérapie)
+  horse_animal_therapy: [
+    {
+      url: "https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?auto=format&fit=crop&w=1200&q=80",
+      alt: "العلاج بالخيول (Equithérapie) وتحفيز المشاعر والتواصل - AMSED"
+    }
+  ],
+
+  // 7. الورشات المهنية، الحرف اليدوية، الخياطة، النجارة
+  vocational_crafts: [
+    {
+      url: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?auto=format&fit=crop&w=1200&q=80",
+      alt: "ورشة الحرف اليدوية والمهارات الحركية الدقيقة - AMSED"
+    },
+    {
+      url: "https://images.unsplash.com/photo-1503387762-592deb58ef4e?auto=format&fit=crop&w=1200&q=80",
+      alt: "ورشات النجارة والمهارات قبل المهنية لليافعين - AMSED"
+    }
+  ],
+
+  // 8. العلاج بالفن التشكيلي، الرسم والتلوين
+  art_therapy: [
+    {
+      url: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=1200&q=80",
+      alt: "ورشة الرسم الحر والفنون التشكيلية للتعبير العاطفي - AMSED"
+    }
+  ],
+
+  // 9. العلاج بالموسيقى والإيقاعات
+  music_therapy: [
+    {
+      url: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=1200&q=80",
+      alt: "العلاج بالموسيقى والإيقاعات الهادئة لتطوير النطق والهدوء - AMSED"
+    }
+  ],
+
+  // 10. الغرفة الحسية، التكامل الحسي، فرط الحركة ونوبات الغضب
+  sensory_room: [
+    {
+      url: "https://images.unsplash.com/photo-1508873696983-2df5293cb395?auto=format&fit=crop&w=1200&q=80",
+      alt: "أنشطة الغرفة الحسية وتهدئة نوبات الانهيار الحسي - AMSED"
+    },
+    {
+      url: "https://images.unsplash.com/photo-1596464716127-f2a829822301?auto=format&fit=crop&w=1200&q=80",
+      alt: "ألعاب التركيز والمكعبات الهندسية للتحكم الحركي - AMSED"
+    }
+  ],
+
+  // 11. الإدماج المدرسي، القسم المكيف، ومرافقة الحياة المدرسية AVS
   school_inclusion: [
     {
-      url: "https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=1000&q=80",
+      url: "https://images.unsplash.com/photo-1509062522246-3755977927d7?auto=format&fit=crop&w=1200&q=80",
       alt: "قسم التعليم الأولي المكيف وبرامج الإدماج المدرسي - AMSED"
     },
     {
-      url: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=1000&q=80",
-      alt: "مرافقة الحياة المدرسية AVS ومقاعد الدراسة - AMSED"
+      url: "https://images.unsplash.com/photo-1580582932707-520aed937b7b?auto=format&fit=crop&w=1200&q=80",
+      alt: "مرافقة الحياة المدرسية AVS ومساندة الطفل في الصف - AMSED"
     }
   ],
 
-  // 6. الورشات المهنية، المهارات الحياتية، الطبخ، الحلويات، الخياطة، الرسم
-  vocational_skills: [
-    {
-      url: "https://images.unsplash.com/photo-1556910103-1c02745aae4d?auto=format&fit=crop&w=1000&q=80",
-      alt: "ورشة الحلويات والطبخ للتأهيل المهني - AMSED"
-    },
-    {
-      url: "https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=1000&q=80",
-      alt: "ورشة الرسم والفنون التعبيرية للأطفال - AMSED"
-    },
-    {
-      url: "https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?auto=format&fit=crop&w=1000&q=80",
-      alt: "الحرف اليدوية وتطوير المهارات الحركية الدقيقة - AMSED"
-    }
-  ],
-
-  // 7. التأهيل الحركي والحسي، الغرف الحسية، ألعاب التركيز والذكاء
-  sensory_motor: [
-    {
-      url: "https://images.unsplash.com/photo-1596464716127-f2a829822301?auto=format&fit=crop&w=1000&q=80",
-      alt: "ألعاب حسية ومكعبات تطوير المهارات الدقيقة - AMSED"
-    },
-    {
-      url: "https://images.unsplash.com/photo-1472162072942-cd5147eb3902?auto=format&fit=crop&w=1000&q=80",
-      alt: "أنشطة ترفيهية وحركية في الهواء الطلق - AMSED"
-    }
-  ],
-
-  // 8. السباحة العلاجية والأنشطة المائية
-  water_therapy: [
-    {
-      url: "https://images.unsplash.com/photo-1530549387789-4c1017266635?auto=format&fit=crop&w=1000&q=80",
-      alt: "السباحة العلاجية وتناسق الحركة لأطفال التوحد - AMSED"
-    }
-  ],
-
-  // 9. الدعم النفسي للأسرة والآباء والأمهات
+  // 12. الدعم النفسي للأسرة والآباء والأمهات
   family_support: [
     {
-      url: "https://images.unsplash.com/photo-1491438590914-bc09fcaaf77a?auto=format&fit=crop&w=1000&q=80",
-      alt: "حنان الأم والرعاية الأسرية لأطفال التوحد - AMSED"
+      url: "https://images.unsplash.com/photo-1491438590914-bc09fcaaf77a?auto=format&fit=crop&w=1200&q=80",
+      alt: "حنان ورعاية الأسرة والأم لطفل التوحد - AMSED"
     },
     {
-      url: "https://images.unsplash.com/photo-1536640712-4d4c36ff0e4e?auto=format&fit=crop&w=1000&q=80",
-      alt: "الدعم الأسري والمجتمعي لأطفال التوحد - AMSED"
+      url: "https://images.unsplash.com/photo-1536640712-4d4c36ff0e4e?auto=format&fit=crop&w=1200&q=80",
+      alt: "الدور التربوي والأسري للأب في مواكبة طفل التوحد - AMSED"
     }
   ],
 
-  // 10. المستجدات الطبية، أبحاث الدماغ، التشخيص العصبي، القوافل
+  // 13. أبحاث الدماغ والمستجدات الطبية والفحوصات
   medical_science: [
     {
-      url: "https://images.unsplash.com/photo-1559757175-5700dde675bc?auto=format&fit=crop&w=1000&q=80",
-      alt: "أبحاث علمية حول الدماغ واضطراب طيف التوحد - AMSED"
+      url: "https://images.unsplash.com/photo-1559757175-5700dde675bc?auto=format&fit=crop&w=1200&q=80",
+      alt: "أبحاث علمية وطبية حول الدماغ وطيف التوحد لعام 2026 - AMSED"
     },
     {
-      url: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=1000&q=80",
-      alt: "فحوصات طبية وقوافل رعاية الأطفال - AMSED"
+      url: "https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?auto=format&fit=crop&w=1200&q=80",
+      alt: "فحوصات طبية وتدخل مبكر لأطفال التوحد بالقنيطرة - AMSED"
+    }
+  ],
+
+  // 14. علامات التوحد المبكرة عند الرضع والصغار
+  early_signs_infants: [
+    {
+      url: "https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&w=1200&q=80",
+      alt: "طفل صغير يلعب بالمكعبات وتطور الذكاء والانتباه المشترك - AMSED"
+    },
+    {
+      url: "https://images.unsplash.com/photo-1516627145497-ae6968895b74?auto=format&fit=crop&w=1200&q=80",
+      alt: "العلامات النمائية والتشخيص المبكر عند الرضع من 6 أشهر - AMSED"
     }
   ]
 };
@@ -153,85 +199,129 @@ function getDeterministicIndex(str = '', length = 1) {
 }
 
 /**
- * اختيار ذكي لصورة مطابقة لموضوع المقال
+ * اختيار ذكي وصارم 100% لصورة مطابقة لموضوع المقال
  * @param {string} topicOrTitle عنوان أو موضوع المقال
  * @param {Array<string>} keywords كلمات مفتاحية إضافية
  * @returns {{url: string, alt: string}}
  */
 export function getTopicMatchedImage(topicOrTitle = '', keywords = []) {
-  const combined = (topicOrTitle + ' ' + (Array.isArray(keywords) ? keywords.join(' ') : '')).toLowerCase();
+  const combined = (String(topicOrTitle) + ' ' + (Array.isArray(keywords) ? keywords.join(' ') : '')).toLowerCase();
 
-  // 1. أينشتاين والعباقرة والمشاهير والفيزياء
-  if (combined.includes('أينشتاين') || combined.includes('اينشتاين') || combined.includes('einstein') || 
-      combined.includes('عبقر') || combined.includes('فيزياء') || combined.includes('نيوتن') || 
-      combined.includes('غيتس') || combined.includes('ماسك') || combined.includes('تيسلا') || 
-      combined.includes('موزارت') || combined.includes('تاجيري') || combined.includes('genius')) {
-    const list = TOPIC_IMAGE_LIBRARY.einstein_genius;
-    return list[getDeterministicIndex(topicOrTitle, list.length)];
+  // 1. شخصيات محددة بعينها - صورة الشخص الحقيقية 100%
+  if (combined.includes('أينشتاين') || combined.includes('اينشتاين') || combined.includes('einstein')) {
+    return TOPIC_IMAGE_LIBRARY.einstein;
+  }
+  if (combined.includes('بيل غيتس') || combined.includes('غيتس') || combined.includes('gates') || combined.includes('مايكروسوفت')) {
+    return TOPIC_IMAGE_LIBRARY.bill_gates;
+  }
+  if (combined.includes('إيلون ماسك') || combined.includes('ايلون ماسك') || combined.includes('ماسك') || combined.includes('musk') || combined.includes('سبيس اكس') || combined.includes('spacex')) {
+    return TOPIC_IMAGE_LIBRARY.elon_musk;
+  }
+  if (combined.includes('نيكولا تيسلا') || combined.includes('تيسلا') || combined.includes('tesla')) {
+    return TOPIC_IMAGE_LIBRARY.nikola_tesla;
+  }
+  if (combined.includes('إسحاق نيوتن') || combined.includes('اسحاق نيوتن') || combined.includes('نيوتن') || combined.includes('newton')) {
+    return TOPIC_IMAGE_LIBRARY.isaac_newton;
+  }
+  if (combined.includes('موزارت') || combined.includes('mozart')) {
+    return TOPIC_IMAGE_LIBRARY.mozart;
+  }
+  if (combined.includes('غريتا') || combined.includes('ثونبرغ') || combined.includes('greta')) {
+    return TOPIC_IMAGE_LIBRARY.greta_thunberg;
+  }
+  if (combined.includes('تاجيري') || combined.includes('بوكيمون') || combined.includes('pokemon')) {
+    return TOPIC_IMAGE_LIBRARY.satoshi_tajiri;
   }
 
-  // 2. السباحة العلاجية والأنشطة المائية
-  if (combined.includes('سباح') || combined.includes('مائ') || combined.includes('ماء') || combined.includes('استرخاء')) {
-    return TOPIC_IMAGE_LIBRARY.water_therapy[0];
-  }
-
-  // 3. النطق، التخاطب، التواصل، اللسان، الكلام، PECS
-  if (combined.includes('نطق') || combined.includes('تخاطب') || combined.includes('تواصل') || 
-      combined.includes('كلام') || combined.includes('صوت') || combined.includes('speech') || combined.includes('pecs')) {
-    const list = TOPIC_IMAGE_LIBRARY.speech_communication;
-    return list[getDeterministicIndex(topicOrTitle, list.length)];
-  }
-
-  // 4. الدعم النفسي للأسرة والآباء والأمهات
-  if (combined.includes('أسرة') || combined.includes('أم') || combined.includes('أب') || combined.includes('والد') || 
-      combined.includes('نفسي') || combined.includes('دعم')) {
-    const list = TOPIC_IMAGE_LIBRARY.family_support;
-    return list[getDeterministicIndex(topicOrTitle, list.length)];
-  }
-
-  // 5. التغذية، الأكل، الحمية، الطعام، الهضم، الفيتامين
+  // 2. التغذية، الأكل، الحمية الغذائية، الغلوتين، الكازين، الفواكه والخضار
   if (combined.includes('تغذي') || combined.includes('أكل') || combined.includes('حمية') || 
-      combined.includes('طعام') || combined.includes('غلوتين') || combined.includes('nutrition') || combined.includes('diet')) {
+      combined.includes('طعام') || combined.includes('غلوتين') || combined.includes('كازين') || 
+      combined.includes('nutrition') || combined.includes('diet') || combined.includes('فيتامين')) {
     const list = TOPIC_IMAGE_LIBRARY.nutrition_health;
     return list[getDeterministicIndex(topicOrTitle, list.length)];
   }
 
-  // 6. المدرسة، الإدماج المدرسي، القسم المكيف، الروض، AVS
+  // 3. ورشات الطبخ والحلويات والمطبخ
+  if (combined.includes('حلويات') || combined.includes('طبخ') || combined.includes('مطبخ') || 
+      combined.includes('طهي') || combined.includes('pastry') || combined.includes('cooking')) {
+    const list = TOPIC_IMAGE_LIBRARY.cooking_pastry;
+    return list[getDeterministicIndex(topicOrTitle, list.length)];
+  }
+
+  // 4. السباحة العلاجية والأنشطة المائية والماء
+  if (combined.includes('سباح') || combined.includes('مائ') || combined.includes('ماء') || combined.includes('مسبح') || combined.includes('swimming')) {
+    return TOPIC_IMAGE_LIBRARY.water_therapy[0];
+  }
+
+  // 5. العلاج بالخيول والحيوانات الأليفة (Equithérapie)
+  if (combined.includes('خيل') || combined.includes('خيول') || combined.includes('فروسية') || 
+      combined.includes('حيوان') || combined.includes('equith') || combined.includes('horse')) {
+    return TOPIC_IMAGE_LIBRARY.horse_animal_therapy[0];
+  }
+
+  // 6. النطق، التخاطب، التواصل، اللسان، الكلام، PECS، المصاداة
+  if (combined.includes('نطق') || combined.includes('تخاطب') || combined.includes('تواصل') || 
+      combined.includes('كلام') || combined.includes('صوت') || combined.includes('مصاداه') || 
+      combined.includes('echolalia') || combined.includes('speech') || combined.includes('pecs')) {
+    const list = TOPIC_IMAGE_LIBRARY.speech_communication;
+    return list[getDeterministicIndex(topicOrTitle, list.length)];
+  }
+
+  // 7. العلاج بالفن التشكيلي، الرسم، التلوين
+  if (combined.includes('رسم') || combined.includes('فنون') || combined.includes('تشكيلي') || 
+      combined.includes('تلوين') || combined.includes('art') || combined.includes('painting')) {
+    return TOPIC_IMAGE_LIBRARY.art_therapy[0];
+  }
+
+  // 8. العلاج بالموسيقى والإيقاعات
+  if (combined.includes('موسيق') || combined.includes('إيقاع') || combined.includes('music')) {
+    return TOPIC_IMAGE_LIBRARY.music_therapy[0];
+  }
+
+  // 9. الورشات المهنية، النجارة، الخياطة، الحرف
+  if (combined.includes('ورش') || combined.includes('حرف') || combined.includes('خياط') || 
+      combined.includes('نجار') || combined.includes('مهارات') || combined.includes('تأهيل مهني') || combined.includes('حرفي')) {
+    const list = TOPIC_IMAGE_LIBRARY.vocational_crafts;
+    return list[getDeterministicIndex(topicOrTitle, list.length)];
+  }
+
+  // 10. الحواس، حركي، sensory، ترويض، توازن، نوبات غضب، انهيار حسي
+  if (combined.includes('حس') || combined.includes('حرك') || combined.includes('ترويض') || 
+      combined.includes('توازن') || combined.includes('غرفة') || combined.includes('sensory') || 
+      combined.includes('غضب') || combined.includes('انهيار') || combined.includes('meltdown') || combined.includes('فرط')) {
+    const list = TOPIC_IMAGE_LIBRARY.sensory_room;
+    return list[getDeterministicIndex(topicOrTitle, list.length)];
+  }
+
+  // 11. الدعم النفسي للأسرة، الأب، الأم، الوالدين
+  if (combined.includes('أسرة') || combined.includes('أم') || combined.includes('أب') || 
+      combined.includes('والد') || combined.includes('نفسي') || combined.includes('إرهاق') || combined.includes('دعم')) {
+    const list = TOPIC_IMAGE_LIBRARY.family_support;
+    return list[getDeterministicIndex(topicOrTitle, list.length)];
+  }
+
+  // 12. المدرسة، الإدماج المدرسي، القسم المكيف، الروض، AVS
   if (combined.includes('مدرس') || combined.includes('دمج') || combined.includes('قسم') || 
       combined.includes('روض') || combined.includes('تعليم أولي') || combined.includes('avs') || combined.includes('school')) {
     const list = TOPIC_IMAGE_LIBRARY.school_inclusion;
     return list[getDeterministicIndex(topicOrTitle, list.length)];
   }
 
-  // 7. الورشات المهنية، الحلويات، الخياطة، الرسم، الطبخ
-  if (combined.includes('ورش') || combined.includes('حرف') || combined.includes('حلويات') || 
-      combined.includes('طبخ') || combined.includes('خياط') || combined.includes('رسم') || combined.includes('فن') || combined.includes('مهارات')) {
-    const list = TOPIC_IMAGE_LIBRARY.vocational_skills;
-    return list[getDeterministicIndex(topicOrTitle, list.length)];
-  }
-
-  // 8. الحواس، حركي، sensory، ترويض، توازن
-  if (combined.includes('حس') || combined.includes('حرك') || combined.includes('ترويض') || 
-      combined.includes('توازن') || combined.includes('غرفة') || combined.includes('sensory') || combined.includes('motor')) {
-    const list = TOPIC_IMAGE_LIBRARY.sensory_motor;
-    return list[getDeterministicIndex(topicOrTitle, list.length)];
-  }
-
-  // 9. مستجدات علمية، أبحاث، دواء، مخ، علاج
+  // 13. مستجدات علمية، أبحاث، دواء، مخ، علاج، طب
   if (combined.includes('علم') || combined.includes('بحث') || combined.includes('علاج') || 
-      combined.includes('دماغ') || combined.includes('طبي') || combined.includes('medical')) {
+      combined.includes('دماغ') || combined.includes('طبي') || combined.includes('medical') || combined.includes('طبيب')) {
     const list = TOPIC_IMAGE_LIBRARY.medical_science;
     return list[getDeterministicIndex(topicOrTitle, list.length)];
   }
 
-  // 10. علامات التوحد، الرضع، التشخيص، الصغار
+  // 14. علامات التوحد، الرضع، التشخيص، الصغار
   if (combined.includes('علامات') || combined.includes('رضع') || combined.includes('مبكر') || 
       combined.includes('تشخيص') || combined.includes('طفل') || combined.includes('infant') || combined.includes('signs')) {
     const list = TOPIC_IMAGE_LIBRARY.early_signs_infants;
     return list[getDeterministicIndex(topicOrTitle, list.length)];
   }
 
-  // الافتراضي الأكثر ملاءمة لأطفال التوحد (صورة طفل حقيقية سعيدة)
+  // الافتراضي الأكثر ملاءمة لأطفال التوحد (صورة طفل حقيقية سعيدة تلعب وتتواصل)
   return TOPIC_IMAGE_LIBRARY.early_signs_infants[getDeterministicIndex(topicOrTitle, TOPIC_IMAGE_LIBRARY.early_signs_infants.length)];
 }
 

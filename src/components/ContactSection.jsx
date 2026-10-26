@@ -127,6 +127,13 @@ export const ContactSection = () => {
     return `https://wa.me/${intl}?text=${text}`;
   };
 
+  // إخفاء قسم الاتصال كاملاً إذا اختار المسؤول ذلك في لوحة التحكم
+  if (association.showContactSection === false) {
+    return null;
+  }
+
+  const isFormVisible = association.showContactForm !== false;
+
   return (
     <section id="contact" className="py-20 bg-white/80 backdrop-blur-sm relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
@@ -311,112 +318,153 @@ export const ContactSection = () => {
 
           {/* Interactive Contact Form (7 cols) */}
           <div className="lg:col-span-7 bg-slate-50 rounded-3xl p-8 sm:p-10 border border-slate-200 shadow-sm relative">
-            <div className="mb-6">
-              <h3 className="text-2xl font-bold text-slate-900">
-                {t('contact', 'sendMessage')}
-              </h3>
-              <p className="text-xs sm:text-sm text-slate-600 mt-1">
-                {lang === 'ar' 
-                  ? 'املأ النموذج وسيقوم مسؤول الجمعية بالتواصل معك مباشرة.' 
-                  : lang === 'fr'
-                  ? 'Remplissez le formulaire et notre équipe prendra contact avec vous.'
-                  : 'Fill out the form and our team will get in touch with you shortly.'}
-              </p>
-            </div>
+            {isFormVisible ? (
+              <>
+                <div className="mb-6">
+                  <h3 className="text-2xl font-bold text-slate-900">
+                    {t('contact', 'sendMessage')}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-600 mt-1">
+                    {lang === 'ar' 
+                      ? 'املأ النموذج وسيقوم مسؤول الجمعية بالتواصل معك مباشرة.' 
+                      : lang === 'fr'
+                      ? 'Remplissez le formulaire et notre équipe prendra contact avec vous.'
+                      : 'Fill out the form and our team will get in touch with you shortly.'}
+                  </p>
+                </div>
 
-            {submitted && (
-              <div className="mb-6 p-4 rounded-2xl bg-emerald-100 border border-emerald-300 text-emerald-900 flex items-center gap-3 animate-fadeIn">
-                <CheckCircle2 className="w-6 h-6 text-emerald-600 shrink-0" />
-                <p className="text-xs sm:text-sm font-semibold">
-                  {t('contact', 'successMsg')}
-                </p>
+                {submitted && (
+                  <div className="mb-6 p-4 rounded-2xl bg-emerald-100 border border-emerald-300 text-emerald-900 flex items-center gap-3 animate-fadeIn">
+                    <CheckCircle2 className="w-6 h-6 text-emerald-600 shrink-0" />
+                    <p className="text-xs sm:text-sm font-semibold">
+                      {t('contact', 'successMsg')}
+                    </p>
+                  </div>
+                )}
+
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                        {t('contact', 'formName')} *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        placeholder={lang === 'ar' ? 'محمد بناني' : 'Mohamed Bennani'}
+                        className="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-slate-900 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none transition"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                        {t('contact', 'formPhone')} *
+                      </label>
+                      <input
+                        type="tel"
+                        required
+                        value={formData.phone}
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        placeholder="06XXXXXXXX"
+                        className="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-slate-900 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none transition"
+                        dir="ltr"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                        {t('contact', 'formEmail')}
+                      </label>
+                      <input
+                        type="email"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        placeholder="example@mail.com"
+                        className="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-slate-900 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none transition"
+                        dir="ltr"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                        {t('contact', 'formSubject')}
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.subject}
+                        onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                        placeholder={lang === 'ar' ? 'مثال: استفسار، اقتراح' : lang === 'fr' ? 'Ex: Information, suggestion' : 'E.g.: Inquiry, proposal'}
+                        className="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-slate-900 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none transition"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      {t('contact', 'formMessage')} *
+                    </label>
+                    <textarea
+                      required
+                      rows={4}
+                      value={formData.message}
+                      onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                      placeholder={lang === 'ar' ? 'اكتب تفاصيل طلبك أو رسالتك هنا...' : lang === 'fr' ? 'Écrivez votre message ici...' : 'Write your message or inquiry here...'}
+                      className="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-slate-900 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none transition resize-none"
+                    ></textarea>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full inline-flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3.5 rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-0.5 disabled:opacity-50"
+                  >
+                    <Send className="w-4 h-4" />
+                    <span>{loading ? t('contact', 'sending') : t('contact', 'sendBtn')}</span>
+                  </button>
+                </form>
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center text-center p-8 sm:p-12 space-y-6">
+                <div className="w-20 h-20 rounded-3xl bg-emerald-100 text-emerald-700 flex items-center justify-center shadow-inner">
+                  <Phone className="w-10 h-10" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-2xl font-black text-slate-900">
+                    {lang === 'ar' ? 'تواصل معنا مباشرة عبر الهاتف أو الواتساب' : lang === 'fr' ? 'Contactez-nous directement par téléphone ou WhatsApp' : 'Contact Us Directly via Phone or WhatsApp'}
+                  </h3>
+                  <p className="text-sm text-slate-600 max-w-md mx-auto">
+                    {lang === 'ar' 
+                      ? 'يسعدنا استقبال اتصالاتكم واستفساراتكم مباشرة عبر أرقام الإدارة أو عبر محادثة واتساب الفورية.'
+                      : lang === 'fr'
+                      ? 'Nous serions ravis de recevoir vos appels et messages directement via nos lignes ou WhatsApp.'
+                      : 'We are pleased to receive your direct calls or WhatsApp messages anytime during working hours.'}
+                  </p>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md pt-2">
+                  <a
+                    href={`tel:${association.phone1}`}
+                    className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-4 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-bold shadow-md transition transform hover:-translate-y-0.5 text-sm"
+                  >
+                    <Phone className="w-4 h-4 text-emerald-400" />
+                    <span dir="ltr">{association.phone1}</span>
+                  </a>
+                  <a
+                    href={getWhatsappUrl()}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex-1 inline-flex items-center justify-center gap-2 px-6 py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold shadow-md transition transform hover:-translate-y-0.5 text-sm"
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    <span>WhatsApp</span>
+                  </a>
+                </div>
               </div>
             )}
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                    {t('contact', 'formName')} *
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder={lang === 'ar' ? 'محمد بناني' : 'Mohamed Bennani'}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-slate-900 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none transition"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                    {t('contact', 'formPhone')} *
-                  </label>
-                  <input
-                    type="tel"
-                    required
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    placeholder="06XXXXXXXX"
-                    className="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-slate-900 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none transition"
-                    dir="ltr"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                    {t('contact', 'formEmail')}
-                  </label>
-                  <input
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="example@mail.com"
-                    className="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-slate-900 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none transition"
-                    dir="ltr"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                    {t('contact', 'formSubject')}
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.subject}
-                    onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                    placeholder={lang === 'ar' ? 'مثال: استفسار، اقتراح' : lang === 'fr' ? 'Ex: Information, suggestion' : 'E.g.: Inquiry, proposal'}
-                    className="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-slate-900 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none transition"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  {t('contact', 'formMessage')} *
-                </label>
-                <textarea
-                  required
-                  rows={4}
-                  value={formData.message}
-                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                  placeholder={lang === 'ar' ? 'اكتب تفاصيل طلبك أو رسالتك هنا...' : lang === 'fr' ? 'Écrivez votre message ici...' : 'Write your message or inquiry here...'}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-slate-900 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none transition resize-none"
-                ></textarea>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full inline-flex items-center justify-center gap-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3.5 rounded-xl shadow-md hover:shadow-lg transition transform hover:-translate-y-0.5 disabled:opacity-50"
-              >
-                <Send className="w-4 h-4" />
-                <span>{loading ? t('contact', 'sending') : t('contact', 'sendBtn')}</span>
-              </button>
-            </form>
           </div>
 
         </div>

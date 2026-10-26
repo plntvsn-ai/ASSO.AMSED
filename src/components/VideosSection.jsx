@@ -19,10 +19,19 @@ export const VideosSection = () => {
   const { cmsData } = useCms();
   const [syncing, setSyncing] = useState(false);
   const [syncSuccess, setSyncSuccess] = useState(false);
-  const [channelVideos, setChannelVideos] = useState(OFFICIAL_CHANNEL_VIDEOS);
-  const [currentVideo, setCurrentVideo] = useState(OFFICIAL_CHANNEL_VIDEOS[0]);
+  const [channelVideos, setChannelVideos] = useState(() => {
+    try {
+      const cached = localStorage.getItem('amsed_cached_youtube_videos');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch (e) {}
+    return OFFICIAL_CHANNEL_VIDEOS;
+  });
+  const [currentVideo, setCurrentVideo] = useState(() => OFFICIAL_CHANNEL_VIDEOS[0]);
 
-  // Load all channel videos automatically on mount
+  // Load all channel videos automatically on mount via serverless proxy
   useEffect(() => {
     let isMounted = true;
     (async () => {
@@ -30,13 +39,10 @@ export const VideosSection = () => {
         const vids = await fetchAllChannelVideos(YOUTUBE_CHANNEL_CONFIG.youtubeChannelId);
         if (isMounted && vids && vids.length > 0) {
           setChannelVideos(vids);
-          if (!currentVideo) {
-            const feat = vids.find(v => v.isDailyFeatured) || vids[0];
-            setCurrentVideo(feat);
-          }
+          setCurrentVideo(prev => prev || vids[0]);
         }
       } catch (e) {
-        console.error("Auto channel fetch error:", e);
+        console.warn("Auto channel fetch notice:", e);
       }
     })();
     return () => { isMounted = false; };

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useCms } from '../../context/CmsContext';
-import { Phone, Mail, MapPin, Save, Check, Compass, CreditCard } from 'lucide-react';
+import { Phone, Mail, MapPin, Save, Check, Compass, CreditCard, Eye, EyeOff } from 'lucide-react';
 
 export const ContactAdmin = () => {
   const { cmsData, updateContact } = useCms();
@@ -61,6 +61,61 @@ export const ContactAdmin = () => {
 
       {/* Form Fields */}
       <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+        {/* التحكم في الظهور والإخفاء (خيارات إخفاء استمارة راسلنا) */}
+        <div className="bg-amber-50/70 border border-amber-200 p-5 rounded-2xl space-y-3">
+          <div>
+            <h3 className="font-bold text-amber-900 text-sm flex items-center gap-2">
+              <Eye className="w-4 h-4 text-amber-700" />
+              <span>التحكم في ظهور استمارة المراسلة (راسلنا) وقسم الاتصال</span>
+            </h3>
+            <p className="text-xs text-amber-700 mt-0.5">
+              يمكنك إخفاء استمارة إرسال الرسائل التي يعبئها ولي الأمر، أو إخفاء قسم الاتصال كاملاً حسب رغبتك.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+            <div className="bg-white p-4 rounded-xl border border-amber-200/80 flex items-center justify-between">
+              <div>
+                <span className="block text-xs font-bold text-slate-800">استمارة "راسلنا" (نموذج ولي الأمر)</span>
+                <span className="text-[11px] text-slate-500">
+                  {contact.showContactForm === false ? 'مخفية حالياً من الموقع ❌' : 'ظاهرة ومفعلة حالياً بالموقع ✅'}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleFieldChange('showContactForm', contact.showContactForm === false ? true : false)}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                  contact.showContactForm === false 
+                    ? 'bg-rose-100 text-rose-700 hover:bg-rose-200 border border-rose-300' 
+                    : 'bg-emerald-700 text-white hover:bg-emerald-800 shadow'
+                }`}
+              >
+                {contact.showContactForm === false ? 'إظهار الاستمارة' : 'إخفاء الاستمارة'}
+              </button>
+            </div>
+
+            <div className="bg-white p-4 rounded-xl border border-amber-200/80 flex items-center justify-between">
+              <div>
+                <span className="block text-xs font-bold text-slate-800">قسم الاتصال كاملاً بالرئيسية</span>
+                <span className="text-[11px] text-slate-500">
+                  {contact.showContactSection === false ? 'مخفي بالكامل من الرئيسية ❌' : 'ظاهر ومفعل بالرئيسية ✅'}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => handleFieldChange('showContactSection', contact.showContactSection === false ? true : false)}
+                className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer ${
+                  contact.showContactSection === false 
+                    ? 'bg-rose-100 text-rose-700 hover:bg-rose-200 border border-rose-300' 
+                    : 'bg-emerald-700 text-white hover:bg-emerald-800 shadow'
+                }`}
+              >
+                {contact.showContactSection === false ? 'إظهار القسم' : 'إخفاء القسم'}
+              </button>
+            </div>
+          </div>
+        </div>
+
         {/* Phones */}
         <div>
           <h3 className="font-bold text-slate-900 text-sm mb-3 flex items-center gap-2">

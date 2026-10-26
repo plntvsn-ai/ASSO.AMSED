@@ -6,7 +6,9 @@ import {
   extractYouTubeId, 
   fetchYouTubeInfo,
   getPersistedRobotArticles,
-  savePersistedRobotArticles
+  savePersistedRobotArticles,
+  updatePersistedRobotArticle,
+  deletePersistedRobotArticle
 } from '../services/cmsService';
 import { executeAutoPublish } from '../services/autoPublisher';
 import { smartTranslate } from '../services/translator';
@@ -43,10 +45,10 @@ export const CmsProvider = ({ children }) => {
             const currentArticles = Array.isArray(prev.articles) ? prev.articles : [];
             const incomingArticles = Array.isArray(remoteData.articles) ? remoteData.articles : [];
 
-            // Resilient deduplicated union: Vault (permanent) + Current state + Remote + Default baseline
+            // Resilient deduplicated union: Current edited state FIRST, then Vault, Remote, Default baseline
             const mergedArticles = deduplicateArticlesList([
-              ...vaultArticles,
               ...currentArticles,
+              ...vaultArticles,
               ...incomingArticles,
               ...defaultCmsData.articles
             ]);
@@ -88,10 +90,11 @@ export const CmsProvider = ({ children }) => {
             setCmsData(prev => {
               const currentList = Array.isArray(prev.articles) ? prev.articles : [];
               const vaultArticles = getPersistedRobotArticles();
+              // Preserve current articles (user edits) at highest priority
               const merged = deduplicateArticlesList([
+                ...currentList,
                 ...remoteArticles, 
                 ...vaultArticles, 
-                ...currentList, 
                 ...defaultCmsData.articles
               ]);
               const updated = { ...prev, articles: merged };
@@ -247,13 +250,42 @@ export const CmsProvider = ({ children }) => {
         fields.title_en = en;
       } catch (err) {}
     }
+    
+    // Explicitly flag as user-edited so automated processes never overwrite it
     const updated = cmsData.articles.map(art => 
-      art.id === id ? { ...art, ...fields } : art
+      art.id === id ? { 
+        ...art, 
+        ...fields, 
+        isUserEdited: true, 
+        customImage: true, 
+        manualEdit: true,
+        updatedAt: new Date().toISOString()
+      } : art
     );
+
+    const editedArt = updated.find(a => a.id === id);
+    if (editedArt) {
+      updatePersistedRobotArticle(editedArt);
+      // Also update single doc in Firestore collection('articles') if present
+      if (db) {
+        try {
+          const { doc: fsDoc, setDoc } = await import('firebase/firestore');
+          await setDoc(fsDoc(db, 'articles', String(id)), editedArt, { merge: true }).catch(() => {});
+        } catch (e) {}
+      }
+    }
+
     persistUpdate('articles', updated);
   };
 
-  const deleteArticle = (id) => {
+  const deleteArticle = async (id) => {
+    deletePersistedRobotArticle(id);
+    if (db) {
+      try {
+        const { doc: fsDoc, deleteDoc } = await import('firebase/firestore');
+        await deleteDoc(fsDoc(db, 'articles', String(id))).catch(() => {});
+      } catch (e) {}
+    }
     const updated = cmsData.articles.filter(art => art.id !== id);
     persistUpdate('articles', updated);
   };

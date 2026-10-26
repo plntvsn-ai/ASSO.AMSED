@@ -5,6 +5,8 @@ import {
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { initialData } from '../data/initialData';
 import { deduplicateArticlesList } from './aiManagerSupervisor';
+import { getTopicMatchedImage } from './topicImageService';
+import { auditAndUpgradeArticlesImages } from './aiImageAgent';
 
 const LOCAL_STORAGE_KEY = 'amsed_cms_database_v3';
 
@@ -22,7 +24,7 @@ export const defaultCmsData = {
       is_ai: true,
       createdAt: "2026-10-13",
       published: true,
-      image: "https://images.unsplash.com/photo-1532094349884-543bc11b234d?auto=format&fit=crop&w=1000&q=80",
+      image: "https://upload.wikimedia.org/wikipedia/commons/2/28/Albert_Einstein_Head_cleaned.jpg",
       excerpt: "سيرة ذاتية ملهمة للفيزيائي العالمي ألبرت أينشتاين: كيف حوّل سمات التوحد إلى نسبية هزت العالم ورسالة أمل من جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED القنيطرة.",
       content: `<div style='text-align:center; background:#f0f9ff; padding:10px; border-radius:10px; margin-bottom:15px;'><strong>🧩 جمعية المبادرة المغربية للتعاون والتكافل لرعاية الأطفال في وضعية صعبة - AMSED | دعم أطفال التوحد - القنيطرة</strong></div>
 
@@ -696,10 +698,44 @@ export const savePersistedRobotArticle = (articleDoc) => {
   if (typeof window === 'undefined' || !articleDoc) return;
   try {
     const current = getPersistedRobotArticles();
-    const updated = deduplicateArticlesList([articleDoc, ...current]);
+    const artId = String(articleDoc.id || articleDoc._id || '');
+    // If article already in vault, update it in-place to keep most recent version
+    const filtered = current.filter(a => String(a.id || a._id || '') !== artId);
+    const updated = deduplicateArticlesList([articleDoc, ...filtered]);
     localStorage.setItem(ROBOT_ARTICLES_VAULT_KEY, JSON.stringify(updated));
   } catch (e) {
     console.warn('Failed to save to robot articles vault:', e);
+  }
+};
+
+export const updatePersistedRobotArticle = (articleDoc) => {
+  if (typeof window === 'undefined' || !articleDoc) return;
+  try {
+    const current = getPersistedRobotArticles();
+    const artId = String(articleDoc.id || articleDoc._id || '');
+    const idx = current.findIndex(a => String(a.id || a._id || '') === artId);
+    let updated;
+    if (idx !== -1) {
+      updated = [...current];
+      updated[idx] = { ...updated[idx], ...articleDoc };
+    } else {
+      updated = [articleDoc, ...current];
+    }
+    localStorage.setItem(ROBOT_ARTICLES_VAULT_KEY, JSON.stringify(updated));
+  } catch (e) {
+    console.warn('Failed to update in robot articles vault:', e);
+  }
+};
+
+export const deletePersistedRobotArticle = (id) => {
+  if (typeof window === 'undefined' || !id) return;
+  try {
+    const current = getPersistedRobotArticles();
+    const targetId = String(id);
+    const updated = current.filter(a => String(a.id || a._id || '') !== targetId);
+    localStorage.setItem(ROBOT_ARTICLES_VAULT_KEY, JSON.stringify(updated));
+  } catch (e) {
+    console.warn('Failed to delete from robot articles vault:', e);
   }
 };
 
@@ -736,16 +772,20 @@ export const loadLocalCmsData = () => {
       return a;
     });
 
-    // Resilient union: Vault articles (permanent robot articles) + user articles + default baseline articles
-    const mergedArticles = [...vaultArticles, ...updatedUserArticles, ...defaultCmsData.articles];
+    // CRITICAL: User-edited articles take HIGHEST precedence over old vault copies!
+    const mergedArticles = [...updatedUserArticles, ...vaultArticles, ...defaultCmsData.articles];
     const cleanUniqueArticles = deduplicateArticlesList(mergedArticles);
-    const sanitizedArticles = cleanUniqueArticles.map(a => {
+
+    // Apply AI Image Agent to ensure 100% matched images while strictly respecting user edits
+    const verifiedArticles = auditAndUpgradeArticlesImages(cleanUniqueArticles);
+
+    const sanitizedArticles = verifiedArticles.map(a => {
       let author = a.author || 'أطر جمعية AMSED';
-      if (author.includes('روبوت')) author = 'أطر جمعية AMSED';
+      if (typeof author === 'string' && author.includes('روبوت')) author = 'أطر جمعية AMSED';
       
       let img = a.image || a.imageUrl;
       if (!img || img.includes('542601906990-b4d3fb778b09') || img.includes('picsum.photos') || img.includes('photo-1503676260728')) {
-        img = "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=1000&q=80";
+        img = getTopicMatchedImage(a.title || a.title_ar || '', a.keywords).url;
       }
       
       const title = (a.title || '').replace(/الدار البيضاء/g, 'القنيطرة');
